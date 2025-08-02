@@ -121,7 +121,7 @@ response, err := session.Query(ctx, &types.QueryRequest{
 // Execute a tool
 tool := &client.ClaudeCodeTool{
     Name: "read_file",
-    Parameters: map[string]interface{}{
+    Parameters: map[string]any{
         "path": "main.go",
     },
 }

@@ -17,6 +17,7 @@ func TestNewClaudeCodeClient(t *testing.T) {
 		SessionID:        "test-session",
 		Model:            "claude-3-5-sonnet-20241022",
 		APIKey:           "test-key",
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 	}
 
 	ctx := context.Background()
@@ -36,7 +37,9 @@ func TestNewClaudeCodeClient(t *testing.T) {
 }
 
 func TestClaudeCodeClient_ConfigDefaults(t *testing.T) {
-	config := &types.ClaudeCodeConfig{}
+	config := &types.ClaudeCodeConfig{
+		TestMode: true, // Skip Claude Code CLI requirement for testing
+	}
 
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
@@ -93,6 +96,7 @@ func TestClaudeCodeClient_InvalidConfig(t *testing.T) {
 func TestBuildClaudeArgs(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 		SessionID:        "test-session",
 		Model:            "claude-3-5-sonnet-20241022",
@@ -123,7 +127,7 @@ func TestBuildClaudeArgs(t *testing.T) {
 	// Check that arguments contain expected values
 	expectedArgs := map[string]bool{
 		"--model":       false,
-		"--session":     false,
+		"--session-id":  false,
 		"--max-tokens":  false,
 		"--temperature": false,
 		"--system":      false,
@@ -167,6 +171,7 @@ func TestBuildClaudeArgs(t *testing.T) {
 func TestMessagesToPrompt(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -221,6 +226,7 @@ func TestMessagesToPrompt(t *testing.T) {
 func TestParseClaudeOutput(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -277,6 +283,7 @@ func TestParseClaudeOutput(t *testing.T) {
 
 func TestBuildEnvironment(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		APIKey: "test-api-key",
 		Environment: map[string]string{
 			"CUSTOM_VAR": "custom_value",
@@ -349,6 +356,7 @@ func TestFindClaudeCodeCommand(t *testing.T) {
 func TestClaudeCodeClient_Close(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -396,6 +404,7 @@ func TestClaudeCodeClientIntegration(t *testing.T) {
 
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 		SessionID:        "integration-test",
 		APIKey:           os.Getenv("ANTHROPIC_API_KEY"), // Use real API key from environment

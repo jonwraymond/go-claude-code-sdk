@@ -1,6 +1,6 @@
 module github.com/jonwraymond/go-claude-code-sdk
 
-go 1.21
+go 1.20
 
 require github.com/stretchr/testify v1.10.0
 

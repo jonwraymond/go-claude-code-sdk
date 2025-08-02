@@ -68,7 +68,7 @@ Claude Code provides various tools for file operations and code analysis:
 	// Execute a tool directly
 	result, err := client.Tools().ExecuteTool(ctx, &ClaudeCodeTool{
 		Name: "read_file",
-		Arguments: map[string]interface{}{
+		Arguments: map[string]any{
 			"path": "main.go",
 		},
 	})

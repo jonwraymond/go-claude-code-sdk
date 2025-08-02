@@ -30,7 +30,7 @@ Messages are the core communication unit with Claude Code:
 	assistantMsg := types.NewTextMessage(types.MessageRoleAssistant, "Hello! How can I help?")
 
 	// Messages with tool usage
-	toolMsg := types.NewToolUseMessage("tool-123", "read_file", map[string]interface{}{
+	toolMsg := types.NewToolUseMessage("tool-123", "read_file", map[string]any{
 		"path": "main.go",
 	})
 
@@ -51,7 +51,7 @@ Commands represent Claude Code CLI operations:
 	cmd := &types.Command{
 		Type: types.CommandAnalyze,
 		Args: []string{"src/"},
-		Options: map[string]interface{}{
+		Options: map[string]any{
 			"include_tests": true,
 		},
 	}

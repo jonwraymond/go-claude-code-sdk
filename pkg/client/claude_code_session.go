@@ -92,7 +92,7 @@ type ClaudeCodeSession struct {
 	model      string
 
 	// Session metadata
-	metadata map[string]interface{}
+	metadata map[string]any
 
 	// Session lifecycle
 	createdAt  time.Time
@@ -154,7 +154,7 @@ func (sm *ClaudeCodeSessionManager) CreateSession(ctx context.Context, sessionID
 		manager:    sm,
 		projectDir: sm.client.workingDir,
 		model:      sm.client.config.Model,
-		metadata:   make(map[string]interface{}),
+		metadata:   make(map[string]any),
 		createdAt:  time.Now(),
 		lastUsedAt: time.Now(),
 		timeout:    sm.config.SessionTimeout,
@@ -293,7 +293,8 @@ func (s *ClaudeCodeSession) Query(ctx context.Context, request *types.QueryReque
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -328,7 +329,8 @@ func (s *ClaudeCodeSession) QueryStream(ctx context.Context, request *types.Quer
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -366,7 +368,8 @@ func (s *ClaudeCodeSession) ExecuteCommand(ctx context.Context, cmd *types.Comma
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -393,7 +396,8 @@ func (s *ClaudeCodeSession) ExecuteSlashCommand(ctx context.Context, slashComman
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -425,12 +429,12 @@ func (s *ClaudeCodeSession) buildSessionRequest(request *types.QueryRequest) *ty
 }
 
 // GetMetadata returns session metadata.
-func (s *ClaudeCodeSession) GetMetadata() map[string]interface{} {
+func (s *ClaudeCodeSession) GetMetadata() map[string]any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	// Return a copy
-	metadata := make(map[string]interface{}, len(s.metadata))
+	metadata := make(map[string]any, len(s.metadata))
 	for k, v := range s.metadata {
 		metadata[k] = v
 	}
@@ -438,7 +442,7 @@ func (s *ClaudeCodeSession) GetMetadata() map[string]interface{} {
 }
 
 // SetMetadata sets session metadata.
-func (s *ClaudeCodeSession) SetMetadata(key string, value interface{}) {
+func (s *ClaudeCodeSession) SetMetadata(key string, value any) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

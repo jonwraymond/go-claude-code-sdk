@@ -92,7 +92,7 @@ type StreamChunk struct {
 	Delta *StreamDelta `json:"delta,omitempty"`
 
 	// Metadata contains additional information about this chunk
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 
 	// Done indicates whether this is the final chunk in the stream
 	Done bool `json:"done"`
@@ -190,7 +190,7 @@ type Session struct {
 	MessageCount int `json:"message_count"`
 
 	// Metadata contains additional session information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // SessionConfig contains configuration options for creating new sessions.
@@ -208,5 +208,5 @@ type SessionConfig struct {
 	Temperature float64 `json:"temperature,omitempty"`
 
 	// Metadata contains additional configuration options
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }

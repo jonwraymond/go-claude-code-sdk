@@ -371,7 +371,7 @@ func sanitizeValue(value string) string {
 
 // isLikelySecret checks if a value looks like it might be a secret.
 func isLikelySecret(value string) bool {
-	lowerValue := fmt.Sprintf("%s", value) // Don't convert to lower to avoid allocations
+	lowerValue := value // Don't convert to lower to avoid allocations
 
 	// Check for patterns that might indicate secrets
 	secretPatterns := []string{

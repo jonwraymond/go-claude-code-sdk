@@ -19,8 +19,8 @@ type ValidationViolation struct {
 	Field      string      `json:"field"`      // Field path (e.g., "messages.0.content")
 	Code       string      `json:"code"`       // Violation code (e.g., "required", "max_length")
 	Message    string      `json:"message"`    // Human-readable message
-	Value      interface{} `json:"value"`      // The invalid value (sanitized)
-	Constraint interface{} `json:"constraint"` // The constraint that was violated
+	Value      any `json:"value"`      // The invalid value (sanitized)
+	Constraint any `json:"constraint"` // The constraint that was violated
 }
 
 // NewValidationError creates a new validation error.
@@ -71,9 +71,9 @@ func NewValidationErrorWithViolations(violations []ValidationViolation) *Validat
 	}
 
 	// Add violations to details
-	violationDetails := make([]map[string]interface{}, len(violations))
+	violationDetails := make([]map[string]any, len(violations))
 	for i, v := range violations {
-		violationDetails[i] = map[string]interface{}{
+		violationDetails[i] = map[string]any{
 			"field":      v.Field,
 			"code":       v.Code,
 			"message":    v.Message,
@@ -87,7 +87,7 @@ func NewValidationErrorWithViolations(violations []ValidationViolation) *Validat
 }
 
 // AddViolation adds a validation violation to the error.
-func (e *ValidationError) AddViolation(field, code, message string, value, constraint interface{}) {
+func (e *ValidationError) AddViolation(field, code, message string, value, constraint any) {
 	violation := ValidationViolation{
 		Field:      field,
 		Code:       code,
@@ -180,13 +180,13 @@ type ParameterValidationError struct {
 	*ValidationError
 	ParameterName string      // Name of the parameter
 	ParameterType string      // Expected type of the parameter
-	MinValue      interface{} // Minimum allowed value (if applicable)
-	MaxValue      interface{} // Maximum allowed value (if applicable)
+	MinValue      any // Minimum allowed value (if applicable)
+	MaxValue      any // Maximum allowed value (if applicable)
 	AllowedValues []string    // List of allowed values (if applicable)
 }
 
 // NewParameterValidationError creates a new parameter validation error.
-func NewParameterValidationError(paramName, paramType string, value interface{}, constraint string) *ParameterValidationError {
+func NewParameterValidationError(paramName, paramType string, value any, constraint string) *ParameterValidationError {
 	sanitizedValue := sanitizeValidationValue(fmt.Sprintf("%v", value))
 	message := fmt.Sprintf("Invalid parameter '%s': %s", paramName, constraint)
 
@@ -206,14 +206,14 @@ func NewParameterValidationError(paramName, paramType string, value interface{},
 }
 
 // WithMinValue sets the minimum allowed value constraint.
-func (e *ParameterValidationError) WithMinValue(min interface{}) *ParameterValidationError {
+func (e *ParameterValidationError) WithMinValue(min any) *ParameterValidationError {
 	e.MinValue = min
 	e.WithDetail("min_value", min)
 	return e
 }
 
 // WithMaxValue sets the maximum allowed value constraint.
-func (e *ParameterValidationError) WithMaxValue(max interface{}) *ParameterValidationError {
+func (e *ParameterValidationError) WithMaxValue(max any) *ParameterValidationError {
 	e.MaxValue = max
 	e.WithDetail("max_value", max)
 	return e
@@ -257,7 +257,7 @@ func NewSchemaValidationError(schemaPath, schemaRule, message string) *SchemaVal
 // Validation helper functions
 
 // ValidateRequired checks if a required field is present and not empty.
-func ValidateRequired(field string, value interface{}) *ValidationViolation {
+func ValidateRequired(field string, value any) *ValidationViolation {
 	if value == nil {
 		return &ValidationViolation{
 			Field:   field,
@@ -350,7 +350,7 @@ func ValidateEnum(field string, value string, allowedValues []string) *Validatio
 }
 
 // ValidateSliceLength validates slice/array length constraints.
-func ValidateSliceLength(field string, slice []interface{}, minLength, maxLength int) *ValidationViolation {
+func ValidateSliceLength(field string, slice []any, minLength, maxLength int) *ValidationViolation {
 	length := len(slice)
 
 	if minLength > 0 && length < minLength {

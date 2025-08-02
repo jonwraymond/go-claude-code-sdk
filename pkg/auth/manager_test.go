@@ -318,7 +318,7 @@ func TestFileStore(t *testing.T) {
 		Type:       types.AuthTypeSession,
 		Credential: "test-session-key",
 		CreatedAt:  time.Now(),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"test": "value",
 		},
 	}

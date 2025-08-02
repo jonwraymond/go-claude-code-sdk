@@ -16,7 +16,7 @@ The package defines a base ClaudeCodeError type with specialized error types:
 		Category   string                 // Error category for classification
 		HTTPStatus int                    // HTTP status code if applicable
 		Retryable  bool                   // Whether the operation can be retried
-		Details    map[string]interface{} // Additional error context
+		Details    map[string]any // Additional error context
 		Cause      error                  // Underlying error if wrapped
 	}
 
@@ -92,7 +92,7 @@ Rich validation error support:
 
 	type ValidationError struct {
 		Field      string      // Field that failed validation
-		Value      interface{} // Actual value provided
+		Value      any // Actual value provided
 		Constraint string      // Validation constraint violated
 		Message    string      // Human-readable message
 	}

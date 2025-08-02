@@ -13,6 +13,7 @@ import (
 func TestNewProjectContextManager(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -42,6 +43,7 @@ func TestProjectContextManager_GetEnhancedProjectContext(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -100,6 +102,7 @@ func TestProjectContextManager_CacheManagement(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -171,6 +174,7 @@ func TestProjectContextManager_AnalyzeArchitecture(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, "docker-compose.yml"), []byte("version: '3'"), 0644)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -245,6 +249,7 @@ func TestProjectContextManager_AnalyzeDependencies(t *testing.T) {
 			tt.setupFunc(tempDir)
 
 			config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 				WorkingDirectory: tempDir,
 			}
 
@@ -285,6 +290,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, ".prettierrc"), []byte("{}"), 0644)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -304,7 +310,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for Docker
 	if dockerInfo, exists := tools["docker"]; exists {
-		dockerMap := dockerInfo.(map[string]interface{})
+		dockerMap := dockerInfo.(map[string]any)
 		if !dockerMap["dockerfile"].(bool) {
 			t.Error("Expected to detect Dockerfile")
 		}
@@ -317,7 +323,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for CI/CD
 	if cicdInfo, exists := tools["ci_cd"]; exists {
-		cicdMap := cicdInfo.(map[string]interface{})
+		cicdMap := cicdInfo.(map[string]any)
 		if !cicdMap["github_actions"].(bool) {
 			t.Error("Expected to detect GitHub Actions")
 		}
@@ -327,7 +333,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for linting
 	if lintInfo, exists := tools["linting"]; exists {
-		lintMap := lintInfo.(map[string]interface{})
+		lintMap := lintInfo.(map[string]any)
 		if !lintMap["eslint"].(bool) {
 			t.Error("Expected to detect ESLint")
 		}
@@ -337,7 +343,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for formatting
 	if formatInfo, exists := tools["formatting"]; exists {
-		formatMap := formatInfo.(map[string]interface{})
+		formatMap := formatInfo.(map[string]any)
 		if !formatMap["prettier"].(bool) {
 			t.Error("Expected to detect Prettier")
 		}
@@ -371,6 +377,7 @@ require (
 	os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -418,6 +425,7 @@ func TestClaudeCodeClient_ProjectContextIntegration(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

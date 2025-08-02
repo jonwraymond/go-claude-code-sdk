@@ -638,7 +638,7 @@ func TestErrorSerialization(t *testing.T) {
 	})
 
 	t.Run("details serialization", func(t *testing.T) {
-		details := map[string]interface{}{
+		details := map[string]any{
 			"field":  "username",
 			"value":  "test",
 			"number": 42,

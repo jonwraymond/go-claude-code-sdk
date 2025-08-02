@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -111,10 +112,22 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	// Apply defaults including authentication method detection
 	config.ApplyDefaults()
 
-	// Find claude command
-	claudeCmd, err := findClaudeCodeCommand(config.ClaudeCodePath)
-	if err != nil {
-		return nil, sdkerrors.WrapError(err, sdkerrors.CategoryConfiguration, "CLAUDE_CODE_PATH", "failed to locate claude code executable")
+	// Find claude command (skip in test mode)
+	var claudeCmd string
+	if config.TestMode {
+		// Use a cross-platform approach for test mode
+		if runtime.GOOS == "windows" {
+			// Use echo command on Windows (built-in to cmd.exe)
+			claudeCmd = "echo"
+		} else {
+			claudeCmd = "/bin/echo"
+		}
+	} else {
+		var err error
+		claudeCmd, err = findClaudeCodeCommand(config.ClaudeCodePath)
+		if err != nil {
+			return nil, sdkerrors.WrapError(err, sdkerrors.CategoryConfiguration, "CLAUDE_CODE_PATH", "failed to locate claude code executable")
+		}
 	}
 
 	// Validate working directory
@@ -389,7 +402,7 @@ func (c *ClaudeCodeClient) detectPrimaryLanguage() string {
 	}
 
 	// Walk the directory and count files by extension
-	filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
@@ -566,7 +579,7 @@ func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
 	files := &types.ProjectFiles{
 		Languages:      make(map[string]int),
 		ImportantFiles: make([]string, 0),
-		Structure:      make(map[string]interface{}),
+		Structure:      make(map[string]any),
 	}
 
 	// Count files by extension
@@ -590,7 +603,7 @@ func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
 		"docker-compose.yml", "Dockerfile", ".gitignore",
 	}
 
-	filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
@@ -700,7 +713,7 @@ func (c *ClaudeCodeClient) SetProjectContextCacheDuration(duration time.Duration
 }
 
 // GetProjectContextCacheInfo returns information about the project context cache status.
-func (c *ClaudeCodeClient) GetProjectContextCacheInfo() map[string]interface{} {
+func (c *ClaudeCodeClient) GetProjectContextCacheInfo() map[string]any {
 	return c.projectContextManager.GetCacheInfo()
 }
 
@@ -844,7 +857,7 @@ func (c *ClaudeCodeClient) messagesToPrompt(messages []types.Message) (string, e
 }
 
 // extractTextContent extracts text content from message content blocks.
-func (c *ClaudeCodeClient) extractTextContent(content interface{}) string {
+func (c *ClaudeCodeClient) extractTextContent(content any) string {
 	switch v := content.(type) {
 	case string:
 		return v

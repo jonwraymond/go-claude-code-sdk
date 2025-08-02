@@ -188,7 +188,7 @@ type ProxyError struct {
 // NewProxyError creates a new proxy error.
 func NewProxyError(proxyAddress, proxyType string, cause error) *ProxyError {
 	sanitizedAddr := sanitizeAddress(proxyAddress)
-	message := fmt.Sprintf("Proxy connection failed")
+	message := "Proxy connection failed"
 	if sanitizedAddr != "" {
 		message = fmt.Sprintf("Proxy connection failed for %s", sanitizedAddr)
 	}

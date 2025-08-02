@@ -375,7 +375,7 @@ func IsAuthorizationError(err error) bool {
 }
 
 // AsError is a wrapper around errors.As for convenience.
-func AsError(err error, target interface{}) bool {
+func AsError(err error, target any) bool {
 	// This would use errors.As in a real implementation
 	// For now, we'll use a simple type assertion approach
 	switch target := target.(type) {

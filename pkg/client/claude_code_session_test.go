@@ -12,6 +12,7 @@ import (
 func TestNewClaudeCodeSessionManager(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -41,6 +42,7 @@ func TestNewClaudeCodeSessionManager(t *testing.T) {
 func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 		Model:            "claude-3-5-sonnet-20241022",
 	}
@@ -121,6 +123,7 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 func TestClaudeCodeSessionManager_MaxSessions(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -161,6 +164,7 @@ func TestClaudeCodeSessionManager_MaxSessions(t *testing.T) {
 func TestClaudeCodeSessionManager_GetSession(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -199,6 +203,7 @@ func TestClaudeCodeSessionManager_GetSession(t *testing.T) {
 func TestClaudeCodeSessionManager_CloseSession(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -243,6 +248,7 @@ func TestClaudeCodeSessionManager_CloseSession(t *testing.T) {
 func TestClaudeCodeSessionManager_Cleanup(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -287,6 +293,7 @@ func TestClaudeCodeSessionManager_Cleanup(t *testing.T) {
 func TestClaudeCodeSession_Metadata(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -324,6 +331,7 @@ func TestClaudeCodeSession_Metadata(t *testing.T) {
 func TestClaudeCodeSession_ProjectDirectory(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -368,6 +376,7 @@ func TestClaudeCodeSession_ProjectDirectory(t *testing.T) {
 func TestClaudeCodeSession_Lifecycle(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -448,6 +457,7 @@ func TestClaudeCodeSession_Lifecycle(t *testing.T) {
 func TestClaudeCodeSession_ExecuteCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -480,6 +490,7 @@ func TestClaudeCodeSession_ExecuteCommand(t *testing.T) {
 func TestClaudeCodeSession_ExecuteSlashCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -507,6 +518,7 @@ func TestClaudeCodeSession_ExecuteSlashCommand(t *testing.T) {
 func TestClaudeCodeClient_SessionIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

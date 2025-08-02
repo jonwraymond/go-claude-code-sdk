@@ -102,7 +102,7 @@ func (ce *CommandExecutor) ExecuteCommand(ctx context.Context, cmd *Command) (*C
 		Command: cmd,
 		Success: true,
 		Output:  output,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"stop_reason": response.StopReason,
 		},
 	}, nil
@@ -296,7 +296,7 @@ func (ce *CommandExecutor) ParseSlashCommand(slashCommand string) (*Command, err
 
 	// Parse options (simple key=value parsing)
 	var cleanArgs []string
-	options := make(map[string]interface{})
+	options := make(map[string]any)
 
 	for _, arg := range args {
 		if strings.Contains(arg, "=") {
@@ -334,7 +334,7 @@ func ReadFile(filename string, options ...func(*Command)) *Command {
 	cmd := &Command{
 		Type:    CommandRead,
 		Args:    []string{filename},
-		Options: make(map[string]interface{}),
+		Options: make(map[string]any),
 	}
 
 	for _, opt := range options {
@@ -349,7 +349,7 @@ func WriteFile(filename, content string, options ...func(*Command)) *Command {
 	cmd := &Command{
 		Type:    CommandWrite,
 		Args:    []string{filename, content},
-		Options: make(map[string]interface{}),
+		Options: make(map[string]any),
 	}
 
 	for _, opt := range options {
@@ -364,7 +364,7 @@ func AnalyzeCode(target string, options ...func(*Command)) *Command {
 	cmd := &Command{
 		Type:    CommandAnalyze,
 		Args:    []string{target},
-		Options: make(map[string]interface{}),
+		Options: make(map[string]any),
 	}
 
 	for _, opt := range options {
@@ -379,7 +379,7 @@ func SearchCode(query string, options ...func(*Command)) *Command {
 	cmd := &Command{
 		Type:    CommandSearch,
 		Args:    []string{query},
-		Options: make(map[string]interface{}),
+		Options: make(map[string]any),
 	}
 
 	for _, opt := range options {
@@ -393,7 +393,7 @@ func SearchCode(query string, options ...func(*Command)) *Command {
 func GitStatus(options ...func(*Command)) *Command {
 	cmd := &Command{
 		Type:    CommandGitStatus,
-		Options: make(map[string]interface{}),
+		Options: make(map[string]any),
 	}
 
 	for _, opt := range options {
@@ -409,7 +409,7 @@ func GitStatus(options ...func(*Command)) *Command {
 func WithSummary(summarize bool) func(*Command) {
 	return func(cmd *Command) {
 		if cmd.Options == nil {
-			cmd.Options = make(map[string]interface{})
+			cmd.Options = make(map[string]any)
 		}
 		cmd.Options["summarize"] = summarize
 	}
@@ -419,7 +419,7 @@ func WithSummary(summarize bool) func(*Command) {
 func WithPattern(pattern string) func(*Command) {
 	return func(cmd *Command) {
 		if cmd.Options == nil {
-			cmd.Options = make(map[string]interface{})
+			cmd.Options = make(map[string]any)
 		}
 		cmd.Options["pattern"] = pattern
 	}
@@ -429,7 +429,7 @@ func WithPattern(pattern string) func(*Command) {
 func WithDepth(depth string) func(*Command) {
 	return func(cmd *Command) {
 		if cmd.Options == nil {
-			cmd.Options = make(map[string]interface{})
+			cmd.Options = make(map[string]any)
 		}
 		cmd.Options["depth"] = depth
 	}
@@ -439,17 +439,17 @@ func WithDepth(depth string) func(*Command) {
 func WithLimit(limit int) func(*Command) {
 	return func(cmd *Command) {
 		if cmd.Options == nil {
-			cmd.Options = make(map[string]interface{})
+			cmd.Options = make(map[string]any)
 		}
 		cmd.Options["limit"] = limit
 	}
 }
 
 // WithContext adds context information to a command
-func WithContext(key string, value interface{}) func(*Command) {
+func WithContext(key string, value any) func(*Command) {
 	return func(cmd *Command) {
 		if cmd.Context == nil {
-			cmd.Context = make(map[string]interface{})
+			cmd.Context = make(map[string]any)
 		}
 		cmd.Context[key] = value
 	}
