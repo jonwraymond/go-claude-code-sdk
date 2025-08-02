@@ -35,20 +35,20 @@
 ## Phase 2: API Completeness (Target: Week 3-4)
 
 ### 2.1 Streaming API
-- 🔴 Implement StreamQuery method
-- 🔴 Add StreamEvent type
-- 🔴 Parse stream-json output format
-- 🔴 Add event channel management
-- 🔴 Implement progress callbacks
-- 🔴 Add streaming examples
+- 🟢 Implement StreamQuery method
+- 🟢 Add StreamEvent type
+- 🟢 Parse stream-json output format
+- 🟢 Add event channel management
+- 🟢 Implement progress callbacks
+- 🟢 Add streaming examples
 
 ### 2.2 Query Options Documentation
-- 🔴 Document CLI-supported options
-- 🔴 Add compatibility matrix
-- 🔴 Implement warning system
-- 🔴 Create CompatibilityMode
-- 🔴 Add option validation
-- 🔴 Update API documentation
+- 🟢 Document CLI-supported options
+- 🟢 Add compatibility matrix
+- 🟢 Implement warning system
+- 🟢 Create CompatibilityMode
+- 🟢 Add option validation
+- 🟢 Update API documentation
 
 ### 2.3 Session History Features
 - 🔴 Implement GetSessionHistory
