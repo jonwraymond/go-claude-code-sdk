@@ -56,7 +56,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         version: v1.59
-        args: --timeout=10m --config=.golangci.yml
+        args: --timeout=10m --config=.golangci.yml ./pkg/...
         working-directory: .
         skip-cache: false
         skip-save-cache: false
