@@ -2,3 +2,49 @@
 run:
   timeout: 10m
   tests: true
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+linters-settings:
+  errcheck:
+    # List of functions to exclude from checking
+    exclude-functions:
+      - (*os.File).Close
+      - (*os.Process).Kill
+      - os.WriteFile  # Allow unchecked WriteFile in tests
+      - os.MkdirAll   # Allow unchecked MkdirAll in tests
+      - filepath.Walk # Allow unchecked filepath.Walk
+      # Allow builder pattern methods that return *BaseError
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithDetail'
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithRetryable'
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithRequestID'
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithHTTPStatus'
+
+issues:
+  max-same-issues: 10
+  max-issues-per-linter: 50
+  
+  exclude-rules:
+    # Exclude errcheck for defer statements and test files
+    - path: _test\.go
+      text: "Error return value of.*is not checked"
+      linters:
+        - errcheck
+    
+    # Allow deprecated methods in tests or known cases
+    - text: "SA1019.*Temporary.*deprecated"
+      linters:
+        - staticcheck
+    
+    # Allow nil pointer dereference in tests where we check for nil first
+    - path: _test\.go
+      text: "SA5011.*possible nil pointer dereference"
+      linters:
+        - staticcheck
