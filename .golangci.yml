@@ -1,0 +1,122 @@
+# golangci-lint configuration
+# See https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 10m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - vendor
+    - examples  # Skip examples as they may have API compatibility issues
+  skip-files:
+    - ".*\\.pb\\.go$"
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
+
+linters:
+  disable-all: true
+  enable:
+    # Essential linters
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Go vet
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Staticcheck
+    - unused        # Check for unused constants, variables, functions and types
+    
+    # Code quality
+    - gofmt         # Check gofmt
+    - goimports     # Check goimports
+    - misspell      # Fix commonly misspelled English words
+    - unconvert     # Remove unnecessary type conversions
+    
+    # Performance
+    - prealloc      # Find slice declarations that could potentially be preallocated
+    
+    # Style (less strict for SDK)
+    - gocritic      # Go critic
+    - revive        # Fast, configurable, extensible, flexible, and beautiful linter for Go
+
+linters-settings:
+  errcheck:
+    # Report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    check-type-assertions: false
+    # Report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+    check-blank: false
+    # List of functions to exclude from checking
+    exclude-functions:
+      - (*os.File).Close
+      - (*database/sql.Rows).Close
+      - (*database/sql.DB).Close
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+    disabled-checks:
+      - unslice
+      - rangeValCopy
+      - hugeParam
+      - commentedOutCode  # Allow commented code for documentation purposes
+
+  revive:
+    # Minimal revive config for SDK
+    rules:
+      - name: exported
+        disabled: true  # Don't require comments on all exported items in SDK
+      - name: package-comments
+        disabled: true  # Don't require package comments
+      - name: unused-parameter
+        disabled: true  # Allow unused parameters in interfaces
+
+  staticcheck:
+    # Enable all SA checks
+    checks: ["all"]
+
+  gosimple:
+    checks: ["all"]
+
+  unused:
+    # Treat code as a program (not a library) and report unused exported identifiers
+    check-exported: false  # Don't check exported items in SDK
+
+issues:
+  # Maximum count of issues with the same text to return
+  max-same-issues: 3
+  
+  # Maximum count of issues to return
+  max-issues-per-linter: 50
+  max-per-linter: 50
+
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocritic
+        - revive
+    
+    # Exclude errcheck for defer statements in tests
+    - path: _test\.go
+      text: "Error return value of.*is not checked"
+      linters:
+        - errcheck
+    
+    # Allow unused parameters in interface methods
+    - text: "unused-parameter"
+      linters:
+        - revive
+    
+    # Allow long functions in generated or complex files
+    - path: "client/.*\\.go"
+      text: "Function.*is too long"
+      linters:
+        - revive
+
+  # Show only new issues created after git revision `REV`
+  # new-from-rev: HEAD~1
