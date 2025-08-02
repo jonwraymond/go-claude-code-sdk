@@ -49,13 +49,13 @@ type QueryRequest struct {
 	Tools []Tool `json:"tools,omitempty"`
 
 	// ToolChoice controls how Claude uses tools
-	ToolChoice interface{} `json:"tool_choice,omitempty"`
+	ToolChoice any `json:"tool_choice,omitempty"`
 
 	// System provides system-level instructions
 	System string `json:"system,omitempty"`
 
 	// Metadata contains additional request information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // Validate performs basic validation on the query request.
@@ -132,7 +132,7 @@ type QueryResponse struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 
 	// Metadata contains additional response information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // GetTextContent extracts all text content from the response.
@@ -152,7 +152,7 @@ func (r *QueryResponse) GetToolCalls() []ToolCall {
 	for _, block := range r.Content {
 		if block.Type == "tool_use" {
 			// Parse tool call from block data
-			if data, ok := block.Data.(map[string]interface{}); ok {
+			if data, ok := block.Data.(map[string]any); ok {
 				toolCall := ToolCall{
 					Type: "function",
 				}
@@ -186,7 +186,7 @@ type APIError struct {
 	Code int `json:"code,omitempty"`
 
 	// Details contains additional error information
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
 
 	// RequestID is the ID of the failed request
 	RequestID string `json:"request_id,omitempty"`
@@ -236,7 +236,7 @@ type ValidationError struct {
 	Message string `json:"message"`
 
 	// Value is the invalid value (optional)
-	Value interface{} `json:"value,omitempty"`
+	Value any `json:"value,omitempty"`
 }
 
 // Error implements the error interface.
@@ -322,7 +322,7 @@ type HealthCheckResponse struct {
 	Usage *UsageInfo `json:"usage,omitempty"`
 
 	// Details contains additional health information
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 // ModelInfo contains information about an available model.

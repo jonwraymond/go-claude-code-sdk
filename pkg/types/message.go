@@ -34,7 +34,7 @@ type Message struct {
 	Attachments []Attachment `json:"attachments,omitempty"`
 
 	// Metadata contains additional message information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 
 	// Timestamp is when the message was created
 	Timestamp time.Time `json:"timestamp,omitempty"`
@@ -118,16 +118,16 @@ type FunctionCall struct {
 	Arguments string `json:"arguments"`
 
 	// ParsedArguments contains the parsed function arguments (if available)
-	ParsedArguments map[string]interface{} `json:"parsed_arguments,omitempty"`
+	ParsedArguments map[string]any `json:"parsed_arguments,omitempty"`
 }
 
 // ParseArguments parses the JSON arguments string into a map.
-func (f *FunctionCall) ParseArguments() (map[string]interface{}, error) {
+func (f *FunctionCall) ParseArguments() (map[string]any, error) {
 	if f.ParsedArguments != nil {
 		return f.ParsedArguments, nil
 	}
 
-	var args map[string]interface{}
+	var args map[string]any
 	if err := json.Unmarshal([]byte(f.Arguments), &args); err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ type Attachment struct {
 	Size int64 `json:"size,omitempty"`
 
 	// Metadata contains additional attachment information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // AttachmentType represents the different types of attachments supported.
@@ -202,7 +202,7 @@ type Conversation struct {
 	TokenCount int `json:"token_count,omitempty"`
 
 	// Metadata contains additional conversation information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // AddMessage adds a new message to the conversation.
@@ -243,7 +243,7 @@ type Event struct {
 	Type EventType `json:"type"`
 
 	// Data contains the event payload
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 
 	// Timestamp is when the event occurred
 	Timestamp time.Time `json:"timestamp"`
@@ -329,12 +329,12 @@ type MessageStopEvent struct {
 type ContentBlock struct {
 	Type string      `json:"type"`
 	Text string      `json:"text,omitempty"`
-	Data interface{} `json:"data,omitempty"`
+	Data any `json:"data,omitempty"`
 
 	// Tool-specific fields
 	ID    string                 `json:"id,omitempty"`    // For tool_use blocks
 	Name  string                 `json:"name,omitempty"`  // For tool_use blocks
-	Input map[string]interface{} `json:"input,omitempty"` // For tool_use blocks
+	Input map[string]any `json:"input,omitempty"` // For tool_use blocks
 
 	// Tool result fields
 	ToolUseID string         `json:"tool_use_id,omitempty"` // For tool_result blocks
@@ -351,7 +351,7 @@ func NewTextBlock(text string) ContentBlock {
 }
 
 // NewToolUseBlock creates a new tool use content block
-func NewToolUseBlock(id, name string, input map[string]interface{}) ContentBlock {
+func NewToolUseBlock(id, name string, input map[string]any) ContentBlock {
 	return ContentBlock{
 		Type:  "tool_use",
 		ID:    id,

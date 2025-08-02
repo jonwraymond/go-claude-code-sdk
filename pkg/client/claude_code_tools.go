@@ -36,7 +36,7 @@ import (
 //	// Execute a built-in tool
 //	result, err := toolManager.ExecuteTool(ctx, &ClaudeCodeTool{
 //		Name: "read_file",
-//		Parameters: map[string]interface{}{
+//		Parameters: map[string]any{
 //			"path": "main.go",
 //		},
 //	})
@@ -115,10 +115,10 @@ type ToolParameter struct {
 	Description string `json:"description"`
 
 	// Default is the default value (if any)
-	Default interface{} `json:"default,omitempty"`
+	Default any `json:"default,omitempty"`
 
 	// Enum lists allowed values (if restricted)
-	Enum []interface{} `json:"enum,omitempty"`
+	Enum []any `json:"enum,omitempty"`
 
 	// Pattern is a regex pattern for validation (strings only)
 	Pattern string `json:"pattern,omitempty"`
@@ -130,7 +130,7 @@ type ClaudeCodeTool struct {
 	Name string
 
 	// Parameters are the tool parameters
-	Parameters map[string]interface{}
+	Parameters map[string]any
 
 	// MCPServer is the MCP server name (if this is an MCP tool)
 	MCPServer string
@@ -142,7 +142,7 @@ type ClaudeCodeToolResult struct {
 	Success bool `json:"success"`
 
 	// Output contains the tool output
-	Output interface{} `json:"output,omitempty"`
+	Output any `json:"output,omitempty"`
 
 	// Error contains error information
 	Error string `json:"error,omitempty"`
@@ -151,7 +151,7 @@ type ClaudeCodeToolResult struct {
 	ExecutionTime time.Duration `json:"execution_time"`
 
 	// Metadata contains additional information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // NewClaudeCodeToolManager creates a new Claude Code tool manager.
@@ -313,7 +313,7 @@ func (tm *ClaudeCodeToolManager) initializeBuiltInTools() {
 			"analysis_type": {
 				Type:        "string",
 				Description: "Type of analysis to perform",
-				Enum:        []interface{}{"complexity", "dependencies", "structure", "quality"},
+				Enum:        []any{"complexity", "dependencies", "structure", "quality"},
 			},
 		},
 		RequiredParameters: []string{"path", "analysis_type"},
@@ -583,7 +583,7 @@ func (tm *ClaudeCodeToolManager) executeMCPTool(ctx context.Context, tool *Claud
 
 // Tool execution implementations
 
-func (tm *ClaudeCodeToolManager) executeReadFile(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeReadFile(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	path, ok := params["path"].(string)
 	if !ok {
 		return nil, sdkerrors.NewValidationError("path", "", "string", "path must be a string")
@@ -606,14 +606,14 @@ func (tm *ClaudeCodeToolManager) executeReadFile(ctx context.Context, params map
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  string(content),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"path": path,
 			"size": len(content),
 		},
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	path, ok := params["path"].(string)
 	if !ok {
 		return nil, sdkerrors.NewValidationError("path", "", "string", "path must be a string")
@@ -657,14 +657,14 @@ func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params ma
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  fmt.Sprintf("File written successfully: %s", path),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"path": path,
 			"size": len(content),
 		},
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeEditFile(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeEditFile(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	// This would be implemented using Claude Code's edit functionality
 	// For now, return a placeholder
 	return &ClaudeCodeToolResult{
@@ -673,7 +673,7 @@ func (tm *ClaudeCodeToolManager) executeEditFile(ctx context.Context, params map
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeListFiles(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeListFiles(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	path := "."
 	if p, ok := params["path"].(string); ok {
 		path = p
@@ -747,7 +747,7 @@ func (tm *ClaudeCodeToolManager) executeListFiles(ctx context.Context, params ma
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  files,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"path":      path,
 			"count":     len(files),
 			"recursive": recursive,
@@ -756,7 +756,7 @@ func (tm *ClaudeCodeToolManager) executeListFiles(ctx context.Context, params ma
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	pattern, ok := params["pattern"].(string)
 	if !ok {
 		return nil, sdkerrors.NewValidationError("pattern", "", "string", "pattern must be a string")
@@ -795,7 +795,7 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 		return &ClaudeCodeToolResult{
 			Success: true,
 			Output:  []string{}, // No matches
-			Metadata: map[string]interface{}{
+			Metadata: map[string]any{
 				"pattern": pattern,
 				"path":    searchPath,
 				"matches": 0,
@@ -812,7 +812,7 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 
 	// Parse grep output
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	matches := make([]map[string]interface{}, 0)
+	matches := make([]map[string]any, 0)
 
 	for _, line := range lines {
 		if line == "" {
@@ -822,7 +822,7 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 		// Parse grep output format: filename:line_number:content
 		parts := strings.SplitN(line, ":", 3)
 		if len(parts) >= 3 {
-			matches = append(matches, map[string]interface{}{
+			matches = append(matches, map[string]any{
 				"file":    parts[0],
 				"line":    parts[1],
 				"content": parts[2],
@@ -833,7 +833,7 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  matches,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"pattern": pattern,
 			"path":    searchPath,
 			"matches": len(matches),
@@ -841,7 +841,7 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeAnalyzeCode(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeAnalyzeCode(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	// This would integrate with code analysis tools
 	// For now, return a placeholder
 	return &ClaudeCodeToolResult{
@@ -850,7 +850,7 @@ func (tm *ClaudeCodeToolManager) executeAnalyzeCode(ctx context.Context, params 
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	command, ok := params["command"].(string)
 	if !ok {
 		return nil, sdkerrors.NewValidationError("command", "", "string", "command must be a string")
@@ -885,7 +885,7 @@ func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params m
 			Success: false,
 			Error:   fmt.Sprintf("command failed: %v", err),
 			Output:  string(output),
-			Metadata: map[string]interface{}{
+			Metadata: map[string]any{
 				"command":     command,
 				"working_dir": workingDir,
 				"exit_code":   cmd.ProcessState.ExitCode(),
@@ -896,7 +896,7 @@ func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params m
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  string(output),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"command":     command,
 			"working_dir": workingDir,
 			"exit_code":   0,
@@ -904,7 +904,7 @@ func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params m
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeGitStatus(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeGitStatus(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	path := tm.client.workingDir
 	if p, ok := params["path"].(string); ok {
 		if !filepath.IsAbs(p) {
@@ -933,13 +933,13 @@ func (tm *ClaudeCodeToolManager) executeGitStatus(ctx context.Context, params ma
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  string(output),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"path": path,
 		},
 	}, nil
 }
 
-func (tm *ClaudeCodeToolManager) executeGitDiff(ctx context.Context, params map[string]interface{}) (*ClaudeCodeToolResult, error) {
+func (tm *ClaudeCodeToolManager) executeGitDiff(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
 	path := tm.client.workingDir
 	if p, ok := params["path"].(string); ok {
 		if !filepath.IsAbs(p) {
@@ -973,7 +973,7 @@ func (tm *ClaudeCodeToolManager) executeGitDiff(ctx context.Context, params map[
 	return &ClaudeCodeToolResult{
 		Success: true,
 		Output:  string(output),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"path": path,
 		},
 	}, nil
@@ -1001,7 +1001,7 @@ func (tm *ClaudeCodeToolManager) checkPermissions(definition *ClaudeCodeToolDefi
 }
 
 // validateParameters validates tool parameters against the definition.
-func (tm *ClaudeCodeToolManager) validateParameters(definition *ClaudeCodeToolDefinition, params map[string]interface{}) error {
+func (tm *ClaudeCodeToolManager) validateParameters(definition *ClaudeCodeToolDefinition, params map[string]any) error {
 	// Check required parameters
 	for _, required := range definition.RequiredParameters {
 		if _, exists := params[required]; !exists {
@@ -1041,7 +1041,7 @@ func (tm *ClaudeCodeToolManager) validateParameters(definition *ClaudeCodeToolDe
 }
 
 // validateParameterType validates a parameter's type.
-func (tm *ClaudeCodeToolManager) validateParameterType(name string, value interface{}, paramDef ToolParameter) error {
+func (tm *ClaudeCodeToolManager) validateParameterType(name string, value any, paramDef ToolParameter) error {
 	switch paramDef.Type {
 	case "string":
 		if _, ok := value.(string); !ok {
@@ -1059,11 +1059,11 @@ func (tm *ClaudeCodeToolManager) validateParameterType(name string, value interf
 			return sdkerrors.NewValidationError("parameter", name, "boolean", fmt.Sprintf("expected boolean, got %T", value))
 		}
 	case "array":
-		if _, ok := value.([]interface{}); !ok {
+		if _, ok := value.([]any); !ok {
 			return sdkerrors.NewValidationError("parameter", name, "array", fmt.Sprintf("expected array, got %T", value))
 		}
 	case "object":
-		if _, ok := value.(map[string]interface{}); !ok {
+		if _, ok := value.(map[string]any); !ok {
 			return sdkerrors.NewValidationError("parameter", name, "object", fmt.Sprintf("expected object, got %T", value))
 		}
 	}
@@ -1118,7 +1118,7 @@ func (tm *ClaudeCodeToolManager) convertParametersToSchema(toolDef *ClaudeCodeTo
 
 		// Add enum if present
 		if len(param.Enum) > 0 {
-			prop.Enum = make([]interface{}, len(param.Enum))
+			prop.Enum = make([]any, len(param.Enum))
 			for i, v := range param.Enum {
 				prop.Enum[i] = fmt.Sprintf("%v", v)
 			}
@@ -1205,7 +1205,7 @@ func (tm *ClaudeCodeToolManager) resultToContent(result *ClaudeCodeToolResult) (
 	}
 
 	// Convert output to JSON for consistent formatting
-	output, err := json.MarshalIndent(map[string]interface{}{
+	output, err := json.MarshalIndent(map[string]any{
 		"output":   result.Output,
 		"metadata": result.Metadata,
 	}, "", "  ")

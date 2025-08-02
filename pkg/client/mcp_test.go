@@ -393,14 +393,14 @@ func TestMCPManager_ApplyConfiguration(t *testing.T) {
 		t.Fatalf("Failed to read config file: %v", err)
 	}
 
-	var mcpConfig map[string]interface{}
+	var mcpConfig map[string]any
 	err = json.Unmarshal(data, &mcpConfig)
 	if err != nil {
 		t.Fatalf("Failed to parse config file: %v", err)
 	}
 
 	// Check that mcpServers section exists
-	servers_config, exists := mcpConfig["mcpServers"].(map[string]interface{})
+	servers_config, exists := mcpConfig["mcpServers"].(map[string]any)
 	if !exists {
 		t.Fatal("Expected mcpServers section in config")
 	}

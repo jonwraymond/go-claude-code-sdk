@@ -62,7 +62,7 @@ type QueryOptions struct {
 type QueryResult struct {
 	Messages []types.Message
 	Error    error
-	Metadata map[string]interface{}
+	Metadata map[string]any
 }
 
 // QueryMessages executes a query against Claude Code and returns a channel of messages
@@ -150,7 +150,7 @@ func (c *ClaudeCodeClient) QueryMessagesSync(ctx context.Context, prompt string,
 	return &QueryResult{
 		Messages: messages,
 		Error:    queryErr,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"turn_count": len(messages) / 2, // Approximate turn count
 		},
 	}, nil
@@ -209,7 +209,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 
 // parseStreamingOutput parses the streaming output from Claude Code
 func (c *ClaudeCodeClient) parseStreamingOutput(
-	stdout interface{},
+	stdout any,
 	messageChan chan<- *types.Message,
 	options *QueryOptions,
 ) {
@@ -326,7 +326,7 @@ func (c *ClaudeCodeClient) parseToolUsage(line string) *struct {
 	// Try to parse JSON-formatted tool usage
 	if idx := strings.Index(line, "{"); idx >= 0 {
 		jsonStr := line[idx:]
-		var toolData map[string]interface{}
+		var toolData map[string]any
 		if err := json.Unmarshal([]byte(jsonStr), &toolData); err == nil {
 			return &struct {
 				ID        string
@@ -410,8 +410,8 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 }
 
 // convertQueryOptionsToCommandOptions converts QueryOptions to command options map
-func (c *ClaudeCodeClient) convertQueryOptionsToCommandOptions(options *QueryOptions) map[string]interface{} {
-	opts := make(map[string]interface{})
+func (c *ClaudeCodeClient) convertQueryOptionsToCommandOptions(options *QueryOptions) map[string]any {
+	opts := make(map[string]any)
 
 	if options.SystemPrompt != "" {
 		opts["system_prompt"] = options.SystemPrompt

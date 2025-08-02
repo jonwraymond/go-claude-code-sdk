@@ -36,7 +36,7 @@ func TestParseSlashCommand(t *testing.T) {
 			expected: &Command{
 				Type:    CommandRead,
 				Args:    []string{"file.go"},
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 		{
@@ -45,7 +45,7 @@ func TestParseSlashCommand(t *testing.T) {
 			expected: &Command{
 				Type: CommandSearch,
 				Args: []string{"function"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"pattern": "*.go",
 				},
 			},
@@ -56,7 +56,7 @@ func TestParseSlashCommand(t *testing.T) {
 			expected: &Command{
 				Type:    CommandAnalyze,
 				Args:    []string{"main.go", "performance"},
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 		{
@@ -75,7 +75,7 @@ func TestParseSlashCommand(t *testing.T) {
 			expected: &Command{
 				Type:    CommandGitStatus,
 				Args:    []string{},
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 	}
@@ -148,7 +148,7 @@ func TestBuildCommandPrompt(t *testing.T) {
 			command: &Command{
 				Type: CommandRead,
 				Args: []string{"main.go"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"summarize": true,
 				},
 			},
@@ -159,7 +159,7 @@ func TestBuildCommandPrompt(t *testing.T) {
 			command: &Command{
 				Type: CommandSearch,
 				Args: []string{"function"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"pattern": "*.go",
 				},
 			},
@@ -170,7 +170,7 @@ func TestBuildCommandPrompt(t *testing.T) {
 			command: &Command{
 				Type: CommandAnalyze,
 				Args: []string{"performance"},
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					"focus": "memory usage",
 				},
 			},
@@ -229,7 +229,7 @@ func TestCommandBuilders(t *testing.T) {
 			expected: &Command{
 				Type:    CommandRead,
 				Args:    []string{"main.go"},
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 		{
@@ -240,7 +240,7 @@ func TestCommandBuilders(t *testing.T) {
 			expected: &Command{
 				Type: CommandRead,
 				Args: []string{"main.go"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"summarize": true,
 				},
 			},
@@ -253,7 +253,7 @@ func TestCommandBuilders(t *testing.T) {
 			expected: &Command{
 				Type:    CommandWrite,
 				Args:    []string{"test.go", "package main"},
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 		{
@@ -264,7 +264,7 @@ func TestCommandBuilders(t *testing.T) {
 			expected: &Command{
 				Type: CommandAnalyze,
 				Args: []string{"performance"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"depth": "deep",
 				},
 			},
@@ -277,7 +277,7 @@ func TestCommandBuilders(t *testing.T) {
 			expected: &Command{
 				Type: CommandSearch,
 				Args: []string{"func main"},
-				Options: map[string]interface{}{
+				Options: map[string]any{
 					"pattern": "*.go",
 				},
 			},
@@ -289,7 +289,7 @@ func TestCommandBuilders(t *testing.T) {
 			},
 			expected: &Command{
 				Type:    CommandGitStatus,
-				Options: map[string]interface{}{},
+				Options: map[string]any{},
 			},
 		},
 	}
@@ -438,7 +438,7 @@ func TestCommandOptionsChaining(t *testing.T) {
 		t.Errorf("Expected args [test.go], got %v", cmd.Args)
 	}
 
-	expectedOptions := map[string]interface{}{
+	expectedOptions := map[string]any{
 		"summarize": true,
 		"limit":     10,
 	}
@@ -454,7 +454,7 @@ func TestCommandOptionsChaining(t *testing.T) {
 		}
 	}
 
-	expectedContext := map[string]interface{}{
+	expectedContext := map[string]any{
 		"project": "test-project",
 	}
 

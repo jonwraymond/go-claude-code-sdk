@@ -42,7 +42,7 @@ type StoredCredential struct {
 	ID         string                 `json:"id"`
 	Type       types.AuthType         `json:"type"`
 	Credential string                 `json:"credential"` // Encrypted in production
-	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	Metadata   map[string]any `json:"metadata,omitempty"`
 	CreatedAt  time.Time              `json:"created_at"`
 	LastUsed   *time.Time             `json:"last_used,omitempty"`
 	ExpiresAt  *time.Time             `json:"expires_at,omitempty"`
@@ -77,7 +77,7 @@ func (m *Manager) StoreAPIKey(ctx context.Context, id, apiKey string) error {
 		Type:       types.AuthTypeAPIKey,
 		Credential: apiKey, // In production, encrypt this
 		CreatedAt:  time.Now(),
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"prefix": apiKey[:10] + "...", // Store prefix for identification
 		},
 	}

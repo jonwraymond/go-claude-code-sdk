@@ -64,7 +64,7 @@ type PatternResult struct {
 	Pattern      string                 `json:"pattern"`
 	Confidence   float64                `json:"confidence"`
 	Evidence     []string               `json:"evidence"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	Metadata     map[string]any `json:"metadata"`
 	Dependencies []string               `json:"dependencies,omitempty"`
 }
 
@@ -75,7 +75,7 @@ type ArchitectureInfo struct {
 	Modules     []string               `json:"modules"`
 	EntryPoints []string               `json:"entry_points"`
 	ConfigFiles []string               `json:"config_files"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	Metadata    map[string]any `json:"metadata"`
 }
 
 // DependencyInfo contains information about project dependencies.
@@ -85,7 +85,7 @@ type DependencyInfo struct {
 	Dependencies map[string]string      `json:"dependencies"`
 	DevDeps      map[string]string      `json:"dev_dependencies,omitempty"`
 	Scripts      map[string]string      `json:"scripts,omitempty"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	Metadata     map[string]any `json:"metadata"`
 }
 
 // NewProjectContextManager creates a new project context manager.
@@ -137,7 +137,7 @@ func (pm *ProjectContextManager) enhanceContext(context *types.ProjectContext) e
 	// Add architecture analysis
 	if arch, err := pm.analyzeArchitecture(projectPath); err == nil {
 		if context.Metadata == nil {
-			context.Metadata = make(map[string]interface{})
+			context.Metadata = make(map[string]any)
 		}
 		context.Metadata["architecture"] = arch
 	}
@@ -145,7 +145,7 @@ func (pm *ProjectContextManager) enhanceContext(context *types.ProjectContext) e
 	// Add dependency analysis
 	if deps, err := pm.analyzeDependencies(projectPath); err == nil {
 		if context.Metadata == nil {
-			context.Metadata = make(map[string]interface{})
+			context.Metadata = make(map[string]any)
 		}
 		context.Metadata["dependencies"] = deps
 	}
@@ -153,7 +153,7 @@ func (pm *ProjectContextManager) enhanceContext(context *types.ProjectContext) e
 	// Add code patterns analysis
 	if patterns, err := pm.analyzeCodePatterns(projectPath); err == nil {
 		if context.Metadata == nil {
-			context.Metadata = make(map[string]interface{})
+			context.Metadata = make(map[string]any)
 		}
 		context.Metadata["code_patterns"] = patterns
 	}
@@ -161,7 +161,7 @@ func (pm *ProjectContextManager) enhanceContext(context *types.ProjectContext) e
 	// Add development tools analysis
 	if tools, err := pm.analyzeDevTools(projectPath); err == nil {
 		if context.Metadata == nil {
-			context.Metadata = make(map[string]interface{})
+			context.Metadata = make(map[string]any)
 		}
 		context.Metadata["dev_tools"] = tools
 	}
@@ -181,7 +181,7 @@ func (pm *ProjectContextManager) analyzeArchitecture(projectPath string) (*Archi
 		Modules:     []string{},
 		EntryPoints: []string{},
 		ConfigFiles: []string{},
-		Metadata:    make(map[string]interface{}),
+		Metadata:    make(map[string]any),
 	}
 
 	// Detect architecture pattern
@@ -431,7 +431,7 @@ func (pm *ProjectContextManager) analyzeNpmDependencies(configPath string) (*Dep
 		Dependencies: pkg.Dependencies,
 		DevDeps:      pkg.DevDependencies,
 		Scripts:      pkg.Scripts,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"name":    pkg.Name,
 			"version": pkg.Version,
 			"main":    pkg.Main,
@@ -454,7 +454,7 @@ func (pm *ProjectContextManager) analyzeGoDependencies(configPath string) (*Depe
 		Manager:      "go",
 		ConfigFile:   filepath.Base(configPath),
 		Dependencies: make(map[string]string),
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 	}
 
 	// Parse module name
@@ -509,7 +509,7 @@ func (pm *ProjectContextManager) analyzeCargoDependencies(configPath string) (*D
 		ConfigFile:   filepath.Base(configPath),
 		Dependencies: make(map[string]string),
 		DevDeps:      make(map[string]string),
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 	}
 
 	content := string(data)
@@ -563,7 +563,7 @@ func (pm *ProjectContextManager) analyzePipDependencies(configPath string) (*Dep
 		Manager:      "pip",
 		ConfigFile:   filepath.Base(configPath),
 		Dependencies: make(map[string]string),
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 	}
 
 	lines := strings.Split(string(data), "\n")
@@ -602,7 +602,7 @@ func (pm *ProjectContextManager) analyzeMavenDependencies(configPath string) (*D
 		Manager:      "maven",
 		ConfigFile:   filepath.Base(configPath),
 		Dependencies: make(map[string]string),
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 	}
 
 	content := string(data)
@@ -642,7 +642,7 @@ func (pm *ProjectContextManager) analyzeGradleDependencies(configPath string) (*
 		Manager:      "gradle",
 		ConfigFile:   filepath.Base(configPath),
 		Dependencies: make(map[string]string),
-		Metadata:     make(map[string]interface{}),
+		Metadata:     make(map[string]any),
 	}
 
 	content := string(data)
@@ -681,7 +681,7 @@ func (pm *ProjectContextManager) analyzeComposerDependencies(configPath string) 
 		Require     map[string]string `json:"require"`
 		RequireDev  map[string]string `json:"require-dev"`
 		Scripts     map[string]string `json:"scripts"`
-		Autoload    interface{}       `json:"autoload"`
+		Autoload    any       `json:"autoload"`
 	}
 
 	if err := json.Unmarshal(data, &composer); err != nil {
@@ -694,7 +694,7 @@ func (pm *ProjectContextManager) analyzeComposerDependencies(configPath string) 
 		Dependencies: composer.Require,
 		DevDeps:      composer.RequireDev,
 		Scripts:      composer.Scripts,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"name":        composer.Name,
 			"description": composer.Description,
 			"version":     composer.Version,
@@ -720,11 +720,11 @@ func (pm *ProjectContextManager) analyzeCodePatterns(projectPath string) (map[st
 }
 
 // analyzeDevTools analyzes development tools and workflows.
-func (pm *ProjectContextManager) analyzeDevTools(projectPath string) (map[string]interface{}, error) {
-	tools := make(map[string]interface{})
+func (pm *ProjectContextManager) analyzeDevTools(projectPath string) (map[string]any, error) {
+	tools := make(map[string]any)
 
 	// Check for common development tools
-	toolChecks := map[string]func(string) interface{}{
+	toolChecks := map[string]func(string) any{
 		"docker":     pm.checkDocker,
 		"kubernetes": pm.checkKubernetes,
 		"ci_cd":      pm.checkCICD,
@@ -745,8 +745,8 @@ func (pm *ProjectContextManager) analyzeDevTools(projectPath string) (map[string
 }
 
 // checkDocker checks for Docker configuration.
-func (pm *ProjectContextManager) checkDocker(projectPath string) interface{} {
-	dockerInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkDocker(projectPath string) any {
+	dockerInfo := map[string]any{}
 
 	if _, err := os.Stat(filepath.Join(projectPath, "Dockerfile")); err == nil {
 		dockerInfo["dockerfile"] = true
@@ -767,8 +767,8 @@ func (pm *ProjectContextManager) checkDocker(projectPath string) interface{} {
 }
 
 // checkKubernetes checks for Kubernetes configuration.
-func (pm *ProjectContextManager) checkKubernetes(projectPath string) interface{} {
-	k8sInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkKubernetes(projectPath string) any {
+	k8sInfo := map[string]any{}
 
 	k8sPaths := []string{"k8s/", "kubernetes/", "deploy/", "manifests/"}
 	for _, path := range k8sPaths {
@@ -798,8 +798,8 @@ func (pm *ProjectContextManager) checkKubernetes(projectPath string) interface{}
 }
 
 // checkCICD checks for CI/CD configuration.
-func (pm *ProjectContextManager) checkCICD(projectPath string) interface{} {
-	cicdInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkCICD(projectPath string) any {
+	cicdInfo := map[string]any{}
 
 	cicdChecks := map[string]string{
 		"GitHub Actions":  ".github/workflows/",
@@ -823,8 +823,8 @@ func (pm *ProjectContextManager) checkCICD(projectPath string) interface{} {
 }
 
 // checkTesting checks for testing frameworks and configuration.
-func (pm *ProjectContextManager) checkTesting(projectPath string) interface{} {
-	testInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkTesting(projectPath string) any {
+	testInfo := map[string]any{}
 
 	// Check for test directories
 	testDirs := []string{"test/", "tests/", "__tests__/", "spec/"}
@@ -865,8 +865,8 @@ func (pm *ProjectContextManager) checkTesting(projectPath string) interface{} {
 }
 
 // checkLinting checks for linting configuration.
-func (pm *ProjectContextManager) checkLinting(projectPath string) interface{} {
-	lintInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkLinting(projectPath string) any {
+	lintInfo := map[string]any{}
 
 	lintConfigs := map[string][]string{
 		"eslint":   {".eslintrc", ".eslintrc.json", ".eslintrc.js", ".eslintrc.yml"},
@@ -893,8 +893,8 @@ func (pm *ProjectContextManager) checkLinting(projectPath string) interface{} {
 }
 
 // checkFormatting checks for code formatting configuration.
-func (pm *ProjectContextManager) checkFormatting(projectPath string) interface{} {
-	formatInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkFormatting(projectPath string) any {
+	formatInfo := map[string]any{}
 
 	formatConfigs := map[string][]string{
 		"prettier":     {".prettierrc", ".prettierrc.json", ".prettierrc.js"},
@@ -920,8 +920,8 @@ func (pm *ProjectContextManager) checkFormatting(projectPath string) interface{}
 }
 
 // checkGitHooks checks for Git hooks configuration.
-func (pm *ProjectContextManager) checkGitHooks(projectPath string) interface{} {
-	hookInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkGitHooks(projectPath string) any {
+	hookInfo := map[string]any{}
 
 	// Check for .git/hooks directory
 	hooksDir := filepath.Join(projectPath, ".git", "hooks")
@@ -954,8 +954,8 @@ func (pm *ProjectContextManager) checkGitHooks(projectPath string) interface{} {
 }
 
 // checkIDEConfig checks for IDE configuration.
-func (pm *ProjectContextManager) checkIDEConfig(projectPath string) interface{} {
-	ideInfo := map[string]interface{}{}
+func (pm *ProjectContextManager) checkIDEConfig(projectPath string) any {
+	ideInfo := map[string]any{}
 
 	ideConfigs := map[string]string{
 		"vscode":       ".vscode/",
@@ -993,7 +993,7 @@ func (pm *ProjectContextManager) enhanceFileInfo(context *types.ProjectContext) 
 	// Add code quality metrics
 	if metrics, err := pm.calculateCodeMetrics(projectPath); err == nil {
 		if context.Files.Structure == nil {
-			context.Files.Structure = make(map[string]interface{})
+			context.Files.Structure = make(map[string]any)
 		}
 		context.Files.Structure["metrics"] = metrics
 	}
@@ -1001,7 +1001,7 @@ func (pm *ProjectContextManager) enhanceFileInfo(context *types.ProjectContext) 
 	// Add file size distribution
 	if sizes, err := pm.analyzeFileSizes(projectPath); err == nil {
 		if context.Files.Structure == nil {
-			context.Files.Structure = make(map[string]interface{})
+			context.Files.Structure = make(map[string]any)
 		}
 		context.Files.Structure["size_distribution"] = sizes
 	}
@@ -1010,8 +1010,8 @@ func (pm *ProjectContextManager) enhanceFileInfo(context *types.ProjectContext) 
 }
 
 // calculateCodeMetrics calculates basic code metrics.
-func (pm *ProjectContextManager) calculateCodeMetrics(projectPath string) (map[string]interface{}, error) {
-	metrics := map[string]interface{}{
+func (pm *ProjectContextManager) calculateCodeMetrics(projectPath string) (map[string]any, error) {
+	metrics := map[string]any{
 		"total_lines":   0,
 		"code_lines":    0,
 		"comment_lines": 0,
@@ -1054,14 +1054,14 @@ func (pm *ProjectContextManager) calculateCodeMetrics(projectPath string) (map[s
 }
 
 // analyzeFileMetrics analyzes metrics for a single file.
-func (pm *ProjectContextManager) analyzeFileMetrics(filePath string) (map[string]interface{}, error) {
+func (pm *ProjectContextManager) analyzeFileMetrics(filePath string) (map[string]any, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
 	lines := strings.Split(string(data), "\n")
-	metrics := map[string]interface{}{
+	metrics := map[string]any{
 		"total_lines":   len(lines),
 		"code_lines":    0,
 		"comment_lines": 0,
@@ -1121,8 +1121,8 @@ func (pm *ProjectContextManager) isCommentLine(line string, patterns []string) b
 }
 
 // analyzeFileSizes analyzes file size distribution.
-func (pm *ProjectContextManager) analyzeFileSizes(projectPath string) (map[string]interface{}, error) {
-	sizes := map[string]interface{}{
+func (pm *ProjectContextManager) analyzeFileSizes(projectPath string) (map[string]any, error) {
+	sizes := map[string]any{
 		"small":      0, // < 1KB
 		"medium":     0, // 1KB - 10KB
 		"large":      0, // 10KB - 100KB
@@ -1190,7 +1190,7 @@ func (pm *ProjectContextManager) analyzeTestingPattern(projectPath string) (*Pat
 		Pattern:    "testing",
 		Confidence: 0.0,
 		Evidence:   []string{},
-		Metadata:   make(map[string]interface{}),
+		Metadata:   make(map[string]any),
 	}
 
 	// Check for test files and directories
@@ -1252,7 +1252,7 @@ func (pm *ProjectContextManager) analyzeAPIPattern(projectPath string) (*Pattern
 		Pattern:    "api",
 		Confidence: 0.0,
 		Evidence:   []string{},
-		Metadata:   make(map[string]interface{}),
+		Metadata:   make(map[string]any),
 	}
 
 	// Check for API-related directories and files
@@ -1315,7 +1315,7 @@ func (pm *ProjectContextManager) analyzeDatabasePattern(projectPath string) (*Pa
 		Pattern:    "database",
 		Confidence: 0.0,
 		Evidence:   []string{},
-		Metadata:   make(map[string]interface{}),
+		Metadata:   make(map[string]any),
 	}
 
 	// Check for database-related directories and files
@@ -1388,11 +1388,11 @@ func (pm *ProjectContextManager) SetCacheDuration(duration time.Duration) {
 }
 
 // GetCacheInfo returns information about the cache status.
-func (pm *ProjectContextManager) GetCacheInfo() map[string]interface{} {
+func (pm *ProjectContextManager) GetCacheInfo() map[string]any {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
 
-	info := map[string]interface{}{
+	info := map[string]any{
 		"cache_duration": pm.cacheDuration.String(),
 		"is_cached":      pm.cachedContext != nil,
 		"cache_age":      time.Since(pm.lastCacheUpdate).String(),

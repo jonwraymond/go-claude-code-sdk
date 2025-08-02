@@ -145,13 +145,13 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		params      map[string]interface{}
+		params      map[string]any
 		expectError bool
 		checkResult func(*ClaudeCodeToolResult) error
 	}{
 		{
 			name: "Read existing file with relative path",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path": "test.txt",
 			},
 			expectError: false,
@@ -167,7 +167,7 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 		},
 		{
 			name: "Read existing file with absolute path",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path": testFile,
 			},
 			expectError: false,
@@ -183,7 +183,7 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 		},
 		{
 			name: "Read non-existent file",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path": "non_existent.txt",
 			},
 			expectError: false, // Tool execution doesn't error, but result shows failure
@@ -199,12 +199,12 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 		},
 		{
 			name:        "Missing path parameter",
-			params:      map[string]interface{}{},
+			params:      map[string]any{},
 			expectError: true,
 		},
 		{
 			name: "Invalid path type",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path": 123,
 			},
 			expectError: true,
@@ -258,14 +258,14 @@ func TestClaudeCodeToolManager_ExecuteWriteFile(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		params      map[string]interface{}
+		params      map[string]any
 		expectError bool
 		checkResult func(*ClaudeCodeToolResult) error
 		checkFile   func() error
 	}{
 		{
 			name: "Write file with relative path",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path":    "output.txt",
 				"content": "Test content",
 			},
@@ -289,7 +289,7 @@ func TestClaudeCodeToolManager_ExecuteWriteFile(t *testing.T) {
 		},
 		{
 			name: "Write file with directory creation",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path":        "subdir/nested/file.txt",
 				"content":     "Nested content",
 				"create_dirs": true,
@@ -314,12 +314,12 @@ func TestClaudeCodeToolManager_ExecuteWriteFile(t *testing.T) {
 		},
 		{
 			name:        "Missing path parameter",
-			params:      map[string]interface{}{"content": "test"},
+			params:      map[string]any{"content": "test"},
 			expectError: true,
 		},
 		{
 			name:        "Missing content parameter",
-			params:      map[string]interface{}{"path": "test.txt"},
+			params:      map[string]any{"path": "test.txt"},
 			expectError: true,
 		},
 	}
@@ -384,14 +384,14 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		params        map[string]interface{}
+		params        map[string]any
 		expectError   bool
 		expectedCount int
 		checkFiles    func([]string) error
 	}{
 		{
 			name:          "List files in current directory",
-			params:        map[string]interface{}{},
+			params:        map[string]any{},
 			expectError:   false,
 			expectedCount: 3, // file1.txt, file2.go, subdir
 			checkFiles: func(files []string) error {
@@ -406,7 +406,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 		},
 		{
 			name: "List files recursively",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"recursive": true,
 			},
 			expectError:   false,
@@ -414,7 +414,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 		},
 		{
 			name: "List files with pattern",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"pattern":   "*.go",
 				"recursive": true,
 			},
@@ -432,7 +432,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 		},
 		{
 			name: "List files in subdirectory",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"path": "subdir",
 			},
 			expectError:   false,
@@ -518,13 +518,13 @@ Hello, World!`
 
 	tests := []struct {
 		name            string
-		params          map[string]interface{}
+		params          map[string]any
 		expectError     bool
 		expectedMatches int
 	}{
 		{
 			name: "Search for Hello",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"pattern": "Hello",
 			},
 			expectError:     false,
@@ -532,7 +532,7 @@ Hello, World!`
 		},
 		{
 			name: "Search case insensitive",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"pattern":        "hello",
 				"case_sensitive": false,
 			},
@@ -541,7 +541,7 @@ Hello, World!`
 		},
 		{
 			name: "Search with file pattern",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"pattern":      "Hello",
 				"file_pattern": "*.go",
 			},
@@ -550,7 +550,7 @@ Hello, World!`
 		},
 		{
 			name: "Search for non-existent pattern",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"pattern": "NonExistentPattern",
 			},
 			expectError:     false,
@@ -558,7 +558,7 @@ Hello, World!`
 		},
 		{
 			name:        "Missing pattern parameter",
-			params:      map[string]interface{}{},
+			params:      map[string]any{},
 			expectError: true,
 		},
 	}
@@ -586,13 +586,13 @@ Hello, World!`
 					t.Errorf("Expected success, got failure: %s", result.Error)
 				}
 
-				matches, ok := result.Output.([]map[string]interface{})
+				matches, ok := result.Output.([]map[string]any)
 				if !ok {
 					// Could be empty array
 					if emptyMatches, ok := result.Output.([]string); ok && len(emptyMatches) == 0 {
-						matches = []map[string]interface{}{}
+						matches = []map[string]any{}
 					} else {
-						t.Fatalf("Expected output to be []map[string]interface{}, got %T", result.Output)
+						t.Fatalf("Expected output to be []map[string]any, got %T", result.Output)
 					}
 				}
 
@@ -622,13 +622,13 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		params      map[string]interface{}
+		params      map[string]any
 		expectError bool
 		checkResult func(*ClaudeCodeToolResult) error
 	}{
 		{
 			name: "Run echo command",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"command": "echo 'Hello, World!'",
 			},
 			expectError: false,
@@ -645,7 +645,7 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 		},
 		{
 			name: "Run pwd command",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"command": "pwd",
 			},
 			expectError: false,
@@ -662,7 +662,7 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 		},
 		{
 			name: "Run command with custom working directory",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"command":     "pwd",
 				"working_dir": "/tmp",
 			},
@@ -680,7 +680,7 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 		},
 		{
 			name: "Run failing command",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"command": "exit 1",
 			},
 			expectError: false, // Tool execution doesn't error, but result shows failure
@@ -701,7 +701,7 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 		},
 		{
 			name: "Run command with timeout",
-			params: map[string]interface{}{
+			params: map[string]any{
 				"command": "sleep 2",
 				"timeout": 0.1, // 100ms timeout
 			},
@@ -715,7 +715,7 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 		},
 		{
 			name:        "Missing command parameter",
-			params:      map[string]interface{}{},
+			params:      map[string]any{},
 			expectError: true,
 		},
 	}
@@ -849,7 +849,7 @@ func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 			toolUse: &types.ToolUse{
 				ID:   "tool-use-123",
 				Name: "read_file",
-				Input: map[string]interface{}{
+				Input: map[string]any{
 					"path": "test_handle.txt",
 				},
 			},
@@ -872,7 +872,7 @@ func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 			toolUse: &types.ToolUse{
 				ID:   "tool-use-456",
 				Name: "read_file",
-				Input: map[string]interface{}{
+				Input: map[string]any{
 					"path": "non_existent_file.txt",
 				},
 			},
@@ -892,7 +892,7 @@ func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 			toolUse: &types.ToolUse{
 				ID:   "tool-use-789",
 				Name: "filesystem:read_file", // MCP server:tool format
-				Input: map[string]interface{}{
+				Input: map[string]any{
 					"path": "test.txt",
 				},
 			},
@@ -964,7 +964,7 @@ func TestClaudeCodeToolManager_Permissions(t *testing.T) {
 	// Try to execute file system tool with restricted permissions
 	tool := &ClaudeCodeTool{
 		Name: "read_file",
-		Parameters: map[string]interface{}{
+		Parameters: map[string]any{
 			"path": "test.txt",
 		},
 	}
@@ -1004,7 +1004,7 @@ func TestClaudeCodeToolManager_ParameterValidation(t *testing.T) {
 			name: "Valid parameters",
 			tool: &ClaudeCodeTool{
 				Name: "analyze_code",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"path":          "main.go",
 					"analysis_type": "complexity",
 				},
@@ -1015,7 +1015,7 @@ func TestClaudeCodeToolManager_ParameterValidation(t *testing.T) {
 			name: "Invalid enum value",
 			tool: &ClaudeCodeTool{
 				Name: "analyze_code",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"path":          "main.go",
 					"analysis_type": "invalid_type",
 				},
@@ -1027,7 +1027,7 @@ func TestClaudeCodeToolManager_ParameterValidation(t *testing.T) {
 			name: "Wrong parameter type",
 			tool: &ClaudeCodeTool{
 				Name: "list_files",
-				Parameters: map[string]interface{}{
+				Parameters: map[string]any{
 					"recursive": "yes", // Should be boolean
 				},
 			},

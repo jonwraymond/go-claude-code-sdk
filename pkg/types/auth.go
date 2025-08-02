@@ -45,7 +45,7 @@ type AuthInfo struct {
 	ExpiresAt *time.Time
 
 	// Metadata contains additional authentication-specific information
-	Metadata map[string]interface{}
+	Metadata map[string]any
 }
 
 const (
@@ -241,7 +241,7 @@ type AuthError struct {
 	Code int `json:"code,omitempty"`
 
 	// Details contains additional error information
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 // Error implements the error interface.
@@ -388,10 +388,10 @@ func (s *SubscriptionAuth) hasValidToken(ctx context.Context) bool {
 // This interface allows for secure storage and retrieval of authentication information.
 type CredentialManager interface {
 	// Store securely stores authentication credentials.
-	Store(ctx context.Context, key string, credentials interface{}) error
+	Store(ctx context.Context, key string, credentials any) error
 
 	// Retrieve retrieves stored authentication credentials.
-	Retrieve(ctx context.Context, key string) (interface{}, error)
+	Retrieve(ctx context.Context, key string) (any, error)
 
 	// Delete removes stored credentials.
 	Delete(ctx context.Context, key string) error
@@ -413,27 +413,27 @@ type CredentialManager interface {
 //		APIKey: "your-api-key",
 //	})
 type MemoryCredentialManager struct {
-	credentials map[string]interface{}
+	credentials map[string]any
 }
 
 // NewMemoryCredentialManager creates a new in-memory credential manager.
 func NewMemoryCredentialManager() *MemoryCredentialManager {
 	return &MemoryCredentialManager{
-		credentials: make(map[string]interface{}),
+		credentials: make(map[string]any),
 	}
 }
 
 // Store stores credentials in memory.
-func (m *MemoryCredentialManager) Store(ctx context.Context, key string, credentials interface{}) error {
+func (m *MemoryCredentialManager) Store(ctx context.Context, key string, credentials any) error {
 	if m.credentials == nil {
-		m.credentials = make(map[string]interface{})
+		m.credentials = make(map[string]any)
 	}
 	m.credentials[key] = credentials
 	return nil
 }
 
 // Retrieve retrieves credentials from memory.
-func (m *MemoryCredentialManager) Retrieve(ctx context.Context, key string) (interface{}, error) {
+func (m *MemoryCredentialManager) Retrieve(ctx context.Context, key string) (any, error) {
 	if m.credentials == nil {
 		return nil, &AuthError{
 			Type:    "credentials_not_found",

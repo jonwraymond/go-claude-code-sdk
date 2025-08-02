@@ -223,15 +223,15 @@ func (m *MCPManager) ApplyConfiguration(ctx context.Context) error {
 	mcpConfigPath := filepath.Join(configDir, "mcp.json")
 
 	// Build MCP configuration
-	mcpConfig := make(map[string]interface{})
-	servers := make(map[string]interface{})
+	mcpConfig := make(map[string]any)
+	servers := make(map[string]any)
 
 	for name, config := range m.servers {
 		if !config.Enabled {
 			continue
 		}
 
-		serverConfig := map[string]interface{}{
+		serverConfig := map[string]any{
 			"command": config.Command,
 		}
 

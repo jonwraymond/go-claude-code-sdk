@@ -45,10 +45,10 @@ type Command struct {
 	Args []string `json:"args,omitempty"`
 
 	// Options are command options/flags
-	Options map[string]interface{} `json:"options,omitempty"`
+	Options map[string]any `json:"options,omitempty"`
 
 	// Context provides additional context for the command
-	Context map[string]interface{} `json:"context,omitempty"`
+	Context map[string]any `json:"context,omitempty"`
 }
 
 // CommandResult represents the result of executing a command
@@ -66,7 +66,7 @@ type CommandResult struct {
 	Error string `json:"error,omitempty"`
 
 	// Metadata contains additional result information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // ProjectContext represents information about the current project
@@ -90,7 +90,7 @@ type ProjectContext struct {
 	Files *ProjectFiles `json:"files,omitempty"`
 
 	// Metadata contains additional project information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // GitInfo contains information about a git repository
@@ -108,7 +108,7 @@ type GitInfo struct {
 	IsDirty bool `json:"is_dirty"`
 
 	// Status contains git status information
-	Status map[string]interface{} `json:"status,omitempty"`
+	Status map[string]any `json:"status,omitempty"`
 }
 
 // ProjectFiles contains information about project file structure
@@ -123,5 +123,5 @@ type ProjectFiles struct {
 	ImportantFiles []string `json:"important_files,omitempty"`
 
 	// Structure provides a high-level view of the project structure
-	Structure map[string]interface{} `json:"structure,omitempty"`
+	Structure map[string]any `json:"structure,omitempty"`
 }

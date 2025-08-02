@@ -35,7 +35,7 @@ type Tool struct {
 	InputSchema ToolInputSchema `json:"input_schema"`
 
 	// Metadata contains additional tool information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
 // ToolInputSchema defines the JSON schema for tool input parameters.
@@ -50,7 +50,7 @@ type ToolInputSchema struct {
 	Required []string `json:"required,omitempty"`
 
 	// AdditionalProperties controls whether additional properties are allowed
-	AdditionalProperties interface{} `json:"additionalProperties,omitempty"`
+	AdditionalProperties any `json:"additionalProperties,omitempty"`
 
 	// Description provides additional context for the schema
 	Description string `json:"description,omitempty"`
@@ -65,10 +65,10 @@ type ToolProperty struct {
 	Description string `json:"description,omitempty"`
 
 	// Enum lists allowed values for this property
-	Enum []interface{} `json:"enum,omitempty"`
+	Enum []any `json:"enum,omitempty"`
 
 	// Default provides a default value for this property
-	Default interface{} `json:"default,omitempty"`
+	Default any `json:"default,omitempty"`
 
 	// Items defines the schema for array items (when type is "array")
 	Items *ToolProperty `json:"items,omitempty"`
@@ -98,7 +98,7 @@ type ToolProperty struct {
 // Implementations handle the actual execution of tool functions.
 type ToolExecutor interface {
 	// Execute runs the tool with the provided input and returns the result.
-	Execute(ctx context.Context, toolName string, input map[string]interface{}) (*ToolResult, error)
+	Execute(ctx context.Context, toolName string, input map[string]any) (*ToolResult, error)
 
 	// GetTool returns information about a specific tool.
 	GetTool(toolName string) (*Tool, error)
@@ -114,7 +114,7 @@ type ToolExecutor interface {
 }
 
 // ToolHandler is a function that implements the actual tool logic.
-type ToolHandler func(ctx context.Context, input map[string]interface{}) (*ToolResult, error)
+type ToolHandler func(ctx context.Context, input map[string]any) (*ToolResult, error)
 
 // ToolUse represents a tool use request from Claude.
 type ToolUse struct {
@@ -125,7 +125,7 @@ type ToolUse struct {
 	Name string `json:"name"`
 
 	// Input contains the parameters to pass to the tool
-	Input map[string]interface{} `json:"input"`
+	Input map[string]any `json:"input"`
 }
 
 // ToolResult represents the result of executing a tool.
@@ -146,7 +146,7 @@ type ToolResult struct {
 	Error string `json:"error,omitempty"`
 
 	// Metadata contains additional result information
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Metadata map[string]any `json:"metadata,omitempty"`
 
 	// ExecutionTime is how long the tool took to execute
 	ExecutionTime int64 `json:"execution_time,omitempty"`
@@ -215,7 +215,7 @@ func (tc AnyToolChoice) MarshalJSON() ([]byte, error) {
 }
 
 func (tc SpecificToolChoice) MarshalJSON() ([]byte, error) {
-	return json.Marshal(map[string]interface{}{
+	return json.Marshal(map[string]any{
 		"type": "tool",
 		"name": tc.Name,
 	})
@@ -237,7 +237,7 @@ func NewSimpleToolExecutor() *SimpleToolExecutor {
 }
 
 // Execute runs the specified tool with the provided input.
-func (e *SimpleToolExecutor) Execute(ctx context.Context, toolName string, input map[string]interface{}) (*ToolResult, error) {
+func (e *SimpleToolExecutor) Execute(ctx context.Context, toolName string, input map[string]any) (*ToolResult, error) {
 	handler, exists := e.handlers[toolName]
 	if !exists {
 		return &ToolResult{
@@ -321,7 +321,7 @@ type ToolError struct {
 	ToolName string `json:"tool_name,omitempty"`
 
 	// Details contains additional error information
-	Details map[string]interface{} `json:"details,omitempty"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 // Error implements the error interface.
@@ -388,7 +388,7 @@ var BuiltinTools = struct {
 					Type:        "string",
 					Description: "The text encoding to use",
 					Default:     "utf-8",
-					Enum:        []interface{}{"utf-8", "ascii", "latin-1"},
+					Enum:        []any{"utf-8", "ascii", "latin-1"},
 				},
 			},
 			Required: []string{"path"},
@@ -413,7 +413,7 @@ var BuiltinTools = struct {
 					Type:        "string",
 					Description: "The write mode",
 					Default:     "write",
-					Enum:        []interface{}{"write", "append"},
+					Enum:        []any{"write", "append"},
 				},
 			},
 			Required: []string{"path", "content"},
@@ -429,7 +429,7 @@ var BuiltinTools = struct {
 				"language": {
 					Type:        "string",
 					Description: "The programming language",
-					Enum:        []interface{}{"python", "javascript", "bash", "go"},
+					Enum:        []any{"python", "javascript", "bash", "go"},
 				},
 				"code": {
 					Type:        "string",

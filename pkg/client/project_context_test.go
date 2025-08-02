@@ -310,7 +310,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for Docker
 	if dockerInfo, exists := tools["docker"]; exists {
-		dockerMap := dockerInfo.(map[string]interface{})
+		dockerMap := dockerInfo.(map[string]any)
 		if !dockerMap["dockerfile"].(bool) {
 			t.Error("Expected to detect Dockerfile")
 		}
@@ -323,7 +323,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for CI/CD
 	if cicdInfo, exists := tools["ci_cd"]; exists {
-		cicdMap := cicdInfo.(map[string]interface{})
+		cicdMap := cicdInfo.(map[string]any)
 		if !cicdMap["github_actions"].(bool) {
 			t.Error("Expected to detect GitHub Actions")
 		}
@@ -333,7 +333,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for linting
 	if lintInfo, exists := tools["linting"]; exists {
-		lintMap := lintInfo.(map[string]interface{})
+		lintMap := lintInfo.(map[string]any)
 		if !lintMap["eslint"].(bool) {
 			t.Error("Expected to detect ESLint")
 		}
@@ -343,7 +343,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 	// Check for formatting
 	if formatInfo, exists := tools["formatting"]; exists {
-		formatMap := formatInfo.(map[string]interface{})
+		formatMap := formatInfo.(map[string]any)
 		if !formatMap["prettier"].(bool) {
 			t.Error("Expected to detect Prettier")
 		}

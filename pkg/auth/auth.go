@@ -192,7 +192,7 @@ func (s *SessionAuthenticator) Authenticate(ctx context.Context) (*types.AuthInf
 		},
 		CreatedAt: time.Now(),
 		ExpiresAt: &expiresAt,
-		Metadata: map[string]interface{}{
+		Metadata: map[string]any{
 			"sessionId": generateSessionID(),
 		},
 	}

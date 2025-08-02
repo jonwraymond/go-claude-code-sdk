@@ -61,7 +61,7 @@ type SDKError interface {
 	Message() string
 
 	// Details returns additional error details for debugging
-	Details() map[string]interface{}
+	Details() map[string]any
 
 	// IsRetryable returns true if the operation can be retried
 	IsRetryable() bool
@@ -85,7 +85,7 @@ type BaseError struct {
 	severity   ErrorSeverity
 	code       string
 	message    string
-	details    map[string]interface{}
+	details    map[string]any
 	retryable  bool
 	cause      error
 	httpStatus int
@@ -106,7 +106,7 @@ func NewBaseError(
 		severity:   severity,
 		code:       code,
 		message:    message,
-		details:    make(map[string]interface{}),
+		details:    make(map[string]any),
 		retryable:  false,
 		timestamp:  time.Now().UTC(),
 		stackTrace: captureStackTrace(2), // Skip NewBaseError and calling function
@@ -142,9 +142,9 @@ func (e *BaseError) Message() string {
 }
 
 // Details returns the error details.
-func (e *BaseError) Details() map[string]interface{} {
+func (e *BaseError) Details() map[string]any {
 	// Return a copy to prevent external modification
-	details := make(map[string]interface{})
+	details := make(map[string]any)
 	for k, v := range e.details {
 		details[k] = v
 	}
@@ -183,18 +183,18 @@ func (e *BaseError) WithCause(cause error) *BaseError {
 }
 
 // WithDetail adds a detail key-value pair to the error.
-func (e *BaseError) WithDetail(key string, value interface{}) *BaseError {
+func (e *BaseError) WithDetail(key string, value any) *BaseError {
 	if e.details == nil {
-		e.details = make(map[string]interface{})
+		e.details = make(map[string]any)
 	}
 	e.details[key] = value
 	return e
 }
 
 // WithDetails sets multiple details at once.
-func (e *BaseError) WithDetails(details map[string]interface{}) *BaseError {
+func (e *BaseError) WithDetails(details map[string]any) *BaseError {
 	if e.details == nil {
-		e.details = make(map[string]interface{})
+		e.details = make(map[string]any)
 	}
 	for k, v := range details {
 		e.details[k] = v
