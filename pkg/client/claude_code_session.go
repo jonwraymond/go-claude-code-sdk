@@ -293,7 +293,8 @@ func (s *ClaudeCodeSession) Query(ctx context.Context, request *types.QueryReque
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -328,7 +329,8 @@ func (s *ClaudeCodeSession) QueryStream(ctx context.Context, request *types.Quer
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -366,7 +368,8 @@ func (s *ClaudeCodeSession) ExecuteCommand(ctx context.Context, cmd *types.Comma
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 
@@ -393,7 +396,8 @@ func (s *ClaudeCodeSession) ExecuteSlashCommand(ctx context.Context, slashComman
 		return nil, sdkerrors.NewInternalError("SESSION_CLOSED", "session has been closed")
 	}
 
-	if s.IsExpired() {
+	// Check expiration without calling IsExpired to avoid deadlock
+	if time.Since(s.lastUsedAt) > s.timeout {
 		return nil, sdkerrors.NewInternalError("SESSION_EXPIRED", "session has expired")
 	}
 

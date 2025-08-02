@@ -127,7 +127,7 @@ func TestBuildClaudeArgs(t *testing.T) {
 	// Check that arguments contain expected values
 	expectedArgs := map[string]bool{
 		"--model":       false,
-		"--session":     false,
+		"--session-id":  false,
 		"--max-tokens":  false,
 		"--temperature": false,
 		"--system":      false,
