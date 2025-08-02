@@ -21,7 +21,7 @@ on:
 
 env:
   GO_VERSION_MIN: '1.20'
-  GO_VERSION_MAX: '1.22'
+  GO_VERSION_MAX: '1.24'
 
 jobs:
   # Linting runs first and fastest to provide early feedback
@@ -44,10 +44,10 @@ jobs:
         path: |
           ~/go/pkg/mod
           ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-lint
+        key: ubuntu-latest-go-${{ hashFiles('**/go.sum') }}-lint
         restore-keys: |
-          ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-
-          ${{ runner.os }}-go-
+          ubuntu-latest-go-${{ hashFiles('**/go.sum') }}-
+          ubuntu-latest-go-
 
     - name: Download dependencies
       run: go mod download
@@ -61,17 +61,16 @@ jobs:
         skip-cache: false
         skip-save-cache: false
 
-  # Unit tests with comprehensive matrix
+  # Unit tests with comprehensive Go version matrix (Linux-only)
   test:
-    name: Test (Go ${{ matrix.go-version }} on ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Test (Go ${{ matrix.go-version }} on Linux)
+    runs-on: ubuntu-latest
     needs: lint
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        go-version: ['1.20', '1.21', '1.22']
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.20', '1.21', '1.22', '1.23', '1.24']
     
     steps:
     - name: Checkout code
@@ -88,10 +87,10 @@ jobs:
         path: |
           ~/go/pkg/mod
           ~/.cache/go-build
-        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+        key: ubuntu-latest-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
         restore-keys: |
-          ${{ runner.os }}-go-${{ matrix.go-version }}-
-          ${{ runner.os }}-go-
+          ubuntu-latest-go-${{ matrix.go-version }}-
+          ubuntu-latest-go-
 
     - name: Download dependencies
       run: go mod download
@@ -109,7 +108,7 @@ jobs:
       run: go test -v -race -timeout=15m -coverprofile=coverage.txt -covermode=atomic ./pkg/...
 
     - name: Upload coverage to Codecov
-      if: matrix.os == 'ubuntu-latest' && matrix.go-version == env.GO_VERSION_MAX
+      if: matrix.go-version == env.GO_VERSION_MAX
       uses: codecov/codecov-action@v4
       with:
         files: ./coverage.txt
