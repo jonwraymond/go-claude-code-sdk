@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
@@ -12,6 +14,9 @@ import (
 type CommandType = types.CommandType
 type Command = types.Command
 type CommandResult = types.CommandResult
+type CommandList = types.CommandList
+type CommandListResult = types.CommandListResult
+type CommandExecutionMode = types.CommandExecutionMode
 
 // Re-export command type constants from types package
 const (
@@ -45,6 +50,11 @@ const (
 	CommandClear   = types.CommandClear
 	CommandSave    = types.CommandSave
 	CommandLoad    = types.CommandLoad
+
+	// Execution modes
+	ExecutionModeSequential = types.ExecutionModeSequential
+	ExecutionModeParallel   = types.ExecutionModeParallel
+	ExecutionModeDependency = types.ExecutionModeDependency
 )
 
 // CommandExecutor provides command execution capabilities for Claude Code
@@ -98,14 +108,31 @@ func (ce *CommandExecutor) ExecuteCommand(ctx context.Context, cmd *Command) (*C
 	// Parse response
 	output := ce.ExtractTextContent(response.Content)
 
-	return &CommandResult{
-		Command: cmd,
-		Success: true,
-		Output:  output,
+	// Check for truncation indicators
+	isTruncated := ce.isOutputTruncated(output)
+	outputLength := len(output)
+
+	result := &CommandResult{
+		Command:      cmd,
+		Success:      true,
+		Output:       output,
+		IsTruncated:  isTruncated,
+		OutputLength: outputLength,
 		Metadata: map[string]any{
 			"stop_reason": response.StopReason,
 		},
-	}, nil
+	}
+
+	// If truncated and verbose output requested, try to get full output
+	if isTruncated && cmd.VerboseOutput {
+		fullOutput, err := ce.getFullOutput(ctx, cmd, output)
+		if err == nil && fullOutput != "" {
+			result.FullOutput = fullOutput
+			result.OutputLength = len(fullOutput)
+		}
+	}
+
+	return result, nil
 }
 
 // ExecuteSlashCommand executes a Claude Code slash command (e.g., "/read file.go")
@@ -119,6 +146,175 @@ func (ce *CommandExecutor) ExecuteSlashCommand(ctx context.Context, slashCommand
 	}
 
 	return ce.ExecuteCommand(ctx, cmd)
+}
+
+// ExecuteCommands executes a list of commands according to the specified execution mode
+func (ce *CommandExecutor) ExecuteCommands(ctx context.Context, cmdList *CommandList) (*CommandListResult, error) {
+	if cmdList == nil || len(cmdList.Commands) == 0 {
+		return &CommandListResult{
+			Success:       true,
+			TotalCommands: 0,
+			Results:       []*CommandResult{},
+		}, nil
+	}
+
+	startTime := time.Now()
+	
+	// Default execution mode is sequential
+	mode := cmdList.ExecutionMode
+	if mode == "" {
+		mode = ExecutionModeSequential
+	}
+
+	var result *CommandListResult
+	var err error
+
+	switch mode {
+	case ExecutionModeSequential:
+		result, err = ce.executeSequential(ctx, cmdList)
+	case ExecutionModeParallel:
+		result, err = ce.executeParallel(ctx, cmdList)
+	case ExecutionModeDependency:
+		// For now, treat dependency mode as sequential
+		// Future enhancement: implement dependency graph execution
+		result, err = ce.executeSequential(ctx, cmdList)
+	default:
+		return nil, fmt.Errorf("unknown execution mode: %s", mode)
+	}
+
+	if result != nil {
+		result.ExecutionTime = time.Since(startTime).Milliseconds()
+	}
+
+	return result, err
+}
+
+// executeSequential executes commands one after another
+func (ce *CommandExecutor) executeSequential(ctx context.Context, cmdList *CommandList) (*CommandListResult, error) {
+	result := &CommandListResult{
+		Results:       make([]*CommandResult, 0, len(cmdList.Commands)),
+		TotalCommands: len(cmdList.Commands),
+		Success:       true,
+		Errors:        make([]string, 0),
+	}
+
+	for i, cmd := range cmdList.Commands {
+		select {
+		case <-ctx.Done():
+			result.Success = false
+			result.Errors = append(result.Errors, fmt.Sprintf("execution cancelled at command %d", i+1))
+			return result, ctx.Err()
+		default:
+		}
+
+		cmdResult, err := ce.ExecuteCommand(ctx, cmd)
+		if err != nil {
+			result.FailedCommands++
+			result.Success = false
+			result.Errors = append(result.Errors, fmt.Sprintf("command %d error: %v", i+1, err))
+			
+			// Create a failed result
+			cmdResult = &CommandResult{
+				Command: cmd,
+				Success: false,
+				Error:   err.Error(),
+			}
+		} else if cmdResult.Success {
+			result.SuccessfulCommands++
+		} else {
+			result.FailedCommands++
+			result.Success = false
+			if cmdResult.Error != "" {
+				result.Errors = append(result.Errors, fmt.Sprintf("command %d: %s", i+1, cmdResult.Error))
+			}
+		}
+
+		result.Results = append(result.Results, cmdResult)
+
+		// Stop on error if requested
+		if cmdList.StopOnError && !cmdResult.Success {
+			break
+		}
+	}
+
+	return result, nil
+}
+
+// executeParallel executes commands in parallel
+func (ce *CommandExecutor) executeParallel(ctx context.Context, cmdList *CommandList) (*CommandListResult, error) {
+	result := &CommandListResult{
+		Results:       make([]*CommandResult, len(cmdList.Commands)),
+		TotalCommands: len(cmdList.Commands),
+		Success:       true,
+		Errors:        make([]string, 0),
+	}
+
+	// Determine max parallel execution
+	maxParallel := cmdList.MaxParallel
+	if maxParallel <= 0 {
+		maxParallel = 5 // Default max parallel
+	}
+	if maxParallel > len(cmdList.Commands) {
+		maxParallel = len(cmdList.Commands)
+	}
+
+	// Create semaphore for parallel limit
+	semaphore := make(chan struct{}, maxParallel)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	for i, cmd := range cmdList.Commands {
+		select {
+		case <-ctx.Done():
+			result.Success = false
+			result.Errors = append(result.Errors, "execution cancelled")
+			return result, ctx.Err()
+		default:
+		}
+
+		wg.Add(1)
+		go func(index int, command *Command) {
+			defer wg.Done()
+
+			// Acquire semaphore
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			// Execute command
+			cmdResult, err := ce.ExecuteCommand(ctx, command)
+			
+			mu.Lock()
+			defer mu.Unlock()
+
+			if err != nil {
+				result.FailedCommands++
+				result.Success = false
+				result.Errors = append(result.Errors, fmt.Sprintf("command %d error: %v", index+1, err))
+				
+				// Create a failed result
+				cmdResult = &CommandResult{
+					Command: command,
+					Success: false,
+					Error:   err.Error(),
+				}
+			} else if cmdResult.Success {
+				result.SuccessfulCommands++
+			} else {
+				result.FailedCommands++
+				result.Success = false
+				if cmdResult.Error != "" {
+					result.Errors = append(result.Errors, fmt.Sprintf("command %d: %s", index+1, cmdResult.Error))
+				}
+			}
+
+			result.Results[index] = cmdResult
+		}(i, cmd)
+	}
+
+	// Wait for all commands to complete
+	wg.Wait()
+
+	return result, nil
 }
 
 // buildCommandPrompt constructs a prompt for the given command
@@ -276,6 +472,11 @@ func (ce *CommandExecutor) buildCommandPrompt(cmd *Command) (string, error) {
 		}
 	}
 
+	// Add verbose output request if enabled
+	if cmd.VerboseOutput {
+		prompt.WriteString("\n\nPlease provide the complete output without any truncation. Include all details and content.")
+	}
+
 	return prompt.String(), nil
 }
 
@@ -325,6 +526,110 @@ func (ce *CommandExecutor) ExtractTextContent(content []types.ContentBlock) stri
 		}
 	}
 	return text.String()
+}
+
+// isOutputTruncated checks if the output appears to be truncated
+func (ce *CommandExecutor) isOutputTruncated(output string) bool {
+	// Common truncation indicators
+	truncationIndicators := []string{
+		"...",
+		"[truncated]",
+		"[output truncated]",
+		"... (truncated)",
+		"[more content]",
+		"[rest of output omitted]",
+	}
+
+	output = strings.TrimSpace(output)
+	lowerOutput := strings.ToLower(output)
+
+	// Check if output ends with truncation indicators
+	for _, indicator := range truncationIndicators {
+		if strings.HasSuffix(output, indicator) || strings.HasSuffix(lowerOutput, indicator) {
+			return true
+		}
+	}
+
+	// Check if output is suspiciously short for certain commands
+	if len(output) < 10 && output == "..." {
+		return true
+	}
+
+	// Check for incomplete patterns (e.g., cut off mid-sentence or mid-JSON)
+	if len(output) > 20 { // Reduced threshold for better detection
+		lastChar := output[len(output)-1]
+		
+		// Check for incomplete JSON/code structures
+		openBraces := strings.Count(output, "{") - strings.Count(output, "}")
+		openBrackets := strings.Count(output, "[") - strings.Count(output, "]")
+		openQuotes := strings.Count(output, `"`) % 2
+		
+		if openBraces > 0 || openBrackets > 0 || openQuotes != 0 {
+			return true
+		}
+		
+		// If doesn't end with typical punctuation, might be truncated
+		if lastChar != '.' && lastChar != '!' && lastChar != '?' && lastChar != '\n' && lastChar != '}' && lastChar != ']' && lastChar != '"' && lastChar != '\'' {
+			// Additional check: if it looks like it ends mid-word or mid-sentence
+			lastWords := strings.Fields(output)
+			if len(lastWords) > 0 {
+				lastWord := lastWords[len(lastWords)-1]
+				// If the last word doesn't end with punctuation and seems incomplete
+				if len(lastWord) > 0 && !strings.ContainsAny(lastWord, ".!?,;:)]}\"'") {
+					// Check if it might be a complete word by looking at context
+					// Short outputs might just be brief responses
+					if len(output) < 50 && !strings.Contains(output, "...") {
+						return false
+					}
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+// getFullOutput attempts to retrieve the full output for a truncated command
+func (ce *CommandExecutor) getFullOutput(ctx context.Context, cmd *Command, truncatedOutput string) (string, error) {
+	// Build a follow-up prompt to get the complete output
+	prompt := fmt.Sprintf("The previous command output was truncated. Please provide the complete output for the %s command", cmd.Type)
+	if len(cmd.Args) > 0 {
+		prompt += fmt.Sprintf(" with arguments: %v", cmd.Args)
+	}
+	prompt += ". Please include ALL content without any truncation."
+
+	request := &types.QueryRequest{
+		Messages: []types.Message{
+			{Role: types.RoleUser, Content: prompt},
+		},
+		MaxTokens: 8000, // Request more tokens for full output
+	}
+
+	response, err := ce.client.Query(ctx, request)
+	if err != nil {
+		return "", err
+	}
+
+	return ce.ExtractTextContent(response.Content), nil
+}
+
+// Helper functions for truncation detection
+func getLastWord(s string) string {
+	words := strings.Fields(s)
+	if len(words) == 0 {
+		return ""
+	}
+	return words[len(words)-1]
+}
+
+func isCompleteWord(word string) bool {
+	// Simple heuristic: if word ends with common punctuation, it's likely complete
+	if len(word) == 0 {
+		return true
+	}
+	lastChar := word[len(word)-1]
+	return lastChar == '.' || lastChar == ',' || lastChar == ';' || lastChar == ':' || lastChar == ')' || lastChar == ']' || lastChar == '}'
 }
 
 // Common command builder methods
@@ -453,4 +758,71 @@ func WithContext(key string, value any) func(*Command) {
 		}
 		cmd.Context[key] = value
 	}
+}
+
+// WithVerboseOutput enables verbose output for a command
+func WithVerboseOutput() func(*Command) {
+	return func(cmd *Command) {
+		cmd.VerboseOutput = true
+	}
+}
+
+// Command list builder functions
+
+// NewCommandList creates a new command list with the specified commands
+func NewCommandList(commands ...*Command) *CommandList {
+	return &CommandList{
+		Commands:      commands,
+		ExecutionMode: ExecutionModeSequential, // Default to sequential
+		StopOnError:   true,                    // Default to stopping on error
+	}
+}
+
+// NewParallelCommandList creates a new command list for parallel execution
+func NewParallelCommandList(maxParallel int, commands ...*Command) *CommandList {
+	return &CommandList{
+		Commands:      commands,
+		ExecutionMode: ExecutionModeParallel,
+		MaxParallel:   maxParallel,
+		StopOnError:   false, // Default to not stopping on error for parallel
+	}
+}
+
+// CommandListOption is a function that modifies a CommandList
+type CommandListOption func(*CommandList)
+
+// WithExecutionMode sets the execution mode for a command list
+func WithExecutionMode(mode CommandExecutionMode) CommandListOption {
+	return func(cl *CommandList) {
+		cl.ExecutionMode = mode
+	}
+}
+
+// WithStopOnError sets whether to stop execution on first error
+func WithStopOnError(stop bool) CommandListOption {
+	return func(cl *CommandList) {
+		cl.StopOnError = stop
+	}
+}
+
+// WithMaxParallel sets the maximum number of parallel commands
+func WithMaxParallel(max int) CommandListOption {
+	return func(cl *CommandList) {
+		cl.MaxParallel = max
+	}
+}
+
+// CreateCommandList creates a command list with options
+func CreateCommandList(commands []*Command, options ...CommandListOption) *CommandList {
+	cl := &CommandList{
+		Commands:      commands,
+		ExecutionMode: ExecutionModeSequential,
+		StopOnError:   true,
+	}
+
+	for _, opt := range options {
+		opt(cl)
+	}
+
+	return cl
 }

@@ -316,6 +316,13 @@ func (c *ClaudeCodeClient) ExecuteSlashCommand(ctx context.Context, slashCommand
 	return executor.ExecuteSlashCommand(ctx, slashCommand)
 }
 
+// ExecuteCommands executes a list of commands according to the specified execution mode.
+// Commands can be executed sequentially, in parallel, or based on dependencies.
+func (c *ClaudeCodeClient) ExecuteCommands(ctx context.Context, cmdList *types.CommandList) (*types.CommandListResult, error) {
+	executor := NewCommandExecutor(c)
+	return executor.ExecuteCommands(ctx, cmdList)
+}
+
 // GetProjectContext returns information about the current project context.
 func (c *ClaudeCodeClient) GetProjectContext(ctx context.Context) (*types.ProjectContext, error) {
 	c.mu.RLock()
