@@ -21,6 +21,7 @@ linters-settings:
       - os.WriteFile  # Allow unchecked WriteFile in tests
       - os.MkdirAll   # Allow unchecked MkdirAll in tests
       - filepath.Walk # Allow unchecked filepath.Walk
+      - '(*os.Process).Kill' # Allow unchecked Process.Kill
       # Allow builder pattern methods that return *BaseError
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithDetail'
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithRetryable'
@@ -46,5 +47,11 @@ issues:
     # Allow nil pointer dereference in tests where we check for nil first
     - path: _test\.go
       text: "SA5011.*possible nil pointer dereference"
+      linters:
+        - staticcheck
+    
+    # Allow nil pointer dereference related information messages in tests
+    - path: _test\.go
+      text: "SA5011.*this check suggests that the pointer can be nil"
       linters:
         - staticcheck
