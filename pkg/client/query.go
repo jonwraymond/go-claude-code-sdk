@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 // PermissionMode defines how Claude Code handles file edit permissions

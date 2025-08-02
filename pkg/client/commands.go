@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 // Re-export types from types package for convenience

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	sdkerrors "github.com/jraymond/claude-code-go-sdk/pkg/errors"
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	sdkerrors "github.com/jonwraymond/go-claude-code-sdk/pkg/errors"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 // ClaudeCodeSessionManager manages conversation sessions for Claude Code CLI.

@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"time"
 
-	claudeerrors "github.com/jraymond/claude-code-go-sdk/pkg/errors"
-	"github.com/jraymond/claude-code-go-sdk/pkg/client"
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	claudeerrors "github.com/jonwraymond/go-claude-code-sdk/pkg/errors"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/client"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {

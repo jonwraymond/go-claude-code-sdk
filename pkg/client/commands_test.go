@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func TestParseSlashCommand(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	sdkerrors "github.com/jraymond/claude-code-go-sdk/pkg/errors"
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	sdkerrors "github.com/jonwraymond/go-claude-code-sdk/pkg/errors"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 // MCPManager manages Model Context Protocol servers for Claude Code integration.

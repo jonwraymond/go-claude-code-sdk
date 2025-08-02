@@ -18,7 +18,7 @@ Before running these examples:
 
 3. Install the SDK:
    ```bash
-   go get github.com/jraymond/claude-code-go-sdk
+   go get github.com/jonwraymond/go-claude-code-sdk
    ```
 
 ## Examples Overview
@@ -166,4 +166,4 @@ options := &client.QueryOptions{
 
 ## Contributing
 
-See more examples or contribute your own in the [main repository](https://github.com/jraymond/claude-code-go-sdk).
+See more examples or contribute your own in the [main repository](https://github.com/jonwraymond/go-claude-code-sdk).

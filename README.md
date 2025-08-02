@@ -1,7 +1,7 @@
 # Go Claude Code SDK
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/jraymond/claude-code-go-sdk.svg)](https://pkg.go.dev/github.com/jraymond/claude-code-go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jraymond/claude-code-go-sdk)](https://goreportcard.com/report/github.com/jraymond/claude-code-go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jonwraymond/go-claude-code-sdk.svg)](https://pkg.go.dev/github.com/jonwraymond/go-claude-code-sdk)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jonwraymond/go-claude-code-sdk)](https://goreportcard.com/report/github.com/jonwraymond/go-claude-code-sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive Go SDK for [Claude Code](https://github.com/anthropics/claude-code), the AI-powered CLI tool that lives in your terminal. This SDK provides idiomatic Go interfaces for interacting with Claude Code's subprocess-based architecture, enabling seamless integration of AI-powered coding assistance into your Go applications.
@@ -67,7 +67,7 @@ This SDK focuses exclusively on Claude Code CLI functionality and does not inclu
 ### Installation
 
 ```bash
-go get github.com/jraymond/claude-code-go-sdk
+go get github.com/jonwraymond/go-claude-code-sdk
 ```
 
 ### Quick Start
@@ -80,8 +80,8 @@ import (
     "fmt"
     "log"
     
-    "github.com/jraymond/claude-code-go-sdk/pkg/client"
-    "github.com/jraymond/claude-code-go-sdk/pkg/types"
+    "github.com/jonwraymond/go-claude-code-sdk/pkg/client"
+    "github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -403,9 +403,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/jraymond/claude-code-go-sdk/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jraymond/claude-code-go-sdk/discussions)
-- **Documentation**: [pkg.go.dev](https://pkg.go.dev/github.com/jraymond/claude-code-go-sdk)
+- **Issues**: [GitHub Issues](https://github.com/jonwraymond/go-claude-code-sdk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jonwraymond/go-claude-code-sdk/discussions)
+- **Documentation**: [pkg.go.dev](https://pkg.go.dev/github.com/jonwraymond/go-claude-code-sdk)
 
 ---
 

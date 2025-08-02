@@ -31,7 +31,7 @@ By participating in this project, you agree to abide by our Code of Conduct:
 
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/jraymond/claude-code-go-sdk.git
+   git remote add upstream https://github.com/jonwraymond/go-claude-code-sdk.git
    ```
 
 4. Set up development environment:

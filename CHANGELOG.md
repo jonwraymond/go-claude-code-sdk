@@ -99,4 +99,4 @@ For users coming from HTTP-based Anthropic API clients:
 - Enhanced project context detection
 - More sophisticated error recovery mechanisms
 
-[Unreleased]: https://github.com/jraymond/claude-code-go-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jonwraymond/go-claude-code-sdk/compare/v0.1.0...HEAD
