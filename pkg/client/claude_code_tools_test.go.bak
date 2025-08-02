@@ -15,7 +15,6 @@ import (
 func TestNewClaudeCodeToolManager(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -67,7 +66,6 @@ func TestNewClaudeCodeToolManager(t *testing.T) {
 func TestClaudeCodeToolManager_GetTool(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -130,7 +128,6 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 	}
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -243,7 +240,6 @@ func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 func TestClaudeCodeToolManager_ExecuteWriteFile(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -369,7 +365,6 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, "subdir", "file4.go"), []byte("content4"), 0644)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -503,7 +498,6 @@ Hello, World!`
 	os.WriteFile(filepath.Join(tempDir, "test.txt"), []byte(txtFile), 0644)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -607,7 +601,6 @@ Hello, World!`
 func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -752,7 +745,6 @@ func TestClaudeCodeToolManager_ExecuteRunCommand(t *testing.T) {
 func TestClaudeCodeToolManager_ConvertToClaudeAPITools(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -825,7 +817,6 @@ func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 	}
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -939,7 +930,6 @@ func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 func TestClaudeCodeToolManager_Permissions(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -981,7 +971,6 @@ func TestClaudeCodeToolManager_Permissions(t *testing.T) {
 func TestClaudeCodeToolManager_ParameterValidation(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

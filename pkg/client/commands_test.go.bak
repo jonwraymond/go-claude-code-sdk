@@ -11,7 +11,6 @@ func TestParseSlashCommand(t *testing.T) {
 	// Create a mock command executor
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -116,7 +115,6 @@ func TestBuildCommandPrompt(t *testing.T) {
 	// Create a mock command executor
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -330,7 +328,6 @@ func TestExtractTextContent(t *testing.T) {
 	// Create a mock command executor
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -477,7 +474,6 @@ func TestExecuteCommand_MockResponse(t *testing.T) {
 
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

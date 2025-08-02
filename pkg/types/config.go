@@ -126,6 +126,10 @@ type ClaudeCodeConfig struct {
 	// Debug enables debug logging
 	Debug bool `json:"debug,omitempty"`
 
+	// TestMode bypasses Claude Code CLI requirement for testing
+	// When true, the client will skip CLI validation and use mock behavior
+	TestMode bool `json:"test_mode,omitempty"`
+
 	// ClaudeExecutable is an alias for ClaudeCodePath for backward compatibility
 	ClaudeExecutable string `json:"claude_executable,omitempty"`
 }

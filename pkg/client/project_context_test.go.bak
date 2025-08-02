@@ -13,7 +13,6 @@ import (
 func TestNewProjectContextManager(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -43,7 +42,6 @@ func TestProjectContextManager_GetEnhancedProjectContext(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -102,7 +100,6 @@ func TestProjectContextManager_CacheManagement(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -174,7 +171,6 @@ func TestProjectContextManager_AnalyzeArchitecture(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, "docker-compose.yml"), []byte("version: '3'"), 0644)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -249,7 +245,6 @@ func TestProjectContextManager_AnalyzeDependencies(t *testing.T) {
 			tt.setupFunc(tempDir)
 
 			config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 				WorkingDirectory: tempDir,
 			}
 
@@ -290,7 +285,6 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, ".prettierrc"), []byte("{}"), 0644)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -377,7 +371,6 @@ require (
 	os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -425,7 +418,6 @@ func TestClaudeCodeClient_ProjectContextIntegration(t *testing.T) {
 	setupGoProject(t, tempDir)
 
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

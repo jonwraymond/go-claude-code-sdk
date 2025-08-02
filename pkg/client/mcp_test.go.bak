@@ -13,7 +13,6 @@ import (
 func TestNewMCPManager(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 		MCPServers: map[string]*types.MCPServerConfig{
 			"test-server": {
@@ -50,7 +49,6 @@ func TestNewMCPManager(t *testing.T) {
 func TestMCPManager_AddServer(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -98,7 +96,6 @@ func TestMCPManager_AddServer(t *testing.T) {
 func TestMCPManager_AddServerValidation(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -164,7 +161,6 @@ func TestMCPManager_AddServerValidation(t *testing.T) {
 func TestMCPManager_RemoveServer(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -210,7 +206,6 @@ func TestMCPManager_RemoveServer(t *testing.T) {
 func TestMCPManager_EnableDisableServer(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -270,7 +265,6 @@ func TestMCPManager_EnableDisableServer(t *testing.T) {
 func TestMCPManager_GetEnabledServers(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -330,7 +324,6 @@ func TestMCPManager_GetEnabledServers(t *testing.T) {
 func TestMCPManager_ApplyConfiguration(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -422,7 +415,6 @@ func TestMCPManager_ApplyConfiguration(t *testing.T) {
 func TestMCPManager_SaveLoadFromFile(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -500,7 +492,6 @@ func TestMCPManager_SaveLoadFromFile(t *testing.T) {
 func TestMCPManager_AddCommonServers(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 
@@ -540,7 +531,6 @@ func TestMCPManager_AddCommonServers(t *testing.T) {
 func TestClaudeCodeClient_MCPIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	}
 

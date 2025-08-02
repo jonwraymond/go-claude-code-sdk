@@ -111,10 +111,16 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	// Apply defaults including authentication method detection
 	config.ApplyDefaults()
 
-	// Find claude command
-	claudeCmd, err := findClaudeCodeCommand(config.ClaudeCodePath)
-	if err != nil {
-		return nil, sdkerrors.WrapError(err, sdkerrors.CategoryConfiguration, "CLAUDE_CODE_PATH", "failed to locate claude code executable")
+	// Find claude command (skip in test mode)
+	var claudeCmd string
+	if config.TestMode {
+		claudeCmd = "/bin/echo" // Use echo as a mock command for testing
+	} else {
+		var err error
+		claudeCmd, err = findClaudeCodeCommand(config.ClaudeCodePath)
+		if err != nil {
+			return nil, sdkerrors.WrapError(err, sdkerrors.CategoryConfiguration, "CLAUDE_CODE_PATH", "failed to locate claude code executable")
+		}
 	}
 
 	// Validate working directory
