@@ -1,4 +1,4 @@
-# golangci-lint configuration compatible with v1.59
+# golangci-lint configuration compatible with v1.62
 run:
   timeout: 10m
   tests: true
