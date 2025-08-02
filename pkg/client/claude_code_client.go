@@ -783,10 +783,8 @@ func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streamin
 		args = append(args, "--session-id", c.sessionID)
 	}
 
-	// Add streaming flag if requested
-	if streaming {
-		args = append(args, "--stream")
-	}
+	// Note: Claude CLI does not have a --stream flag
+	// Streaming is handled differently based on --print and --output-format flags
 
 	// Add MCP configuration if there are enabled servers
 	if enabledServers := c.mcpManager.GetEnabledServers(); len(enabledServers) > 0 {
@@ -797,19 +795,13 @@ func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streamin
 	}
 
 	// Add system prompt if provided
+	// Claude CLI uses --append-system-prompt instead of --system
 	if request.System != "" {
-		args = append(args, "--system", request.System)
+		args = append(args, "--append-system-prompt", request.System)
 	}
 
-	// Add max tokens if specified
-	if request.MaxTokens > 0 {
-		args = append(args, "--max-tokens", fmt.Sprintf("%d", request.MaxTokens))
-	}
-
-	// Add temperature if specified
-	if request.Temperature > 0 {
-		args = append(args, "--temperature", fmt.Sprintf("%.2f", request.Temperature))
-	}
+	// Note: Claude CLI does not support --max-tokens or --temperature flags
+	// These settings would need to be configured differently or omitted
 
 	// Convert messages to prompt
 	if len(request.Messages) > 0 {
