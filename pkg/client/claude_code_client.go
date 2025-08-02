@@ -572,7 +572,7 @@ func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
 	files := &types.ProjectFiles{
 		Languages:      make(map[string]int),
 		ImportantFiles: make([]string, 0),
-		Structure:      make(map[string]interface{}),
+		Structure:      make(map[string]any),
 	}
 
 	// Count files by extension
@@ -706,7 +706,7 @@ func (c *ClaudeCodeClient) SetProjectContextCacheDuration(duration time.Duration
 }
 
 // GetProjectContextCacheInfo returns information about the project context cache status.
-func (c *ClaudeCodeClient) GetProjectContextCacheInfo() map[string]interface{} {
+func (c *ClaudeCodeClient) GetProjectContextCacheInfo() map[string]any {
 	return c.projectContextManager.GetCacheInfo()
 }
 
@@ -850,7 +850,7 @@ func (c *ClaudeCodeClient) messagesToPrompt(messages []types.Message) (string, e
 }
 
 // extractTextContent extracts text content from message content blocks.
-func (c *ClaudeCodeClient) extractTextContent(content interface{}) string {
+func (c *ClaudeCodeClient) extractTextContent(content any) string {
 	switch v := content.(type) {
 	case string:
 		return v
