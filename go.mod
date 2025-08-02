@@ -1,4 +1,4 @@
-module github.com/jraymond/claude-code-go-sdk
+module github.com/jonwraymond/go-claude-code-sdk
 
 go 1.21
 

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/client"
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/client"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

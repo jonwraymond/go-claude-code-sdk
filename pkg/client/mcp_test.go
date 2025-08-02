@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func TestNewMCPManager(t *testing.T) {

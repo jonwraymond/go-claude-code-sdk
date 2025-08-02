@@ -25,7 +25,7 @@ The `auth` package provides secure authentication mechanisms for the Claude SDK 
 ### API Key Authentication
 
 ```go
-import "github.com/jraymond/claude-code-go-sdk/pkg/auth"
+import "github.com/jonwraymond/go-claude-code-sdk/pkg/auth"
 
 // Create API key authenticator
 apiAuth, err := auth.NewAPIKeyAuthenticator("sk-ant-api03-your-key-here")

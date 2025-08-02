@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jraymond/claude-code-go-sdk/pkg/types"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func TestNewClaudeCodeToolManager(t *testing.T) {
