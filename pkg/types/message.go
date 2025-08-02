@@ -330,16 +330,16 @@ type ContentBlock struct {
 	Type string      `json:"type"`
 	Text string      `json:"text,omitempty"`
 	Data interface{} `json:"data,omitempty"`
-	
+
 	// Tool-specific fields
-	ID    string                 `json:"id,omitempty"`      // For tool_use blocks
-	Name  string                 `json:"name,omitempty"`    // For tool_use blocks
-	Input map[string]interface{} `json:"input,omitempty"`   // For tool_use blocks
-	
+	ID    string                 `json:"id,omitempty"`    // For tool_use blocks
+	Name  string                 `json:"name,omitempty"`  // For tool_use blocks
+	Input map[string]interface{} `json:"input,omitempty"` // For tool_use blocks
+
 	// Tool result fields
-	ToolUseID string          `json:"tool_use_id,omitempty"` // For tool_result blocks
-	Content   []ContentBlock  `json:"content,omitempty"`     // For tool_result blocks
-	IsError   bool            `json:"is_error,omitempty"`    // For tool_result blocks
+	ToolUseID string         `json:"tool_use_id,omitempty"` // For tool_result blocks
+	Content   []ContentBlock `json:"content,omitempty"`     // For tool_result blocks
+	IsError   bool           `json:"is_error,omitempty"`    // For tool_result blocks
 }
 
 // NewTextBlock creates a new text content block

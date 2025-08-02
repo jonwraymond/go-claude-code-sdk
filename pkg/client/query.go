@@ -17,10 +17,10 @@ type PermissionMode string
 const (
 	// PermissionModeAsk prompts the user for permission before edits
 	PermissionModeAsk PermissionMode = "ask"
-	
+
 	// PermissionModeAcceptEdits automatically accepts file edits
 	PermissionModeAcceptEdits PermissionMode = "acceptEdits"
-	
+
 	// PermissionModeRejectEdits automatically rejects file edits
 	PermissionModeRejectEdits PermissionMode = "rejectEdits"
 )
@@ -29,31 +29,31 @@ const (
 type QueryOptions struct {
 	// SystemPrompt sets the system prompt for Claude Code
 	SystemPrompt string
-	
+
 	// MaxTurns limits the number of conversation turns
 	MaxTurns int
-	
+
 	// AllowedTools specifies which tools Claude can use
 	AllowedTools []string
-	
+
 	// PermissionMode controls how file edits are handled
 	PermissionMode PermissionMode
-	
+
 	// CWD sets the current working directory
 	CWD string
-	
+
 	// Model specifies which Claude model to use
 	Model string
-	
+
 	// SessionID allows resuming a previous session
 	SessionID string
-	
+
 	// Stream enables streaming responses
 	Stream bool
-	
+
 	// Timeout sets the query timeout
 	Timeout int
-	
+
 	// Environment variables to pass to Claude Code
 	Env map[string]string
 }
@@ -69,23 +69,23 @@ type QueryResult struct {
 // This matches the pattern used by the official Python and TypeScript SDKs
 func (c *ClaudeCodeClient) QueryMessages(ctx context.Context, prompt string, options *QueryOptions) (<-chan *types.Message, error) {
 	messageChan := make(chan *types.Message, 100)
-	
+
 	// Set defaults
 	if options == nil {
 		options = &QueryOptions{
-			MaxTurns: 10,
-			Stream: true,
+			MaxTurns:       10,
+			Stream:         true,
 			PermissionMode: PermissionModeAsk,
 		}
 	}
-	
+
 	// Create session using session manager
 	session, err := c.sessionManager.CreateSession(ctx, options.SessionID)
 	if err != nil {
 		close(messageChan)
 		return messageChan, fmt.Errorf("failed to create session: %w", err)
 	}
-	
+
 	// Configure session
 	if options.Model != "" {
 		session.model = options.Model
@@ -93,7 +93,7 @@ func (c *ClaudeCodeClient) QueryMessages(ctx context.Context, prompt string, opt
 	if options.CWD != "" {
 		session.projectDir = options.CWD
 	}
-	
+
 	// Start processing in goroutine
 	go func() {
 		defer close(messageChan)
@@ -102,25 +102,25 @@ func (c *ClaudeCodeClient) QueryMessages(ctx context.Context, prompt string, opt
 				session.Close()
 			}
 		}()
-		
+
 		// Send initial message
 		userMsg := &types.Message{
 			Role:    types.RoleUser,
 			Content: prompt,
 		}
 		messageChan <- userMsg
-		
+
 		// Build command for chat
 		cmd := &types.Command{
 			Type:    types.CommandType("chat"), // Using chat as command type
 			Args:    []string{prompt},
 			Options: c.convertQueryOptionsToCommandOptions(options),
 		}
-		
+
 		// Execute with streaming
 		c.executeQueryWithStreaming(ctx, session, cmd, messageChan, options)
 	}()
-	
+
 	return messageChan, nil
 }
 
@@ -131,13 +131,13 @@ func (c *ClaudeCodeClient) QueryMessagesSync(ctx context.Context, prompt string,
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for msg := range messageChan {
 		if msg != nil {
 			messages = append(messages, *msg)
 		}
 	}
-	
+
 	// Check if last message indicates an error
 	var queryErr error
 	if len(messages) > 0 {
@@ -146,7 +146,7 @@ func (c *ClaudeCodeClient) QueryMessagesSync(ctx context.Context, prompt string,
 			queryErr = fmt.Errorf("query failed: %s", lastMsg.Content)
 		}
 	}
-	
+
 	return &QueryResult{
 		Messages: messages,
 		Error:    queryErr,
@@ -166,11 +166,11 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 ) {
 	// Build command
 	cmdArgs := c.buildQueryCommand(session, cmd, options)
-	
+
 	// Create and start claude process
 	process := exec.CommandContext(ctx, c.claudeCodeCmd, cmdArgs...)
 	process.Dir = c.workingDir
-	
+
 	// Create pipes for stdout
 	stdout, err := process.StdoutPipe()
 	if err != nil {
@@ -180,7 +180,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 		}
 		return
 	}
-	
+
 	// Start the process
 	if err := process.Start(); err != nil {
 		messageChan <- &types.Message{
@@ -189,20 +189,20 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 		}
 		return
 	}
-	
+
 	// Track the process
 	processID := fmt.Sprintf("query_%s", session.ID)
 	c.processMu.Lock()
 	c.activeProcesses[processID] = process
 	c.processMu.Unlock()
-	
+
 	defer func() {
 		c.processMu.Lock()
 		delete(c.activeProcesses, processID)
 		c.processMu.Unlock()
 		process.Process.Kill()
 	}()
-	
+
 	// Parse streaming output
 	c.parseStreamingOutput(stdout, messageChan, options)
 }
@@ -214,15 +214,15 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 	options *QueryOptions,
 ) {
 	scanner := bufio.NewScanner(stdout.(interface{ Read([]byte) (int, error) }))
-	
+
 	var currentMessage *types.Message
 	var contentBuffer strings.Builder
 	inAssistantMessage := false
 	turnCount := 0
-	
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// Parse different output patterns
 		if strings.HasPrefix(line, "Claude:") || strings.HasPrefix(line, "Assistant:") {
 			// Start of assistant message
@@ -231,17 +231,17 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 				messageChan <- currentMessage
 				contentBuffer.Reset()
 			}
-			
+
 			currentMessage = &types.Message{
 				Role: types.RoleAssistant,
 			}
 			inAssistantMessage = true
-			
+
 			// Extract content after prefix
 			content := strings.TrimPrefix(line, "Claude:")
 			content = strings.TrimPrefix(content, "Assistant:")
 			contentBuffer.WriteString(strings.TrimSpace(content))
-			
+
 		} else if strings.HasPrefix(line, "Tool:") {
 			// Tool usage detected
 			if currentMessage != nil && contentBuffer.Len() > 0 {
@@ -249,7 +249,7 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 				messageChan <- currentMessage
 				contentBuffer.Reset()
 			}
-			
+
 			// Parse tool information
 			toolInfo := c.parseToolUsage(line)
 			if toolInfo != nil {
@@ -268,7 +268,7 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 				}
 				messageChan <- currentMessage
 			}
-			
+
 		} else if strings.HasPrefix(line, "Result:") {
 			// Tool result
 			result := strings.TrimPrefix(line, "Result:")
@@ -277,22 +277,22 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 				Content: strings.TrimSpace(result),
 			}
 			messageChan <- resultMsg
-			
+
 		} else if inAssistantMessage && line != "" {
 			// Continue building assistant message
 			if contentBuffer.Len() > 0 {
 				contentBuffer.WriteString("\n")
 			}
 			contentBuffer.WriteString(line)
-			
-		} else if strings.Contains(line, "Turn limit reached") || 
-				  strings.Contains(line, "Max turns reached") {
+
+		} else if strings.Contains(line, "Turn limit reached") ||
+			strings.Contains(line, "Max turns reached") {
 			// Turn limit reached
 			if currentMessage != nil && contentBuffer.Len() > 0 {
 				currentMessage.Content = strings.TrimSpace(contentBuffer.String())
 				messageChan <- currentMessage
 			}
-			
+
 			// Send system message about turn limit
 			messageChan <- &types.Message{
 				Role:    types.RoleSystem,
@@ -300,7 +300,7 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 			}
 			break
 		}
-		
+
 		// Check turn count
 		if strings.HasPrefix(line, "User:") || strings.HasPrefix(line, "Human:") {
 			turnCount++
@@ -309,7 +309,7 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 			}
 		}
 	}
-	
+
 	// Send final message if exists
 	if currentMessage != nil && contentBuffer.Len() > 0 {
 		currentMessage.Content = strings.TrimSpace(contentBuffer.String())
@@ -339,7 +339,7 @@ func (c *ClaudeCodeClient) parseToolUsage(line string) *struct {
 			}
 		}
 	}
-	
+
 	// Fallback to simple parsing
 	parts := strings.Fields(line)
 	if len(parts) >= 2 {
@@ -348,12 +348,12 @@ func (c *ClaudeCodeClient) parseToolUsage(line string) *struct {
 			Name      string
 			Arguments string
 		}{
-			ID:   fmt.Sprintf("tool_%d", len(parts)),
-			Name: parts[1],
+			ID:        fmt.Sprintf("tool_%d", len(parts)),
+			Name:      parts[1],
 			Arguments: "{}",
 		}
 	}
-	
+
 	return nil
 }
 
@@ -364,27 +364,27 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 	options *QueryOptions,
 ) []string {
 	args := []string{c.claudeCodeCmd}
-	
+
 	// Add session ID
 	if session.ID != "" {
 		args = append(args, "--session", session.ID)
 	}
-	
+
 	// Add model
 	if options.Model != "" {
 		args = append(args, "--model", options.Model)
 	}
-	
+
 	// Add system prompt
 	if options.SystemPrompt != "" {
 		args = append(args, "--system-prompt", options.SystemPrompt)
 	}
-	
+
 	// Add max turns
 	if options.MaxTurns > 0 {
 		args = append(args, "--max-turns", fmt.Sprintf("%d", options.MaxTurns))
 	}
-	
+
 	// Add permission mode
 	switch options.PermissionMode {
 	case PermissionModeAcceptEdits:
@@ -392,27 +392,27 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 	case PermissionModeRejectEdits:
 		args = append(args, "--reject-edits")
 	}
-	
+
 	// Add allowed tools
 	if len(options.AllowedTools) > 0 {
 		args = append(args, "--tools", strings.Join(options.AllowedTools, ","))
 	}
-	
+
 	// Add timeout
 	if options.Timeout > 0 {
 		args = append(args, "--timeout", fmt.Sprintf("%d", options.Timeout))
 	}
-	
+
 	// Add the prompt
 	args = append(args, cmd.Args[0])
-	
+
 	return args
 }
 
 // convertQueryOptionsToCommandOptions converts QueryOptions to command options map
 func (c *ClaudeCodeClient) convertQueryOptionsToCommandOptions(options *QueryOptions) map[string]interface{} {
 	opts := make(map[string]interface{})
-	
+
 	if options.SystemPrompt != "" {
 		opts["system_prompt"] = options.SystemPrompt
 	}
@@ -428,6 +428,6 @@ func (c *ClaudeCodeClient) convertQueryOptionsToCommandOptions(options *QueryOpt
 	if options.Timeout > 0 {
 		opts["timeout"] = options.Timeout
 	}
-	
+
 	return opts
 }

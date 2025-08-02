@@ -28,7 +28,7 @@ Messages are the core communication unit with Claude Code:
 	// Create different message types
 	userMsg := types.NewTextMessage(types.MessageRoleUser, "Hello Claude")
 	assistantMsg := types.NewTextMessage(types.MessageRoleAssistant, "Hello! How can I help?")
-	
+
 	// Messages with tool usage
 	toolMsg := types.NewToolUseMessage("tool-123", "read_file", map[string]interface{}{
 		"path": "main.go",

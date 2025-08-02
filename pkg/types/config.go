@@ -140,23 +140,23 @@ func NewClaudeCodeConfig() *ClaudeCodeConfig {
 // NewClaudeCodeConfigFromEnvironment creates a new ClaudeCodeConfig from environment variables.
 func NewClaudeCodeConfigFromEnvironment() *ClaudeCodeConfig {
 	config := NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 	}
-	
+
 	if workDir := os.Getenv("CLAUDE_WORKING_DIR"); workDir != "" {
 		config.WorkingDirectory = workDir
 	}
-	
+
 	if model := os.Getenv("CLAUDE_MODEL"); model != "" {
 		config.Model = model
 	}
-	
+
 	if debug := os.Getenv("CLAUDE_DEBUG"); debug == "true" || debug == "1" {
 		config.Debug = true
 	}
-	
+
 	return config
 }
 

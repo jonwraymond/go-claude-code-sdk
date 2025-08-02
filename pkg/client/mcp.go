@@ -29,14 +29,14 @@ import (
 // Example usage:
 //
 //	manager := NewMCPManager(client)
-//	
+//
 //	// Add an MCP server
 //	err := manager.AddServer("filesystem", &types.MCPServerConfig{
 //		Command: "npx",
 //		Args:    []string{"@modelcontextprotocol/server-filesystem", "/path/to/project"},
 //		Enabled: true,
 //	})
-//	
+//
 //	// Apply configuration to Claude Code
 //	err = manager.ApplyConfiguration(ctx)
 type MCPManager struct {
@@ -415,8 +415,8 @@ func (m *MCPManager) AddCommonServers() error {
 
 	// Brave Search server - for web search capabilities
 	braveServer := &types.MCPServerConfig{
-		Command: "npx",
-		Args:    []string{"@modelcontextprotocol/server-brave-search"},
+		Command:     "npx",
+		Args:        []string{"@modelcontextprotocol/server-brave-search"},
 		Environment: map[string]string{
 			// API key would need to be set by user
 		},

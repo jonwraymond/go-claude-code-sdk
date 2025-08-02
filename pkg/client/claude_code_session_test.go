@@ -42,7 +42,7 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
-		Model:           "claude-3-5-sonnet-20241022",
+		Model:            "claude-3-5-sonnet-20241022",
 	}
 
 	ctx := context.Background()
@@ -93,7 +93,7 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 				if session.ID != tt.sessionID {
 					t.Errorf("Expected session ID %s, got %s", tt.sessionID, session.ID)
 				}
-				
+
 				// Check metadata
 				metadata := session.GetMetadata()
 				if metadata["project_dir"] != tempDir {

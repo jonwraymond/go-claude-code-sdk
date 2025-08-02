@@ -37,10 +37,10 @@ func TestNewProjectContextManager(t *testing.T) {
 
 func TestProjectContextManager_GetEnhancedProjectContext(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create a sample Go project structure
 	setupGoProject(t, tempDir)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -98,7 +98,7 @@ func TestProjectContextManager_GetEnhancedProjectContext(t *testing.T) {
 func TestProjectContextManager_CacheManagement(t *testing.T) {
 	tempDir := t.TempDir()
 	setupGoProject(t, tempDir)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -163,13 +163,13 @@ func TestProjectContextManager_CacheManagement(t *testing.T) {
 
 func TestProjectContextManager_AnalyzeArchitecture(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create microservices architecture
 	os.MkdirAll(filepath.Join(tempDir, "services", "user"), 0755)
 	os.MkdirAll(filepath.Join(tempDir, "services", "order"), 0755)
 	os.MkdirAll(filepath.Join(tempDir, "api"), 0755)
 	os.WriteFile(filepath.Join(tempDir, "docker-compose.yml"), []byte("version: '3'"), 0644)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -182,7 +182,7 @@ func TestProjectContextManager_AnalyzeArchitecture(t *testing.T) {
 	defer client.Close()
 
 	manager := client.ProjectContext()
-	
+
 	// Analyze architecture
 	arch, err := manager.analyzeArchitecture(tempDir)
 	if err != nil {
@@ -275,7 +275,7 @@ func TestProjectContextManager_AnalyzeDependencies(t *testing.T) {
 
 func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Setup development tools
 	os.WriteFile(filepath.Join(tempDir, "Dockerfile"), []byte("FROM node:16"), 0644)
 	os.WriteFile(filepath.Join(tempDir, "docker-compose.yml"), []byte("version: '3'"), 0644)
@@ -283,7 +283,7 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, ".github", "workflows", "ci.yml"), []byte("name: CI"), 0644)
 	os.WriteFile(filepath.Join(tempDir, ".eslintrc.json"), []byte("{}"), 0644)
 	os.WriteFile(filepath.Join(tempDir, ".prettierrc"), []byte("{}"), 0644)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -348,17 +348,17 @@ func TestProjectContextManager_AnalyzeDevTools(t *testing.T) {
 
 func TestProjectContextManager_AnalyzeCodePatterns(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Setup test files
 	os.MkdirAll(filepath.Join(tempDir, "tests"), 0755)
 	os.WriteFile(filepath.Join(tempDir, "main_test.go"), []byte("package main\n\nfunc TestMain(t *testing.T) {}"), 0644)
 	os.WriteFile(filepath.Join(tempDir, "tests", "integration_test.go"), []byte("package tests"), 0644)
-	
+
 	// Setup API files
 	os.MkdirAll(filepath.Join(tempDir, "api"), 0755)
 	os.WriteFile(filepath.Join(tempDir, "api", "handler.go"), []byte("package api"), 0644)
 	os.WriteFile(filepath.Join(tempDir, "router.go"), []byte("package main"), 0644)
-	
+
 	// Setup Go mod for dependencies
 	goMod := `module test-project
 
@@ -369,7 +369,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 )`
 	os.WriteFile(filepath.Join(tempDir, "go.mod"), []byte(goMod), 0644)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -416,7 +416,7 @@ require (
 func TestClaudeCodeClient_ProjectContextIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 	setupGoProject(t, tempDir)
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
@@ -471,7 +471,7 @@ func setupGoProject(t *testing.T, dir string) {
 	if t != nil {
 		t.Helper()
 	}
-	
+
 	goMod := `module test-project
 
 go 1.21
@@ -480,7 +480,7 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/stretchr/testify v1.8.0
 )`
-	
+
 	mainGo := `package main
 
 import "fmt"
@@ -488,7 +488,7 @@ import "fmt"
 func main() {
 	fmt.Println("Hello, World!")
 }`
-	
+
 	os.WriteFile(filepath.Join(dir, "go.mod"), []byte(goMod), 0644)
 	os.WriteFile(filepath.Join(dir, "main.go"), []byte(mainGo), 0644)
 }
@@ -510,7 +510,7 @@ func setupNodeProject(dir string) {
     "test": "jest"
   }
 }`
-	
+
 	indexJs := `const express = require('express');
 const app = express();
 
@@ -519,7 +519,7 @@ app.get('/', (req, res) => {
 });
 
 app.listen(3000);`
-	
+
 	os.WriteFile(filepath.Join(dir, "package.json"), []byte(packageJson), 0644)
 	os.WriteFile(filepath.Join(dir, "index.js"), []byte(indexJs), 0644)
 }
@@ -528,7 +528,7 @@ func setupPythonProject(dir string) {
 	requirements := `flask==2.3.0
 requests==2.28.0
 pytest==7.4.0`
-	
+
 	mainPy := `from flask import Flask
 
 app = Flask(__name__)
@@ -539,7 +539,7 @@ def hello():
 
 if __name__ == '__main__':
     app.run()`
-	
+
 	os.WriteFile(filepath.Join(dir, "requirements.txt"), []byte(requirements), 0644)
 	os.WriteFile(filepath.Join(dir, "main.py"), []byte(mainPy), 0644)
 }
@@ -556,11 +556,11 @@ tokio = { version = "1.0", features = ["full"] }
 
 [dev-dependencies]
 tokio-test = "0.4"`
-	
+
 	mainRs := `fn main() {
     println!("Hello, world!");
 }`
-	
+
 	os.MkdirAll(filepath.Join(dir, "src"), 0755)
 	os.WriteFile(filepath.Join(dir, "Cargo.toml"), []byte(cargoToml), 0644)
 	os.WriteFile(filepath.Join(dir, "src", "main.rs"), []byte(mainRs), 0644)

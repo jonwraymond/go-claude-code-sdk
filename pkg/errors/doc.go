@@ -49,7 +49,7 @@ The package provides constructor functions for common error types:
 Support for Go 1.13+ error wrapping:
 
 	// Wrap an existing error
-	err := errors.WrapError(originalErr, errors.CategoryNetwork, "NETWORK_TIMEOUT", 
+	err := errors.WrapError(originalErr, errors.CategoryNetwork, "NETWORK_TIMEOUT",
 		"failed to connect to Claude Code")
 
 	// Check wrapped errors
@@ -98,7 +98,7 @@ Rich validation error support:
 	}
 
 	// Create validation error
-	err := errors.NewValidationError("max_tokens", -1, "positive", 
+	err := errors.NewValidationError("max_tokens", -1, "positive",
 		"max_tokens must be positive")
 
 # Process Errors
@@ -134,7 +134,7 @@ Add context to errors for better debugging:
 		// Type-specific handling
 		var validationErr *errors.ValidationError
 		if errors.As(err, &validationErr) {
-			log.Printf("Validation failed for field %s: %s", 
+			log.Printf("Validation failed for field %s: %s",
 				validationErr.Field, validationErr.Message)
 			return
 		}

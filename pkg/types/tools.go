@@ -120,10 +120,10 @@ type ToolHandler func(ctx context.Context, input map[string]interface{}) (*ToolR
 type ToolUse struct {
 	// ID is the unique identifier for this tool use
 	ID string `json:"id"`
-	
+
 	// Name is the name of the tool to use
 	Name string `json:"name"`
-	
+
 	// Input contains the parameters to pass to the tool
 	Input map[string]interface{} `json:"input"`
 }
@@ -132,13 +132,13 @@ type ToolUse struct {
 type ToolResult struct {
 	// ToolUseID is the ID of the tool use that generated this result
 	ToolUseID string `json:"tool_use_id,omitempty"`
-	
+
 	// IsError indicates whether this result represents an error
 	IsError bool `json:"is_error,omitempty"`
-	
+
 	// Content contains the result content blocks
 	Content []ContentBlock `json:"content,omitempty"`
-	
+
 	// Success indicates whether the tool execution was successful
 	Success bool `json:"success"`
 

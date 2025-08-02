@@ -56,20 +56,20 @@ type ClaudeCodeClient struct {
 	claudeCodeCmd string
 	mu            sync.RWMutex
 	closed        bool
-	
+
 	// Process management
 	activeProcesses map[string]*exec.Cmd
 	processMu       sync.Mutex
-	
+
 	// MCP management
 	mcpManager *MCPManager
-	
+
 	// Project context management
 	projectContextManager *ProjectContextManager
-	
+
 	// Tool management
 	toolManager *ClaudeCodeToolManager
-	
+
 	// Session management
 	sessionManager *ClaudeCodeSessionManager
 }
@@ -127,13 +127,13 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 
 	// Initialize MCP manager
 	client.mcpManager = NewMCPManager(client)
-	
+
 	// Initialize project context manager
 	client.projectContextManager = NewProjectContextManager(client)
-	
+
 	// Initialize tool manager
 	client.toolManager = NewClaudeCodeToolManager(client)
-	
+
 	// Initialize session manager
 	client.sessionManager = NewClaudeCodeSessionManager(client)
 
@@ -167,7 +167,7 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 	// Execute claude command
 	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
 	cmd.Dir = c.workingDir
-	
+
 	// Set environment variables
 	cmd.Env = append(os.Environ(), c.buildEnvironment()...)
 
@@ -357,22 +357,22 @@ func (c *ClaudeCodeClient) SetWorkingDirectory(ctx context.Context, path string)
 // detectPrimaryLanguage detects the primary programming language in the project.
 func (c *ClaudeCodeClient) detectPrimaryLanguage() string {
 	languageCounts := make(map[string]int)
-	
+
 	// Language extension mappings
 	languageMap := map[string]string{
-		".go":   "Go",
-		".js":   "JavaScript",
-		".ts":   "TypeScript",
-		".py":   "Python",
-		".java": "Java",
-		".cpp":  "C++",
-		".c":    "C",
-		".cs":   "C#",
-		".rb":   "Ruby",
-		".php":  "PHP",
-		".rs":   "Rust",
+		".go":    "Go",
+		".js":    "JavaScript",
+		".ts":    "TypeScript",
+		".py":    "Python",
+		".java":  "Java",
+		".cpp":   "C++",
+		".c":     "C",
+		".cs":    "C#",
+		".rb":    "Ruby",
+		".php":   "PHP",
+		".rs":    "Rust",
 		".swift": "Swift",
-		".kt":   "Kotlin",
+		".kt":    "Kotlin",
 		".scala": "Scala",
 	}
 
@@ -406,14 +406,14 @@ func (c *ClaudeCodeClient) detectPrimaryLanguage() string {
 func (c *ClaudeCodeClient) detectFramework() string {
 	// Check for common framework indicators
 	frameworkFiles := map[string]func() string{
-		"package.json": c.detectJSFramework,
-		"go.mod":       func() string { return "Go Modules" },
-		"Cargo.toml":   func() string { return "Cargo" },
-		"pom.xml":      func() string { return "Maven" },
-		"build.gradle": func() string { return "Gradle" },
+		"package.json":     c.detectJSFramework,
+		"go.mod":           func() string { return "Go Modules" },
+		"Cargo.toml":       func() string { return "Cargo" },
+		"pom.xml":          func() string { return "Maven" },
+		"build.gradle":     func() string { return "Gradle" },
 		"requirements.txt": func() string { return "Python" },
-		"Pipfile":      func() string { return "Pipenv" },
-		"composer.json": func() string { return "Composer" },
+		"Pipfile":          func() string { return "Pipenv" },
+		"composer.json":    func() string { return "Composer" },
 	}
 
 	for filename, detector := range frameworkFiles {
@@ -560,7 +560,7 @@ func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
 	// Count files by extension
 	extensionMap := map[string]string{
 		".go":   "Go",
-		".js":   "JavaScript", 
+		".js":   "JavaScript",
 		".ts":   "TypeScript",
 		".py":   "Python",
 		".java": "Java",
@@ -810,7 +810,7 @@ func (c *ClaudeCodeClient) messagesToPrompt(messages []types.Message) (string, e
 		if i > 0 {
 			prompt.WriteString("\n\n")
 		}
-		
+
 		switch msg.Role {
 		case types.RoleUser:
 			prompt.WriteString("Human: ")
@@ -819,7 +819,7 @@ func (c *ClaudeCodeClient) messagesToPrompt(messages []types.Message) (string, e
 		case types.RoleSystem:
 			prompt.WriteString("System: ")
 		}
-		
+
 		prompt.WriteString(c.extractTextContent(msg.Content))
 	}
 
@@ -847,7 +847,7 @@ func (c *ClaudeCodeClient) extractTextContent(content interface{}) string {
 // buildEnvironment constructs environment variables for the claude subprocess.
 func (c *ClaudeCodeClient) buildEnvironment() []string {
 	env := make([]string, 0)
-	
+
 	// Add API key from config
 	if c.config.APIKey != "" {
 		env = append(env, "ANTHROPIC_API_KEY="+c.config.APIKey)
@@ -895,10 +895,10 @@ func findClaudeCodeCommand(customPath string) (string, error) {
 
 	// Try common locations
 	candidates := []string{
-		"claude",                                    // In PATH
-		"npx claude",                               // Via npx
+		"claude",     // In PATH
+		"npx claude", // Via npx
 		filepath.Join(os.Getenv("HOME"), ".local", "bin", "claude"), // Local install
-		"/usr/local/bin/claude",                    // System install
+		"/usr/local/bin/claude", // System install
 	}
 
 	for _, candidate := range candidates {

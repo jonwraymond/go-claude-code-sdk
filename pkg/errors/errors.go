@@ -81,17 +81,17 @@ type SDKError interface {
 
 // BaseError provides a base implementation of SDKError that other error types can embed.
 type BaseError struct {
-	category      ErrorCategory
-	severity      ErrorSeverity
-	code          string
-	message       string
-	details       map[string]interface{}
-	retryable     bool
-	cause         error
-	httpStatus    int
-	requestID     string
-	timestamp     time.Time
-	stackTrace    []string
+	category   ErrorCategory
+	severity   ErrorSeverity
+	code       string
+	message    string
+	details    map[string]interface{}
+	retryable  bool
+	cause      error
+	httpStatus int
+	requestID  string
+	timestamp  time.Time
+	stackTrace []string
 }
 
 // NewBaseError creates a new BaseError with the provided parameters.
@@ -223,34 +223,34 @@ func (e *BaseError) WithRetryable(retryable bool) *BaseError {
 // String returns a detailed string representation of the error.
 func (e *BaseError) String() string {
 	var parts []string
-	
+
 	parts = append(parts, fmt.Sprintf("Category: %s", e.category))
 	parts = append(parts, fmt.Sprintf("Severity: %s", e.severity))
 	parts = append(parts, fmt.Sprintf("Code: %s", e.code))
 	parts = append(parts, fmt.Sprintf("Message: %s", e.message))
-	
+
 	if e.httpStatus > 0 {
 		parts = append(parts, fmt.Sprintf("HTTP Status: %d", e.httpStatus))
 	}
-	
+
 	if e.requestID != "" {
 		parts = append(parts, fmt.Sprintf("Request ID: %s", e.requestID))
 	}
-	
+
 	if e.retryable {
 		parts = append(parts, "Retryable: true")
 	}
-	
+
 	if len(e.details) > 0 {
 		if detailsJSON, err := json.Marshal(e.details); err == nil {
 			parts = append(parts, fmt.Sprintf("Details: %s", string(detailsJSON)))
 		}
 	}
-	
+
 	if e.cause != nil {
 		parts = append(parts, fmt.Sprintf("Cause: %v", e.cause))
 	}
-	
+
 	return strings.Join(parts, ", ")
 }
 
@@ -288,13 +288,13 @@ func IsRetryable(err error) bool {
 	if err == nil {
 		return false
 	}
-	
+
 	// Check if the error implements SDKError
 	var sdkErr SDKError
 	if errors.As(err, &sdkErr) {
 		return sdkErr.IsRetryable()
 	}
-	
+
 	// For non-SDK errors, use heuristics
 	return isRetryableHeuristic(err)
 }
@@ -304,12 +304,12 @@ func GetCategory(err error) ErrorCategory {
 	if err == nil {
 		return ""
 	}
-	
+
 	var sdkErr SDKError
 	if errors.As(err, &sdkErr) {
 		return sdkErr.Category()
 	}
-	
+
 	return CategoryInternal
 }
 
@@ -318,12 +318,12 @@ func GetSeverity(err error) ErrorSeverity {
 	if err == nil {
 		return SeverityLow
 	}
-	
+
 	var sdkErr SDKError
 	if errors.As(err, &sdkErr) {
 		return sdkErr.Severity()
 	}
-	
+
 	return SeverityMedium
 }
 
@@ -332,12 +332,12 @@ func GetRequestID(err error) string {
 	if err == nil {
 		return ""
 	}
-	
+
 	var sdkErr SDKError
 	if errors.As(err, &sdkErr) {
 		return sdkErr.RequestID()
 	}
-	
+
 	return ""
 }
 
@@ -346,12 +346,12 @@ func GetHTTPStatusCode(err error) int {
 	if err == nil {
 		return 0
 	}
-	
+
 	var sdkErr SDKError
 	if errors.As(err, &sdkErr) {
 		return sdkErr.HTTPStatusCode()
 	}
-	
+
 	return 0
 }
 
@@ -360,15 +360,15 @@ func WrapError(err error, category ErrorCategory, code, message string) SDKError
 	if err == nil {
 		return nil
 	}
-	
+
 	// Determine severity based on the underlying error
 	severity := SeverityMedium
 	if sdkErr, ok := err.(SDKError); ok {
 		severity = sdkErr.Severity()
 	}
-	
+
 	baseErr := NewBaseError(category, severity, code, message).WithCause(err)
-	
+
 	// Preserve request ID and HTTP status if available from underlying error
 	if sdkErr, ok := err.(SDKError); ok {
 		if requestID := sdkErr.RequestID(); requestID != "" {
@@ -379,7 +379,7 @@ func WrapError(err error, category ErrorCategory, code, message string) SDKError
 		}
 		baseErr.WithRetryable(sdkErr.IsRetryable())
 	}
-	
+
 	return baseErr
 }
 
@@ -388,14 +388,14 @@ func isRetryableHeuristic(err error) bool {
 	if err == nil {
 		return false
 	}
-	
+
 	errStr := strings.ToLower(err.Error())
-	
+
 	// Network-related errors that are typically retryable
 	retryablePatterns := []string{
 		"timeout",
 		"connection reset",
-		"connection refused", 
+		"connection refused",
 		"no such host",
 		"network is unreachable",
 		"temporary failure",
@@ -408,13 +408,13 @@ func isRetryableHeuristic(err error) bool {
 		"service unavailable",
 		"gateway timeout",
 	}
-	
+
 	for _, pattern := range retryablePatterns {
 		if strings.Contains(errStr, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -434,7 +434,7 @@ func HTTPErrorFromStatus(statusCode int, message string) SDKError {
 	category := CategoryAPI
 	severity := SeverityMedium
 	retryable := false
-	
+
 	// Categorize based on status code
 	switch {
 	case statusCode >= 500:
@@ -461,7 +461,7 @@ func HTTPErrorFromStatus(statusCode int, message string) SDKError {
 			message = fmt.Sprintf("HTTP error (status %d)", statusCode)
 		}
 	}
-	
+
 	return NewBaseError(category, severity, code, message).
 		WithHTTPStatus(statusCode).
 		WithRetryable(retryable)

@@ -16,35 +16,35 @@ type CommandResult = types.CommandResult
 // Re-export command type constants from types package
 const (
 	// File operations
-	CommandRead    = types.CommandRead
-	CommandWrite   = types.CommandWrite
-	CommandEdit    = types.CommandEdit
-	CommandSearch  = types.CommandSearch
-	
+	CommandRead   = types.CommandRead
+	CommandWrite  = types.CommandWrite
+	CommandEdit   = types.CommandEdit
+	CommandSearch = types.CommandSearch
+
 	// Code operations
-	CommandAnalyze    = types.CommandAnalyze
-	CommandExplain    = types.CommandExplain
-	CommandRefactor   = types.CommandRefactor
-	CommandTest       = types.CommandTest
-	CommandDebug      = types.CommandDebug
-	
+	CommandAnalyze  = types.CommandAnalyze
+	CommandExplain  = types.CommandExplain
+	CommandRefactor = types.CommandRefactor
+	CommandTest     = types.CommandTest
+	CommandDebug    = types.CommandDebug
+
 	// Git operations
-	CommandGitStatus  = types.CommandGitStatus
-	CommandGitCommit  = types.CommandGitCommit
-	CommandGitDiff    = types.CommandGitDiff
-	CommandGitLog     = types.CommandGitLog
-	
+	CommandGitStatus = types.CommandGitStatus
+	CommandGitCommit = types.CommandGitCommit
+	CommandGitDiff   = types.CommandGitDiff
+	CommandGitLog    = types.CommandGitLog
+
 	// Project operations
-	CommandBuild      = types.CommandBuild
-	CommandRun        = types.CommandRun
-	CommandInstall    = types.CommandInstall
-	CommandClean      = types.CommandClean
-	
+	CommandBuild   = types.CommandBuild
+	CommandRun     = types.CommandRun
+	CommandInstall = types.CommandInstall
+	CommandClean   = types.CommandClean
+
 	// Session operations
-	CommandHistory    = types.CommandHistory
-	CommandClear      = types.CommandClear
-	CommandSave       = types.CommandSave
-	CommandLoad       = types.CommandLoad
+	CommandHistory = types.CommandHistory
+	CommandClear   = types.CommandClear
+	CommandSave    = types.CommandSave
+	CommandLoad    = types.CommandLoad
 )
 
 // CommandExecutor provides command execution capabilities for Claude Code
@@ -97,11 +97,11 @@ func (ce *CommandExecutor) ExecuteCommand(ctx context.Context, cmd *Command) (*C
 
 	// Parse response
 	output := ce.ExtractTextContent(response.Content)
-	
+
 	return &CommandResult{
-		Command:  cmd,
-		Success:  true,
-		Output:   output,
+		Command: cmd,
+		Success: true,
+		Output:  output,
 		Metadata: map[string]interface{}{
 			"stop_reason": response.StopReason,
 		},
@@ -332,74 +332,74 @@ func (ce *CommandExecutor) ExtractTextContent(content []types.ContentBlock) stri
 // ReadFile creates a command to read a file
 func ReadFile(filename string, options ...func(*Command)) *Command {
 	cmd := &Command{
-		Type: CommandRead,
-		Args: []string{filename},
+		Type:    CommandRead,
+		Args:    []string{filename},
 		Options: make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range options {
 		opt(cmd)
 	}
-	
+
 	return cmd
 }
 
 // WriteFile creates a command to write to a file
 func WriteFile(filename, content string, options ...func(*Command)) *Command {
 	cmd := &Command{
-		Type: CommandWrite,
-		Args: []string{filename, content},
+		Type:    CommandWrite,
+		Args:    []string{filename, content},
 		Options: make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range options {
 		opt(cmd)
 	}
-	
+
 	return cmd
 }
 
 // AnalyzeCode creates a command to analyze code
 func AnalyzeCode(target string, options ...func(*Command)) *Command {
 	cmd := &Command{
-		Type: CommandAnalyze,
-		Args: []string{target},
+		Type:    CommandAnalyze,
+		Args:    []string{target},
 		Options: make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range options {
 		opt(cmd)
 	}
-	
+
 	return cmd
 }
 
 // SearchCode creates a command to search in codebase
 func SearchCode(query string, options ...func(*Command)) *Command {
 	cmd := &Command{
-		Type: CommandSearch,
-		Args: []string{query},
+		Type:    CommandSearch,
+		Args:    []string{query},
 		Options: make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range options {
 		opt(cmd)
 	}
-	
+
 	return cmd
 }
 
 // GitStatus creates a command to show git status
 func GitStatus(options ...func(*Command)) *Command {
 	cmd := &Command{
-		Type: CommandGitStatus,
+		Type:    CommandGitStatus,
 		Options: make(map[string]interface{}),
 	}
-	
+
 	for _, opt := range options {
 		opt(cmd)
 	}
-	
+
 	return cmd
 }
 

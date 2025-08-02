@@ -119,7 +119,7 @@ func TestClaudeCodeToolManager_GetTool(t *testing.T) {
 
 func TestClaudeCodeToolManager_ExecuteReadFile(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create a test file
 	testContent := "Hello, World!\nThis is a test file."
 	testFile := filepath.Join(tempDir, "test.txt")
@@ -356,7 +356,7 @@ func TestClaudeCodeToolManager_ExecuteWriteFile(t *testing.T) {
 
 func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create test directory structure
 	os.WriteFile(filepath.Join(tempDir, "file1.txt"), []byte("content1"), 0644)
 	os.WriteFile(filepath.Join(tempDir, "file2.go"), []byte("content2"), 0644)
@@ -378,16 +378,16 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 	toolManager := client.Tools()
 
 	tests := []struct {
-		name         string
-		params       map[string]interface{}
-		expectError  bool
+		name          string
+		params        map[string]interface{}
+		expectError   bool
 		expectedCount int
-		checkFiles   func([]string) error
+		checkFiles    func([]string) error
 	}{
 		{
-			name:         "List files in current directory",
-			params:       map[string]interface{}{},
-			expectError:  false,
+			name:          "List files in current directory",
+			params:        map[string]interface{}{},
+			expectError:   false,
 			expectedCount: 3, // file1.txt, file2.go, subdir
 			checkFiles: func(files []string) error {
 				// Should not include files from subdirectories
@@ -404,7 +404,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 			params: map[string]interface{}{
 				"recursive": true,
 			},
-			expectError:  false,
+			expectError:   false,
 			expectedCount: 6, // All files including current dir (.) and subdir
 		},
 		{
@@ -413,7 +413,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 				"pattern":   "*.go",
 				"recursive": true,
 			},
-			expectError:  false,
+			expectError:   false,
 			expectedCount: 2, // file2.go and subdir/file4.go
 			checkFiles: func(files []string) error {
 				for _, file := range files {
@@ -430,7 +430,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 			params: map[string]interface{}{
 				"path": "subdir",
 			},
-			expectError:  false,
+			expectError:   false,
 			expectedCount: 2, // file3.txt and file4.go
 		},
 	}
@@ -457,16 +457,16 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 				if !result.Success {
 					t.Errorf("Expected success, got failure: %s", result.Error)
 				}
-				
+
 				files, ok := result.Output.([]string)
 				if !ok {
 					t.Fatalf("Expected output to be []string, got %T", result.Output)
 				}
-				
+
 				if len(files) != tt.expectedCount {
 					t.Errorf("Expected %d files, got %d: %v", tt.expectedCount, len(files), files)
 				}
-				
+
 				if tt.checkFiles != nil {
 					if err := tt.checkFiles(files); err != nil {
 						t.Error(err)
@@ -479,7 +479,7 @@ func TestClaudeCodeToolManager_ExecuteListFiles(t *testing.T) {
 
 func TestClaudeCodeToolManager_ExecuteSearchCode(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create test files with searchable content
 	goFile := `package main
 
@@ -491,7 +491,7 @@ func helper() {
 	fmt.Println("Helper function")
 }`
 	os.WriteFile(filepath.Join(tempDir, "main.go"), []byte(goFile), 0644)
-	
+
 	txtFile := `This is a test file.
 It contains some text.
 Hello, World!`
@@ -511,9 +511,9 @@ Hello, World!`
 	toolManager := client.Tools()
 
 	tests := []struct {
-		name          string
-		params        map[string]interface{}
-		expectError   bool
+		name            string
+		params          map[string]interface{}
+		expectError     bool
 		expectedMatches int
 	}{
 		{
@@ -521,7 +521,7 @@ Hello, World!`
 			params: map[string]interface{}{
 				"pattern": "Hello",
 			},
-			expectError:   false,
+			expectError:     false,
 			expectedMatches: 2, // One in main.go, one in test.txt
 		},
 		{
@@ -530,7 +530,7 @@ Hello, World!`
 				"pattern":        "hello",
 				"case_sensitive": false,
 			},
-			expectError:   false,
+			expectError:     false,
 			expectedMatches: 2,
 		},
 		{
@@ -539,7 +539,7 @@ Hello, World!`
 				"pattern":      "Hello",
 				"file_pattern": "*.go",
 			},
-			expectError:   false,
+			expectError:     false,
 			expectedMatches: 1, // Only in main.go
 		},
 		{
@@ -547,7 +547,7 @@ Hello, World!`
 			params: map[string]interface{}{
 				"pattern": "NonExistentPattern",
 			},
-			expectError:   false,
+			expectError:     false,
 			expectedMatches: 0,
 		},
 		{
@@ -579,7 +579,7 @@ Hello, World!`
 				if !result.Success {
 					t.Errorf("Expected success, got failure: %s", result.Error)
 				}
-				
+
 				matches, ok := result.Output.([]map[string]interface{})
 				if !ok {
 					// Could be empty array
@@ -589,7 +589,7 @@ Hello, World!`
 						t.Fatalf("Expected output to be []map[string]interface{}, got %T", result.Output)
 					}
 				}
-				
+
 				if len(matches) != tt.expectedMatches {
 					t.Errorf("Expected %d matches, got %d", tt.expectedMatches, len(matches))
 				}
@@ -759,7 +759,7 @@ func TestClaudeCodeToolManager_ConvertToClaudeAPITools(t *testing.T) {
 
 	// Convert tools
 	apiTools := toolManager.ConvertToClaudeAPITools()
-	
+
 	if len(apiTools) == 0 {
 		t.Error("Expected API tools to be generated")
 	}
@@ -808,7 +808,7 @@ func TestClaudeCodeToolManager_ConvertToClaudeAPITools(t *testing.T) {
 
 func TestClaudeCodeToolManager_HandleToolUse(t *testing.T) {
 	tempDir := t.TempDir()
-	
+
 	// Create a test file
 	testContent := "Test content for HandleToolUse"
 	testFile := filepath.Join(tempDir, "test_handle.txt")
@@ -948,7 +948,7 @@ func TestClaudeCodeToolManager_Permissions(t *testing.T) {
 		AllowFileSystemAccess: false,
 		AllowNetworkAccess:    false,
 	}
-	
+
 	toolManager := NewClaudeCodeToolManagerWithConfig(client, restrictedConfig)
 
 	// Try to execute file system tool with restricted permissions

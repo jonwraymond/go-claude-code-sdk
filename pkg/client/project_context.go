@@ -70,12 +70,12 @@ type PatternResult struct {
 
 // ArchitectureInfo contains information about project architecture.
 type ArchitectureInfo struct {
-	Pattern      string                 `json:"pattern"`
-	Layers       []string               `json:"layers"`
-	Modules      []string               `json:"modules"`
-	EntryPoints  []string               `json:"entry_points"`
-	ConfigFiles  []string               `json:"config_files"`
-	Metadata     map[string]interface{} `json:"metadata"`
+	Pattern     string                 `json:"pattern"`
+	Layers      []string               `json:"layers"`
+	Modules     []string               `json:"modules"`
+	EntryPoints []string               `json:"entry_points"`
+	ConfigFiles []string               `json:"config_files"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 // DependencyInfo contains information about project dependencies.
@@ -220,7 +220,7 @@ func (pm *ProjectContextManager) detectArchitecturePattern(projectPath string) s
 	}
 
 	scores := make(map[string]int)
-	
+
 	for pattern, indicators := range patterns {
 		score := 0
 		for _, indicator := range indicators {
@@ -249,7 +249,7 @@ func (pm *ProjectContextManager) detectArchitecturePattern(projectPath string) s
 // findEntryPoints finds common entry point files.
 func (pm *ProjectContextManager) findEntryPoints(projectPath string) []string {
 	entryPoints := []string{}
-	
+
 	candidates := []string{
 		"main.go", "cmd/main.go", "cmd/*/main.go",
 		"index.js", "index.ts", "src/index.js", "src/index.ts",
@@ -285,7 +285,7 @@ func (pm *ProjectContextManager) findEntryPoints(projectPath string) []string {
 // findConfigFiles finds configuration files.
 func (pm *ProjectContextManager) findConfigFiles(projectPath string) []string {
 	configFiles := []string{}
-	
+
 	candidates := []string{
 		// Build and package management
 		"package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml",
@@ -293,22 +293,22 @@ func (pm *ProjectContextManager) findConfigFiles(projectPath string) []string {
 		"requirements.txt", "Pipfile", "poetry.lock", "setup.py",
 		"pom.xml", "build.gradle", "build.sbt",
 		"composer.json", "composer.lock",
-		
+
 		// Configuration files
 		"tsconfig.json", "jsconfig.json", ".babelrc", "webpack.config.js",
 		".env", ".env.local", ".env.example",
 		"config.json", "config.yaml", "config.yml",
 		"docker-compose.yml", "Dockerfile", ".dockerignore",
-		
+
 		// Development tools
 		".eslintrc", ".eslintrc.json", ".eslintrc.js",
 		".prettierrc", ".prettierrc.json",
 		".gitignore", ".gitattributes",
 		"Makefile", "makefile",
-		
+
 		// IDE and editor
 		".vscode/", ".idea/", ".editorconfig",
-		
+
 		// CI/CD
 		".github/", ".gitlab-ci.yml", "azure-pipelines.yml",
 		"Jenkinsfile", ".travis.yml", ".circleci/",
@@ -360,7 +360,7 @@ func (pm *ProjectContextManager) analyzeDirectoryStructure(projectPath string) (
 		}
 
 		name := strings.ToLower(entry.Name())
-		
+
 		// Check if it's a common layer
 		if layerNames[name] {
 			layers = append(layers, entry.Name())
@@ -514,7 +514,7 @@ func (pm *ProjectContextManager) analyzeCargoDependencies(configPath string) (*D
 
 	content := string(data)
 	lines := strings.Split(content, "\n")
-	
+
 	currentSection := ""
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -606,7 +606,7 @@ func (pm *ProjectContextManager) analyzeMavenDependencies(configPath string) (*D
 	}
 
 	content := string(data)
-	
+
 	// Extract artifact info
 	if matches := regexp.MustCompile(`<groupId>(.*?)</groupId>`).FindStringSubmatch(content); len(matches) > 1 {
 		deps.Metadata["group_id"] = matches[1]
@@ -646,7 +646,7 @@ func (pm *ProjectContextManager) analyzeGradleDependencies(configPath string) (*
 	}
 
 	content := string(data)
-	
+
 	// Parse dependencies block (simplified)
 	dependencyRe := regexp.MustCompile(`(?:implementation|api|compile|testImplementation)\s+['"]([^'"]+)['"]`)
 	matches := dependencyRe.FindAllStringSubmatch(content, -1)
@@ -675,13 +675,13 @@ func (pm *ProjectContextManager) analyzeComposerDependencies(configPath string) 
 	}
 
 	var composer struct {
-		Name         string            `json:"name"`
-		Description  string            `json:"description"`
-		Version      string            `json:"version"`
-		Require      map[string]string `json:"require"`
-		RequireDev   map[string]string `json:"require-dev"`
-		Scripts      map[string]string `json:"scripts"`
-		Autoload     interface{}       `json:"autoload"`
+		Name        string            `json:"name"`
+		Description string            `json:"description"`
+		Version     string            `json:"version"`
+		Require     map[string]string `json:"require"`
+		RequireDev  map[string]string `json:"require-dev"`
+		Scripts     map[string]string `json:"scripts"`
+		Autoload    interface{}       `json:"autoload"`
 	}
 
 	if err := json.Unmarshal(data, &composer); err != nil {
@@ -747,15 +747,15 @@ func (pm *ProjectContextManager) analyzeDevTools(projectPath string) (map[string
 // checkDocker checks for Docker configuration.
 func (pm *ProjectContextManager) checkDocker(projectPath string) interface{} {
 	dockerInfo := map[string]interface{}{}
-	
+
 	if _, err := os.Stat(filepath.Join(projectPath, "Dockerfile")); err == nil {
 		dockerInfo["dockerfile"] = true
 	}
-	
+
 	if _, err := os.Stat(filepath.Join(projectPath, "docker-compose.yml")); err == nil {
 		dockerInfo["compose"] = true
 	}
-	
+
 	if _, err := os.Stat(filepath.Join(projectPath, ".dockerignore")); err == nil {
 		dockerInfo["dockerignore"] = true
 	}
@@ -769,7 +769,7 @@ func (pm *ProjectContextManager) checkDocker(projectPath string) interface{} {
 // checkKubernetes checks for Kubernetes configuration.
 func (pm *ProjectContextManager) checkKubernetes(projectPath string) interface{} {
 	k8sInfo := map[string]interface{}{}
-	
+
 	k8sPaths := []string{"k8s/", "kubernetes/", "deploy/", "manifests/"}
 	for _, path := range k8sPaths {
 		if _, err := os.Stat(filepath.Join(projectPath, path)); err == nil {
@@ -786,7 +786,7 @@ func (pm *ProjectContextManager) checkKubernetes(projectPath string) interface{}
 			foundFiles = append(foundFiles, file)
 		}
 	}
-	
+
 	if len(foundFiles) > 0 {
 		k8sInfo["files"] = foundFiles
 	}
@@ -800,14 +800,14 @@ func (pm *ProjectContextManager) checkKubernetes(projectPath string) interface{}
 // checkCICD checks for CI/CD configuration.
 func (pm *ProjectContextManager) checkCICD(projectPath string) interface{} {
 	cicdInfo := map[string]interface{}{}
-	
+
 	cicdChecks := map[string]string{
-		"GitHub Actions": ".github/workflows/",
-		"GitLab CI":      ".gitlab-ci.yml",
-		"Travis CI":      ".travis.yml",
-		"CircleCI":       ".circleci/",
+		"GitHub Actions":  ".github/workflows/",
+		"GitLab CI":       ".gitlab-ci.yml",
+		"Travis CI":       ".travis.yml",
+		"CircleCI":        ".circleci/",
 		"Azure Pipelines": "azure-pipelines.yml",
-		"Jenkins":        "Jenkinsfile",
+		"Jenkins":         "Jenkinsfile",
 	}
 
 	for name, path := range cicdChecks {
@@ -825,7 +825,7 @@ func (pm *ProjectContextManager) checkCICD(projectPath string) interface{} {
 // checkTesting checks for testing frameworks and configuration.
 func (pm *ProjectContextManager) checkTesting(projectPath string) interface{} {
 	testInfo := map[string]interface{}{}
-	
+
 	// Check for test directories
 	testDirs := []string{"test/", "tests/", "__tests__/", "spec/"}
 	for _, dir := range testDirs {
@@ -867,14 +867,14 @@ func (pm *ProjectContextManager) checkTesting(projectPath string) interface{} {
 // checkLinting checks for linting configuration.
 func (pm *ProjectContextManager) checkLinting(projectPath string) interface{} {
 	lintInfo := map[string]interface{}{}
-	
+
 	lintConfigs := map[string][]string{
-		"eslint":     {".eslintrc", ".eslintrc.json", ".eslintrc.js", ".eslintrc.yml"},
-		"golangci":   {".golangci.yml", ".golangci.yaml"},
-		"pylint":     {".pylintrc", "pylint.cfg"},
-		"rubocop":    {".rubocop.yml"},
-		"clippy":     {"Cargo.toml"}, // Rust clippy
-		"phpcs":      {"phpcs.xml", "phpcs.xml.dist"},
+		"eslint":   {".eslintrc", ".eslintrc.json", ".eslintrc.js", ".eslintrc.yml"},
+		"golangci": {".golangci.yml", ".golangci.yaml"},
+		"pylint":   {".pylintrc", "pylint.cfg"},
+		"rubocop":  {".rubocop.yml"},
+		"clippy":   {"Cargo.toml"}, // Rust clippy
+		"phpcs":    {"phpcs.xml", "phpcs.xml.dist"},
 	}
 
 	for linter, configs := range lintConfigs {
@@ -895,12 +895,12 @@ func (pm *ProjectContextManager) checkLinting(projectPath string) interface{} {
 // checkFormatting checks for code formatting configuration.
 func (pm *ProjectContextManager) checkFormatting(projectPath string) interface{} {
 	formatInfo := map[string]interface{}{}
-	
+
 	formatConfigs := map[string][]string{
-		"prettier":   {".prettierrc", ".prettierrc.json", ".prettierrc.js"},
-		"gofmt":      {"go.mod"}, // Built into Go
-		"black":      {"pyproject.toml", "setup.cfg"},
-		"rustfmt":    {"rustfmt.toml", ".rustfmt.toml"},
+		"prettier":     {".prettierrc", ".prettierrc.json", ".prettierrc.js"},
+		"gofmt":        {"go.mod"}, // Built into Go
+		"black":        {"pyproject.toml", "setup.cfg"},
+		"rustfmt":      {"rustfmt.toml", ".rustfmt.toml"},
 		"php-cs-fixer": {".php_cs", ".php-cs-fixer.php"},
 	}
 
@@ -922,7 +922,7 @@ func (pm *ProjectContextManager) checkFormatting(projectPath string) interface{}
 // checkGitHooks checks for Git hooks configuration.
 func (pm *ProjectContextManager) checkGitHooks(projectPath string) interface{} {
 	hookInfo := map[string]interface{}{}
-	
+
 	// Check for .git/hooks directory
 	hooksDir := filepath.Join(projectPath, ".git", "hooks")
 	if entries, err := os.ReadDir(hooksDir); err == nil {
@@ -956,11 +956,11 @@ func (pm *ProjectContextManager) checkGitHooks(projectPath string) interface{} {
 // checkIDEConfig checks for IDE configuration.
 func (pm *ProjectContextManager) checkIDEConfig(projectPath string) interface{} {
 	ideInfo := map[string]interface{}{}
-	
+
 	ideConfigs := map[string]string{
-		"vscode":     ".vscode/",
-		"intellij":   ".idea/",
-		"sublime":    "*.sublime-project",
+		"vscode":       ".vscode/",
+		"intellij":     ".idea/",
+		"sublime":      "*.sublime-project",
 		"editorconfig": ".editorconfig",
 	}
 
@@ -1074,7 +1074,7 @@ func (pm *ProjectContextManager) analyzeFileMetrics(filePath string) (map[string
 
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		if trimmed == "" {
 			metrics["blank_lines"] = metrics["blank_lines"].(int) + 1
 		} else if pm.isCommentLine(trimmed, commentPatterns) {
@@ -1123,10 +1123,10 @@ func (pm *ProjectContextManager) isCommentLine(line string, patterns []string) b
 // analyzeFileSizes analyzes file size distribution.
 func (pm *ProjectContextManager) analyzeFileSizes(projectPath string) (map[string]interface{}, error) {
 	sizes := map[string]interface{}{
-		"small":  0,  // < 1KB
-		"medium": 0,  // 1KB - 10KB
-		"large":  0,  // 10KB - 100KB
-		"xlarge": 0,  // > 100KB
+		"small":      0, // < 1KB
+		"medium":     0, // 1KB - 10KB
+		"large":      0, // 10KB - 100KB
+		"xlarge":     0, // > 100KB
 		"total_size": int64(0),
 	}
 
@@ -1284,12 +1284,12 @@ func (pm *ProjectContextManager) analyzeAPIPattern(projectPath string) (*Pattern
 	if deps, err := pm.analyzeDependencies(projectPath); err == nil {
 		webFrameworks := []string{
 			"express", "fastify", "koa", "hapi", // Node.js
-			"gin", "echo", "fiber", "chi",      // Go
-			"flask", "django", "fastapi",       // Python
-			"spring-boot", "jersey",            // Java
-			"actix-web", "warp", "rocket",      // Rust
+			"gin", "echo", "fiber", "chi", // Go
+			"flask", "django", "fastapi", // Python
+			"spring-boot", "jersey", // Java
+			"actix-web", "warp", "rocket", // Rust
 		}
-		
+
 		for _, framework := range webFrameworks {
 			if _, exists := deps.Dependencies[framework]; exists {
 				confidence += 0.3
@@ -1350,7 +1350,7 @@ func (pm *ProjectContextManager) analyzeDatabasePattern(projectPath string) (*Pa
 			"sqlalchemy", "django-orm", "peewee",
 			"hibernate", "mybatis", "jpa",
 		}
-		
+
 		for _, lib := range dbLibs {
 			if _, exists := deps.Dependencies[lib]; exists {
 				confidence += 0.25
@@ -1374,7 +1374,7 @@ func (pm *ProjectContextManager) analyzeDatabasePattern(projectPath string) (*Pa
 func (pm *ProjectContextManager) InvalidateCache() {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.cachedContext = nil
 	pm.lastCacheUpdate = time.Time{}
 }
@@ -1383,7 +1383,7 @@ func (pm *ProjectContextManager) InvalidateCache() {
 func (pm *ProjectContextManager) SetCacheDuration(duration time.Duration) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	
+
 	pm.cacheDuration = duration
 }
 
@@ -1391,17 +1391,17 @@ func (pm *ProjectContextManager) SetCacheDuration(duration time.Duration) {
 func (pm *ProjectContextManager) GetCacheInfo() map[string]interface{} {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	
+
 	info := map[string]interface{}{
 		"cache_duration": pm.cacheDuration.String(),
 		"is_cached":      pm.cachedContext != nil,
 		"cache_age":      time.Since(pm.lastCacheUpdate).String(),
 	}
-	
+
 	if pm.cachedContext != nil {
 		info["last_update"] = pm.lastCacheUpdate.Format(time.RFC3339)
 		info["cache_valid"] = time.Since(pm.lastCacheUpdate) < pm.cacheDuration
 	}
-	
+
 	return info
 }

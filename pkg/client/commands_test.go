@@ -13,14 +13,14 @@ func TestParseSlashCommand(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
-	
+
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		t.Fatalf("Failed to create Claude Code client: %v", err)
 	}
 	defer client.Close()
-	
+
 	executor := NewCommandExecutor(client)
 
 	tests := []struct {
@@ -33,8 +33,8 @@ func TestParseSlashCommand(t *testing.T) {
 			name:  "simple read command",
 			input: "/read file.go",
 			expected: &Command{
-				Type: CommandRead,
-				Args: []string{"file.go"},
+				Type:    CommandRead,
+				Args:    []string{"file.go"},
 				Options: map[string]interface{}{},
 			},
 		},
@@ -53,8 +53,8 @@ func TestParseSlashCommand(t *testing.T) {
 			name:  "analyze with multiple args",
 			input: "/analyze main.go performance",
 			expected: &Command{
-				Type: CommandAnalyze,
-				Args: []string{"main.go", "performance"},
+				Type:    CommandAnalyze,
+				Args:    []string{"main.go", "performance"},
 				Options: map[string]interface{}{},
 			},
 		},
@@ -72,8 +72,8 @@ func TestParseSlashCommand(t *testing.T) {
 			name:  "git status",
 			input: "/git-status",
 			expected: &Command{
-				Type: CommandGitStatus,
-				Args: []string{},
+				Type:    CommandGitStatus,
+				Args:    []string{},
 				Options: map[string]interface{}{},
 			},
 		},
@@ -82,26 +82,26 @@ func TestParseSlashCommand(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := executor.ParseSlashCommand(tt.input)
-			
+
 			if tt.hasError {
 				if err == nil {
 					t.Error("Expected error but got none")
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Fatalf("Unexpected error: %v", err)
 			}
-			
+
 			if result.Type != tt.expected.Type {
 				t.Errorf("Expected command type %s, got %s", tt.expected.Type, result.Type)
 			}
-			
+
 			if len(result.Args) != len(tt.expected.Args) {
 				t.Errorf("Expected %d args, got %d", len(tt.expected.Args), len(result.Args))
 			}
-			
+
 			for i, arg := range tt.expected.Args {
 				if i >= len(result.Args) || result.Args[i] != arg {
 					t.Errorf("Expected arg[%d] = %s, got %s", i, arg, result.Args[i])
@@ -117,14 +117,14 @@ func TestBuildCommandPrompt(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
-	
+
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		t.Fatalf("Failed to create Claude Code client: %v", err)
 	}
 	defer client.Close()
-	
+
 	executor := NewCommandExecutor(client)
 
 	tests := []struct {
@@ -194,18 +194,18 @@ func TestBuildCommandPrompt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := executor.buildCommandPrompt(tt.command)
-			
+
 			if tt.hasError {
 				if err == nil {
 					t.Error("Expected error but got none")
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Fatalf("Unexpected error: %v", err)
 			}
-			
+
 			if result != tt.expected {
 				t.Errorf("Expected prompt:\n%s\n\nGot:\n%s", tt.expected, result)
 			}
@@ -225,8 +225,8 @@ func TestCommandBuilders(t *testing.T) {
 				return ReadFile("main.go")
 			},
 			expected: &Command{
-				Type: CommandRead,
-				Args: []string{"main.go"},
+				Type:    CommandRead,
+				Args:    []string{"main.go"},
 				Options: map[string]interface{}{},
 			},
 		},
@@ -249,8 +249,8 @@ func TestCommandBuilders(t *testing.T) {
 				return WriteFile("test.go", "package main")
 			},
 			expected: &Command{
-				Type: CommandWrite,
-				Args: []string{"test.go", "package main"},
+				Type:    CommandWrite,
+				Args:    []string{"test.go", "package main"},
 				Options: map[string]interface{}{},
 			},
 		},
@@ -286,7 +286,7 @@ func TestCommandBuilders(t *testing.T) {
 				return GitStatus()
 			},
 			expected: &Command{
-				Type: CommandGitStatus,
+				Type:    CommandGitStatus,
 				Options: map[string]interface{}{},
 			},
 		},
@@ -295,21 +295,21 @@ func TestCommandBuilders(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := tt.builder()
-			
+
 			if result.Type != tt.expected.Type {
 				t.Errorf("Expected command type %s, got %s", tt.expected.Type, result.Type)
 			}
-			
+
 			if len(result.Args) != len(tt.expected.Args) {
 				t.Errorf("Expected %d args, got %d", len(tt.expected.Args), len(result.Args))
 			}
-			
+
 			for i, arg := range tt.expected.Args {
 				if i >= len(result.Args) || result.Args[i] != arg {
 					t.Errorf("Expected arg[%d] = %s, got %s", i, arg, result.Args[i])
 				}
 			}
-			
+
 			for key, expectedValue := range tt.expected.Options {
 				actualValue, exists := result.Options[key]
 				if !exists {
@@ -330,14 +330,14 @@ func TestExtractTextContent(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
-	
+
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		t.Fatalf("Failed to create Claude Code client: %v", err)
 	}
 	defer client.Close()
-	
+
 	executor := NewCommandExecutor(client)
 
 	tests := []struct {
@@ -421,7 +421,7 @@ func TestCommandTypes(t *testing.T) {
 
 func TestCommandOptionsChaining(t *testing.T) {
 	// Test that multiple options can be chained
-	cmd := ReadFile("test.go", 
+	cmd := ReadFile("test.go",
 		WithSummary(true),
 		WithContext("project", "test-project"),
 		WithLimit(10),
@@ -437,7 +437,7 @@ func TestCommandOptionsChaining(t *testing.T) {
 
 	expectedOptions := map[string]interface{}{
 		"summarize": true,
-		"limit": 10,
+		"limit":     10,
 	}
 
 	for key, expectedValue := range expectedOptions {
@@ -471,24 +471,24 @@ func TestCommandOptionsChaining(t *testing.T) {
 func TestExecuteCommand_MockResponse(t *testing.T) {
 	// This would need a mock implementation or real Claude Code installation
 	// For now, we'll test the command building and parsing logic
-	
+
 	tempDir := t.TempDir()
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 	}
-	
+
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		t.Fatalf("Failed to create Claude Code client: %v", err)
 	}
 	defer client.Close()
-	
+
 	executor := NewCommandExecutor(client)
 
 	// Test that we can build a command and generate a prompt
 	cmd := ReadFile("main.go", WithSummary(true))
-	
+
 	prompt, err := executor.buildCommandPrompt(cmd)
 	if err != nil {
 		t.Fatalf("Failed to build command prompt: %v", err)

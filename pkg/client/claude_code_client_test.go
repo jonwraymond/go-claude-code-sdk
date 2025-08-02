@@ -11,12 +11,12 @@ import (
 func TestNewClaudeCodeClient(t *testing.T) {
 	// Create temporary directory for testing
 	tempDir := t.TempDir()
-	
+
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 		SessionID:        "test-session",
-		Model:           "claude-3-5-sonnet-20241022",
-		APIKey:          "test-key",
+		Model:            "claude-3-5-sonnet-20241022",
+		APIKey:           "test-key",
 	}
 
 	ctx := context.Background()
@@ -37,7 +37,7 @@ func TestNewClaudeCodeClient(t *testing.T) {
 
 func TestClaudeCodeClient_ConfigDefaults(t *testing.T) {
 	config := &types.ClaudeCodeConfig{}
-	
+
 	ctx := context.Background()
 	client, err := NewClaudeCodeClient(ctx, config)
 	if err != nil {
@@ -95,7 +95,7 @@ func TestBuildClaudeArgs(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 		SessionID:        "test-session",
-		Model:           "claude-3-5-sonnet-20241022",
+		Model:            "claude-3-5-sonnet-20241022",
 	}
 
 	ctx := context.Background()
@@ -398,7 +398,7 @@ func TestClaudeCodeClientIntegration(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 		SessionID:        "integration-test",
-		APIKey:          os.Getenv("ANTHROPIC_API_KEY"), // Use real API key from environment
+		APIKey:           os.Getenv("ANTHROPIC_API_KEY"), // Use real API key from environment
 	}
 
 	ctx := context.Background()

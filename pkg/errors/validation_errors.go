@@ -8,19 +8,19 @@ import (
 // ValidationError represents input validation errors with field-specific details.
 type ValidationError struct {
 	*BaseError
-	Field      string                 // The field that failed validation
-	Value      string                 // The invalid value (sanitized)
-	Constraint string                 // The validation constraint that was violated
+	Field      string                // The field that failed validation
+	Value      string                // The invalid value (sanitized)
+	Constraint string                // The validation constraint that was violated
 	Violations []ValidationViolation // Detailed validation violations
 }
 
 // ValidationViolation represents a specific validation rule violation.
 type ValidationViolation struct {
-	Field       string      `json:"field"`       // Field path (e.g., "messages.0.content")
-	Code        string      `json:"code"`        // Violation code (e.g., "required", "max_length")
-	Message     string      `json:"message"`     // Human-readable message
-	Value       interface{} `json:"value"`       // The invalid value (sanitized)
-	Constraint  interface{} `json:"constraint"`  // The constraint that was violated
+	Field      string      `json:"field"`      // Field path (e.g., "messages.0.content")
+	Code       string      `json:"code"`       // Violation code (e.g., "required", "max_length")
+	Message    string      `json:"message"`    // Human-readable message
+	Value      interface{} `json:"value"`      // The invalid value (sanitized)
+	Constraint interface{} `json:"constraint"` // The constraint that was violated
 }
 
 // NewValidationError creates a new validation error.
@@ -31,10 +31,10 @@ func NewValidationError(field, value, constraint, message string) *ValidationErr
 			message += fmt.Sprintf(": %s", constraint)
 		}
 	}
-	
+
 	// Sanitize the value to prevent exposing sensitive data
 	sanitizedValue := sanitizeValidationValue(value)
-	
+
 	err := &ValidationError{
 		BaseError: NewBaseError(CategoryValidation, SeverityMedium, "VALIDATION_ERROR", message).
 			WithRetryable(false), // Validation errors are not retryable without fixing the input
@@ -43,11 +43,11 @@ func NewValidationError(field, value, constraint, message string) *ValidationErr
 		Constraint: constraint,
 		Violations: []ValidationViolation{},
 	}
-	
+
 	err.WithDetail("field", field).
 		WithDetail("value", sanitizedValue).
 		WithDetail("constraint", constraint)
-	
+
 	return err
 }
 
@@ -55,12 +55,12 @@ func NewValidationError(field, value, constraint, message string) *ValidationErr
 func NewValidationErrorWithViolations(violations []ValidationViolation) *ValidationError {
 	message := "Request validation failed"
 	if len(violations) == 1 {
-		message = fmt.Sprintf("Validation failed for field '%s': %s", 
+		message = fmt.Sprintf("Validation failed for field '%s': %s",
 			violations[0].Field, violations[0].Message)
 	} else if len(violations) > 1 {
 		message = fmt.Sprintf("Validation failed for %d fields", len(violations))
 	}
-	
+
 	err := &ValidationError{
 		BaseError: NewBaseError(CategoryValidation, SeverityMedium, "VALIDATION_ERROR", message).
 			WithRetryable(false),
@@ -69,7 +69,7 @@ func NewValidationErrorWithViolations(violations []ValidationViolation) *Validat
 		Constraint: "", // Multiple constraints
 		Violations: violations,
 	}
-	
+
 	// Add violations to details
 	violationDetails := make([]map[string]interface{}, len(violations))
 	for i, v := range violations {
@@ -82,7 +82,7 @@ func NewValidationErrorWithViolations(violations []ValidationViolation) *Validat
 		}
 	}
 	err.WithDetail("violations", violationDetails)
-	
+
 	return err
 }
 
@@ -96,7 +96,7 @@ func (e *ValidationError) AddViolation(field, code, message string, value, const
 		Constraint: constraint,
 	}
 	e.Violations = append(e.Violations, violation)
-	
+
 	// Update the error message for multiple violations
 	if len(e.Violations) > 1 {
 		e.message = fmt.Sprintf("Validation failed for %d fields", len(e.Violations))
@@ -121,22 +121,22 @@ func NewRequestValidationError(requestType, method, endpoint string, violations 
 			message = fmt.Sprintf("Invalid %s request: %d validation errors", requestType, len(violations))
 		}
 	}
-	
+
 	validationErr := NewValidationErrorWithViolations(violations)
 	validationErr.message = message
 	validationErr.code = "REQUEST_VALIDATION_ERROR"
-	
+
 	err := &RequestValidationError{
 		ValidationError: validationErr,
 		RequestType:     requestType,
 		Method:          method,
 		Endpoint:        endpoint,
 	}
-	
+
 	err.WithDetail("request_type", requestType).
 		WithDetail("method", method).
 		WithDetail("endpoint", endpoint)
-	
+
 	return err
 }
 
@@ -157,21 +157,21 @@ func NewResponseValidationError(responseType string, statusCode int, violations 
 			message = fmt.Sprintf("Invalid %s response: %d validation errors", responseType, len(violations))
 		}
 	}
-	
+
 	validationErr := NewValidationErrorWithViolations(violations)
 	validationErr.message = message
 	validationErr.code = "RESPONSE_VALIDATION_ERROR"
 	validationErr.severity = SeverityHigh // Response validation failures are more serious
-	
+
 	err := &ResponseValidationError{
 		ValidationError: validationErr,
 		ResponseType:    responseType,
 		StatusCode:      statusCode,
 	}
-	
+
 	err.WithDetail("response_type", responseType).
 		WithDetail("status_code", statusCode)
-	
+
 	return err
 }
 
@@ -189,19 +189,19 @@ type ParameterValidationError struct {
 func NewParameterValidationError(paramName, paramType string, value interface{}, constraint string) *ParameterValidationError {
 	sanitizedValue := sanitizeValidationValue(fmt.Sprintf("%v", value))
 	message := fmt.Sprintf("Invalid parameter '%s': %s", paramName, constraint)
-	
+
 	validationErr := NewValidationError(paramName, sanitizedValue, constraint, message)
 	validationErr.code = "PARAMETER_VALIDATION_ERROR"
-	
+
 	err := &ParameterValidationError{
 		ValidationError: validationErr,
 		ParameterName:   paramName,
 		ParameterType:   paramType,
 	}
-	
+
 	err.WithDetail("parameter_name", paramName).
 		WithDetail("parameter_type", paramType)
-	
+
 	return err
 }
 
@@ -238,19 +238,19 @@ func NewSchemaValidationError(schemaPath, schemaRule, message string) *SchemaVal
 	if message == "" {
 		message = fmt.Sprintf("Schema validation failed at '%s': %s", schemaPath, schemaRule)
 	}
-	
+
 	validationErr := NewValidationError(schemaPath, "", schemaRule, message)
 	validationErr.code = "SCHEMA_VALIDATION_ERROR"
-	
+
 	err := &SchemaValidationError{
 		ValidationError: validationErr,
 		SchemaPath:      schemaPath,
 		SchemaRule:      schemaRule,
 	}
-	
+
 	err.WithDetail("schema_path", schemaPath).
 		WithDetail("schema_rule", schemaRule)
-	
+
 	return err
 }
 
@@ -266,7 +266,7 @@ func ValidateRequired(field string, value interface{}) *ValidationViolation {
 			Value:   nil,
 		}
 	}
-	
+
 	// Check for empty strings
 	if str, ok := value.(string); ok && strings.TrimSpace(str) == "" {
 		return &ValidationViolation{
@@ -276,14 +276,14 @@ func ValidateRequired(field string, value interface{}) *ValidationViolation {
 			Value:   sanitizeValidationValue(str),
 		}
 	}
-	
+
 	return nil
 }
 
 // ValidateStringLength validates string length constraints.
 func ValidateStringLength(field string, value string, minLength, maxLength int) *ValidationViolation {
 	length := len(value)
-	
+
 	if minLength > 0 && length < minLength {
 		return &ValidationViolation{
 			Field:      field,
@@ -293,7 +293,7 @@ func ValidateStringLength(field string, value string, minLength, maxLength int) 
 			Constraint: minLength,
 		}
 	}
-	
+
 	if maxLength > 0 && length > maxLength {
 		return &ValidationViolation{
 			Field:      field,
@@ -303,7 +303,7 @@ func ValidateStringLength(field string, value string, minLength, maxLength int) 
 			Constraint: maxLength,
 		}
 	}
-	
+
 	return nil
 }
 
@@ -318,7 +318,7 @@ func ValidateNumericRange(field string, value, min, max float64) *ValidationViol
 			Constraint: min,
 		}
 	}
-	
+
 	if value > max {
 		return &ValidationViolation{
 			Field:      field,
@@ -328,7 +328,7 @@ func ValidateNumericRange(field string, value, min, max float64) *ValidationViol
 			Constraint: max,
 		}
 	}
-	
+
 	return nil
 }
 
@@ -339,7 +339,7 @@ func ValidateEnum(field string, value string, allowedValues []string) *Validatio
 			return nil
 		}
 	}
-	
+
 	return &ValidationViolation{
 		Field:      field,
 		Code:       "invalid_enum",
@@ -352,7 +352,7 @@ func ValidateEnum(field string, value string, allowedValues []string) *Validatio
 // ValidateSliceLength validates slice/array length constraints.
 func ValidateSliceLength(field string, slice []interface{}, minLength, maxLength int) *ValidationViolation {
 	length := len(slice)
-	
+
 	if minLength > 0 && length < minLength {
 		return &ValidationViolation{
 			Field:      field,
@@ -362,7 +362,7 @@ func ValidateSliceLength(field string, slice []interface{}, minLength, maxLength
 			Constraint: minLength,
 		}
 	}
-	
+
 	if maxLength > 0 && length > maxLength {
 		return &ValidationViolation{
 			Field:      field,
@@ -372,7 +372,7 @@ func ValidateSliceLength(field string, slice []interface{}, minLength, maxLength
 			Constraint: maxLength,
 		}
 	}
-	
+
 	return nil
 }
 
@@ -381,7 +381,7 @@ func sanitizeValidationValue(value string) string {
 	if value == "" {
 		return "(empty)"
 	}
-	
+
 	// Check if it looks like a secret
 	if isLikelySecret(value) {
 		if len(value) <= 8 {
@@ -389,12 +389,12 @@ func sanitizeValidationValue(value string) string {
 		}
 		return fmt.Sprintf("%s...[REDACTED]", value[:4])
 	}
-	
+
 	// Truncate very long values
 	if len(value) > 200 {
 		return fmt.Sprintf("%s...(truncated)", value[:197])
 	}
-	
+
 	return value
 }
 
@@ -403,7 +403,7 @@ func CollectValidationViolations(violations ...*ValidationViolation) *Validation
 	if len(violations) == 0 {
 		return nil
 	}
-	
+
 	// Filter out nil violations
 	validViolations := make([]ValidationViolation, 0, len(violations))
 	for _, v := range violations {
@@ -411,10 +411,10 @@ func CollectValidationViolations(violations ...*ValidationViolation) *Validation
 			validViolations = append(validViolations, *v)
 		}
 	}
-	
+
 	if len(validViolations) == 0 {
 		return nil
 	}
-	
+
 	return NewValidationErrorWithViolations(validViolations)
 }
