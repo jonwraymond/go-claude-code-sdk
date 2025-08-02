@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -12,21 +14,21 @@ import (
 
 func main() {
 	fmt.Println("=== Testing Fixed CLI Flags ===")
-	
+
 	ctx := context.Background()
-	
+
 	// Test 1: Query with system prompt (should use --append-system-prompt)
 	fmt.Println("\nTest 1: Query with System Prompt...")
 	config := &types.ClaudeCodeConfig{
 		Model: "claude-3-5-sonnet-20241022",
 	}
-	
+
 	claudeClient, err := client.NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 	defer claudeClient.Close()
-	
+
 	// Test with system prompt
 	request := &types.QueryRequest{
 		Messages: []types.Message{
@@ -37,7 +39,7 @@ func main() {
 		},
 		System: "You are a helpful math tutor. Always explain your reasoning.",
 	}
-	
+
 	response, err := claudeClient.Query(ctx, request)
 	if err != nil {
 		log.Printf("❌ FAILED: Query with system prompt error: %v", err)
@@ -49,7 +51,7 @@ func main() {
 			fmt.Println("   ✅ Correct answer included")
 		}
 	}
-	
+
 	// Test 2: Query with model specification
 	fmt.Println("\nTest 2: Query with Model Specification...")
 	request2 := &types.QueryRequest{
@@ -61,7 +63,7 @@ func main() {
 		},
 		Model: "claude-3-5-sonnet-20241022",
 	}
-	
+
 	response2, err := claudeClient.Query(ctx, request2)
 	if err != nil {
 		log.Printf("❌ FAILED: Query with model error: %v", err)
@@ -70,10 +72,10 @@ func main() {
 		output := strings.TrimSpace(response2.Content[0].Text)
 		fmt.Printf("   Response: %s\n", output)
 	}
-	
+
 	// Test 3: Query with session ID
 	fmt.Println("\nTest 3: Session-based Query...")
-	
+
 	// Create a session
 	session, err := claudeClient.CreateSession(ctx, "test-flags-session")
 	if err != nil {
@@ -81,7 +83,7 @@ func main() {
 	} else {
 		fmt.Println("✅ SUCCESS: Session created")
 		defer session.Close()
-		
+
 		// Query within session
 		sessionRequest := &types.QueryRequest{
 			Messages: []types.Message{
@@ -91,7 +93,7 @@ func main() {
 				},
 			},
 		}
-		
+
 		sessionResponse, err := session.Query(ctx, sessionRequest)
 		if err != nil {
 			log.Printf("❌ FAILED: Session query error: %v", err)
@@ -104,21 +106,21 @@ func main() {
 			}
 		}
 	}
-	
+
 	// Test 4: Query with allowed tools (should use --allowedTools)
 	fmt.Println("\nTest 4: Query with Tool Restrictions...")
-	
+
 	// Create query options with allowed tools
 	queryOptions := &client.QueryOptions{
 		AllowedTools:   []string{"Read", "Search"},
 		PermissionMode: client.PermissionModeAcceptEdits,
 	}
-	
+
 	// Use QueryMessagesSync for this test
-	result, err := claudeClient.QueryMessagesSync(ctx, 
-		"List the files in the current directory", 
+	result, err := claudeClient.QueryMessagesSync(ctx,
+		"List the files in the current directory",
 		queryOptions)
-	
+
 	if err != nil {
 		log.Printf("❌ FAILED: Query with tools error: %v", err)
 	} else if result != nil && len(result.Messages) > 0 {
@@ -135,9 +137,9 @@ func main() {
 			}
 		}
 	}
-	
+
 	fmt.Println("\n=== Fixed CLI Flags Tests Complete ===")
-	
+
 	// Summary
 	fmt.Println("\nFlag Mapping Summary:")
 	fmt.Println("  ✓ System prompt: --append-system-prompt (not --system)")

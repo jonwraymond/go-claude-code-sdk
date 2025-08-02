@@ -15,6 +15,7 @@ This directory contains comprehensive tests for the Go Claude Code SDK.
 ## Running Tests
 
 ### Run Individual Tests
+
 ```bash
 go run test_basic_init.go
 go run test_query_simple.go
@@ -26,6 +27,7 @@ go run test_error_handling.go
 ```
 
 ### Run All Tests
+
 ```bash
 ./run_all_tests.sh
 ```

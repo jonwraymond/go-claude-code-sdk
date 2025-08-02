@@ -5,6 +5,7 @@ This document summarizes the comprehensive testing performed on the Go Claude Co
 ## Test Overview
 
 The SDK testing suite covers the following areas:
+
 1. Basic Initialization
 2. Query Functionality
 3. Session Management
@@ -26,17 +27,20 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ All tests passed
 
 **Tests Performed**:
+
 - Default configuration initialization
 - Custom configuration with all parameters
 - Claude Code CLI availability verification
 
 **Key Findings**:
+
 - SDK successfully initializes with both default and custom configurations
 - Claude Code CLI is correctly detected and used
 - Configuration parameters properly passed to the client
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: Client created with default config
 ✅ SUCCESS: Client created with custom config
    Working Directory: /tmp
@@ -52,18 +56,21 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ All tests passed
 
 **Tests Performed**:
+
 - Simple mathematical queries
 - Model-specific queries
 - Multi-message handling
 
 **Key Findings**:
+
 - Queries execute successfully and return expected responses
 - Model specification works correctly
 - The SDK handles the Claude Code CLI's limited flag support gracefully
 - Discovered that `--max-tokens` and `--system` flags are not supported by the CLI
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: Simple query completed
    Response: 12
    ✅ Correct answer detected
@@ -80,6 +87,7 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ All tests passed (Updated with UUID validation)
 
 **Tests Performed**:
+
 - Create new sessions with generated UUIDs
 - Multiple concurrent sessions
 - UUID normalization for non-UUID inputs
@@ -89,6 +97,7 @@ The SDK testing suite covers the following areas:
 - Close specific sessions
 
 **Key Findings**:
+
 - Sessions maintain context correctly (e.g., remembering previous information)
 - Multiple sessions can be managed concurrently
 - Session metadata works as expected
@@ -96,7 +105,8 @@ The SDK testing suite covers the following areas:
 - Non-UUID inputs (e.g., "my-custom-session-name") are converted to deterministic UUIDs
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: Session created
    Session ID: 3290cea6-e321-4346-a42f-9d1e0e552845
 ✅ SUCCESS: Query within session completed
@@ -120,6 +130,7 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ All tests passed with limitations
 
 **Tests Performed**:
+
 - File read operations
 - File listing (via slash commands)
 - Search operations
@@ -127,6 +138,7 @@ The SDK testing suite covers the following areas:
 - General slash command execution
 
 **Key Findings**:
+
 - Commands execute successfully
 - File operations work correctly
 - Search functionality operates as expected
@@ -134,7 +146,8 @@ The SDK testing suite covers the following areas:
 - The SDK doesn't have a `CommandList` type, but slash commands work
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: Read command executed
    ✅ Command reported success
 ✅ SUCCESS: List command executed
@@ -150,6 +163,7 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ All tests passed
 
 **Tests Performed**:
+
 - Add MCP servers
 - List configured servers
 - Get server configuration
@@ -160,6 +174,7 @@ The SDK testing suite covers the following areas:
 - Common MCP server setup
 
 **Key Findings**:
+
 - MCP manager works correctly for all operations
 - Configuration persistence works properly
 - Common servers (filesystem, git, brave-search) can be added easily
@@ -167,7 +182,8 @@ The SDK testing suite covers the following areas:
 - Servers are disabled by default for security
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: MCP server added
 ✅ MCP servers count: 1
 ✅ SUCCESS: Server configuration retrieved
@@ -191,6 +207,7 @@ The SDK testing suite covers the following areas:
 **Status**: ✅ Most tests passed
 
 **Tests Performed**:
+
 - Invalid client configuration
 - Invalid queries
 - Session errors
@@ -200,6 +217,7 @@ The SDK testing suite covers the following areas:
 - Context cancellation
 
 **Key Findings**:
+
 - SDK provides appropriate error messages for invalid operations
 - Error types are correctly categorized (e.g., `ConfigurationError`)
 - Context cancellation is properly handled
@@ -207,7 +225,8 @@ The SDK testing suite covers the following areas:
 - The SDK gracefully handles all tested error conditions
 
 **Sample Output**:
-```
+
+```console
 ✅ SUCCESS: Client creation failed as expected
    Error: working directory does not exist: /nonexistent/directory/that/should/not/exist
    Error type: *errors.ConfigurationError
@@ -235,7 +254,7 @@ The SDK testing suite covers the following areas:
 
 ## Recent Improvements
 
-1. **UUID Session ID Support**: 
+1. **UUID Session ID Support**:
    - Added `GenerateSessionID()` helper method
    - Implemented automatic UUID normalization for non-UUID inputs
    - Added comprehensive UUID validation and error messages
@@ -248,6 +267,7 @@ The SDK testing suite covers the following areas:
 ## Conclusion
 
 The Go Claude Code SDK is functional and reliable for all tested operations. It successfully:
+
 - Initializes and manages Claude Code CLI interactions
 - Executes queries and maintains conversation context
 - Manages multiple sessions with metadata

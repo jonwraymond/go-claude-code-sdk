@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -12,18 +14,18 @@ import (
 
 func main() {
 	fmt.Println("=== Testing SDK Query Functionality (CLI-Compatible) ===")
-	
+
 	ctx := context.Background()
 	config := &types.ClaudeCodeConfig{
 		Model: "claude-3-5-sonnet-20241022",
 	}
-	
+
 	claudeClient, err := client.NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 	defer claudeClient.Close()
-	
+
 	// Test 1: Simple query (without unsupported fields)
 	fmt.Println("\nTest 1: Simple Query...")
 	request1 := &types.QueryRequest{
@@ -34,7 +36,7 @@ func main() {
 			},
 		},
 	}
-	
+
 	response1, err := claudeClient.Query(ctx, request1)
 	if err != nil {
 		log.Printf("❌ FAILED: Simple query error: %v", err)
@@ -46,7 +48,7 @@ func main() {
 			fmt.Println("   ✅ Correct answer detected")
 		}
 	}
-	
+
 	// Test 2: Query with model specification
 	fmt.Println("\nTest 2: Query with Model Specification...")
 	request2 := &types.QueryRequest{
@@ -58,7 +60,7 @@ func main() {
 		},
 		Model: "claude-3-5-sonnet-20241022", // Explicitly set model
 	}
-	
+
 	response2, err := claudeClient.Query(ctx, request2)
 	if err != nil {
 		log.Printf("❌ FAILED: Model query error: %v", err)
@@ -69,7 +71,7 @@ func main() {
 			fmt.Println("   ✅ Expected response received")
 		}
 	}
-	
+
 	// Test 3: Multi-message conversation (checking if this works)
 	fmt.Println("\nTest 3: Testing Message Handling...")
 	request3 := &types.QueryRequest{
@@ -80,7 +82,7 @@ func main() {
 			},
 		},
 	}
-	
+
 	response3, err := claudeClient.Query(ctx, request3)
 	if err != nil {
 		log.Printf("❌ FAILED: Message handling error: %v", err)
@@ -91,6 +93,6 @@ func main() {
 			fmt.Println("   ✅ Correct answer detected")
 		}
 	}
-	
+
 	fmt.Println("\n=== Query Tests Complete ===")
 }

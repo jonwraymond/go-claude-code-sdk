@@ -1,3 +1,5 @@
+//go:build ignore
+
 package main
 
 import (
@@ -14,49 +16,49 @@ import (
 
 func main() {
 	fmt.Println("=== Testing SDK Command Execution ===")
-	
+
 	ctx := context.Background()
-	
+
 	// Create a test directory with some files
 	testDir, err := os.MkdirTemp("", "sdk-command-test-*")
 	if err != nil {
 		log.Fatalf("Failed to create test directory: %v", err)
 	}
 	defer os.RemoveAll(testDir)
-	
+
 	// Create test files
 	testFile1 := filepath.Join(testDir, "test1.txt")
 	testFile2 := filepath.Join(testDir, "test2.go")
-	
+
 	err = os.WriteFile(testFile1, []byte("Hello from test file 1!\nThis is a test."), 0644)
 	if err != nil {
 		log.Fatalf("Failed to create test file 1: %v", err)
 	}
-	
+
 	err = os.WriteFile(testFile2, []byte("package main\n\nfunc main() {\n\tprintln(\"Hello, SDK!\")\n}"), 0644)
 	if err != nil {
 		log.Fatalf("Failed to create test file 2: %v", err)
 	}
-	
+
 	// Create client with test directory as working directory
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: testDir,
 		Model:            "claude-3-5-sonnet-20241022",
 	}
-	
+
 	claudeClient, err := client.NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
 	defer claudeClient.Close()
-	
+
 	// Test 1: Read file command
 	fmt.Println("\nTest 1: Read File Command...")
 	readCmd := &types.Command{
 		Type: types.CommandRead,
 		Args: []string{"test1.txt"},
 	}
-	
+
 	result1, err := claudeClient.ExecuteCommand(ctx, readCmd)
 	if err != nil {
 		log.Printf("❌ FAILED: Read command error: %v", err)
@@ -67,7 +69,7 @@ func main() {
 			fmt.Println("   ✅ Command reported success")
 		}
 	}
-	
+
 	// Test 2: Use slash command to list files
 	fmt.Println("\nTest 2: List Files (via slash command)...")
 	result2, err := claudeClient.ExecuteSlashCommand(ctx, "/ls")
@@ -78,7 +80,7 @@ func main() {
 			log.Printf("❌ FAILED: List slash command error: %v", err)
 		}
 	}
-	
+
 	if err == nil && result2 != nil {
 		fmt.Println("✅ SUCCESS: List command executed")
 		output := strings.TrimSpace(result2.Output)
@@ -87,14 +89,14 @@ func main() {
 			fmt.Println("   ✅ Test files mentioned in output")
 		}
 	}
-	
+
 	// Test 3: Search command
 	fmt.Println("\nTest 3: Search Command...")
 	searchCmd := &types.Command{
 		Type: types.CommandSearch,
 		Args: []string{"Hello"},
 	}
-	
+
 	result3, err := claudeClient.ExecuteCommand(ctx, searchCmd)
 	if err != nil {
 		log.Printf("❌ FAILED: Search command error: %v", err)
@@ -105,7 +107,7 @@ func main() {
 		}
 		fmt.Printf("   Results preview: %s...\n", strings.TrimSpace(result3.Output)[:min(100, len(result3.Output))])
 	}
-	
+
 	// Test 4: Write file command
 	fmt.Println("\nTest 4: Write File Command...")
 	testFile3 := filepath.Join(testDir, "test3.txt")
@@ -113,7 +115,7 @@ func main() {
 		Type: types.CommandWrite,
 		Args: []string{testFile3, "This file was created by the SDK!"},
 	}
-	
+
 	result4, err := claudeClient.ExecuteCommand(ctx, writeCmd)
 	if err != nil {
 		log.Printf("❌ FAILED: Write command error: %v", err)
@@ -126,7 +128,7 @@ func main() {
 			fmt.Println("   ✅ File creation verified")
 		}
 	}
-	
+
 	// Test 5: Slash command
 	fmt.Println("\nTest 5: Slash Command Execution...")
 	slashResult, err := claudeClient.ExecuteSlashCommand(ctx, "/help")
@@ -136,7 +138,7 @@ func main() {
 		fmt.Println("✅ SUCCESS: Slash command executed")
 		fmt.Printf("   Output preview: %s...\n", strings.TrimSpace(slashResult.Output)[:min(100, len(slashResult.Output))])
 	}
-	
+
 	fmt.Println("\n=== Command Execution Tests Complete ===")
 }
 
