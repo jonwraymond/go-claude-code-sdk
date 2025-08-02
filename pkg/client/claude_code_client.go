@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -114,7 +115,12 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	// Find claude command (skip in test mode)
 	var claudeCmd string
 	if config.TestMode {
-		claudeCmd = "/bin/echo" // Use echo as a mock command for testing
+		// Use a cross-platform approach for test mode
+		if runtime.GOOS == "windows" {
+			claudeCmd = "cmd"
+		} else {
+			claudeCmd = "/bin/echo"
+		}
 	} else {
 		var err error
 		claudeCmd, err = findClaudeCodeCommand(config.ClaudeCodePath)
