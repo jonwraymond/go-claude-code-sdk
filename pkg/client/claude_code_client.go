@@ -748,8 +748,22 @@ func (c *ClaudeCodeClient) Sessions() *ClaudeCodeSessionManager {
 }
 
 // CreateSession creates a new conversation session with Claude Code.
+// The sessionID must be a valid UUID or empty (in which case a new UUID is generated).
+// Non-UUID session IDs will be automatically converted to a deterministic UUID.
 func (c *ClaudeCodeClient) CreateSession(ctx context.Context, sessionID string) (*ClaudeCodeSession, error) {
 	return c.sessionManager.CreateSession(ctx, sessionID)
+}
+
+// GenerateSessionID is a convenience method that generates a new UUID v4 session ID.
+// This ensures compatibility with Claude Code CLI which requires UUID-formatted session IDs.
+//
+// Example usage:
+//
+//	client, _ := NewClaudeCodeClient(config)
+//	sessionID := client.GenerateSessionID()
+//	session, err := client.Sessions().CreateSession(ctx, sessionID)
+func (c *ClaudeCodeClient) GenerateSessionID() string {
+	return GenerateSessionID()
 }
 
 // GetSession retrieves an existing session by ID.

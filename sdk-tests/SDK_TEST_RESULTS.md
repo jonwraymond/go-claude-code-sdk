@@ -77,11 +77,12 @@ The SDK testing suite covers the following areas:
 
 ### 3. Session Management (`test_sessions.go`)
 
-**Status**: ✅ All tests passed
+**Status**: ✅ All tests passed (Updated with UUID validation)
 
 **Tests Performed**:
-- Create new sessions
+- Create new sessions with generated UUIDs
 - Multiple concurrent sessions
+- UUID normalization for non-UUID inputs
 - List active sessions
 - Retrieve existing sessions
 - Session metadata operations
@@ -91,22 +92,27 @@ The SDK testing suite covers the following areas:
 - Sessions maintain context correctly (e.g., remembering previous information)
 - Multiple sessions can be managed concurrently
 - Session metadata works as expected
-- Session IDs need to be UUIDs for certain operations
+- ✅ **FIXED**: Session IDs now automatically validated and normalized to UUIDs
+- Non-UUID inputs (e.g., "my-custom-session-name") are converted to deterministic UUIDs
 
 **Sample Output**:
 ```
 ✅ SUCCESS: Session created
-   Session ID: test-session-001
+   Session ID: 3290cea6-e321-4346-a42f-9d1e0e552845
 ✅ SUCCESS: Query within session completed
-   Response: You asked me to remember the word "ELEPHANT"
+   Response: ELEPHANT
    ✅ Session context working correctly
 ✅ SUCCESS: Second session created
-✅ Active sessions count: 2
+   Session ID: 7e806056-10fd-4294-b787-863b93b0ca98
+✅ SUCCESS: Session created with custom name
+   Original input: my-custom-session-name
+   Normalized ID: bf2b6f19-816d-4853-8cc4-05c120db69bf
+✅ Active sessions count: 3
 ✅ SUCCESS: Session retrieved
 ✅ SUCCESS: Metadata operations completed
-   Metadata entries: 2
+   Metadata entries: 7
 ✅ SUCCESS: Session closed
-   Remaining sessions: 1
+   Remaining sessions: 2
 ```
 
 ### 4. Command Execution (`test_commands.go`)
@@ -215,17 +221,29 @@ The SDK testing suite covers the following areas:
 
 ## SDK Limitations Discovered
 
-1. **CLI Flag Compatibility**: The Claude Code CLI doesn't support all flags the SDK attempts to use (`--max-tokens`, `--system`)
-2. **Session ID Format**: Some operations require session IDs to be UUIDs
+1. **CLI Flag Compatibility**: ✅ **FIXED** - The Claude Code CLI flags have been corrected (`--system` → `--append-system-prompt`, `--tools` → `--allowedTools`)
+2. **Session ID Format**: ✅ **FIXED** - Session IDs now automatically validated and normalized to UUIDs
 3. **Command Output**: Some commands return minimal output ("...") which appears to be normal behavior
 4. **Missing Types**: `CommandList` type doesn't exist, but functionality works through other means
 
 ## Recommendations
 
-1. **Documentation**: Update SDK documentation to reflect actual CLI flag support
-2. **Session Validation**: Consider adding UUID validation for session IDs
+1. **Documentation**: ✅ SDK documentation has been updated to reflect actual CLI flag support
+2. **Session Validation**: ✅ **IMPLEMENTED** - UUID validation and normalization added with helper methods
 3. **Error Messages**: Already provides clear, actionable error messages
 4. **Examples**: The test files serve as excellent usage examples
+
+## Recent Improvements
+
+1. **UUID Session ID Support**: 
+   - Added `GenerateSessionID()` helper method
+   - Implemented automatic UUID normalization for non-UUID inputs
+   - Added comprehensive UUID validation and error messages
+
+2. **CLI Flag Compatibility**:
+   - Fixed all unsupported CLI flags
+   - Updated to use correct flag names for Claude Code CLI
+   - Removed unsupported options like `--max-tokens` and `--temperature`
 
 ## Conclusion
 

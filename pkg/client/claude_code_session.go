@@ -128,7 +128,16 @@ func NewClaudeCodeSessionManagerWithConfig(client *ClaudeCodeClient, config *Cla
 }
 
 // CreateSession creates a new Claude Code conversation session.
+// The sessionID must be a valid UUID or empty (in which case a new UUID is generated).
+// Non-UUID session IDs will be automatically converted to a deterministic UUID.
 func (sm *ClaudeCodeSessionManager) CreateSession(ctx context.Context, sessionID string) (*ClaudeCodeSession, error) {
+	// Normalize the session ID to ensure it's a valid UUID
+	normalizedID, err := NormalizeSessionID(sessionID)
+	if err != nil {
+		return nil, FormatSessionIDError(sessionID)
+	}
+	sessionID = normalizedID
+
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
