@@ -117,7 +117,8 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	if config.TestMode {
 		// Use a cross-platform approach for test mode
 		if runtime.GOOS == "windows" {
-			claudeCmd = "cmd"
+			// Use echo command on Windows (built-in to cmd.exe)
+			claudeCmd = "echo"
 		} else {
 			claudeCmd = "/bin/echo"
 		}
