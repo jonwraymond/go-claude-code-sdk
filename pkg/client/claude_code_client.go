@@ -389,7 +389,7 @@ func (c *ClaudeCodeClient) detectPrimaryLanguage() string {
 	}
 
 	// Walk the directory and count files by extension
-	filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
@@ -590,7 +590,7 @@ func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
 		"docker-compose.yml", "Dockerfile", ".gitignore",
 	}
 
-	filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
 		}
