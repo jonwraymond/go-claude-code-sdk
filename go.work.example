@@ -1,0 +1,10 @@
+go 1.21
+
+use (
+    .
+    ./examples/basic
+    ./examples/session
+    ./examples/tools
+    ./examples/mcp
+    ./examples/advanced
+)
