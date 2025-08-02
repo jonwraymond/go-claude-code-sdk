@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -96,6 +97,10 @@ type ClaudeCodeConfig struct {
 
 	// APIKey is the Anthropic API key for authentication
 	APIKey string `json:"api_key,omitempty"`
+
+	// AuthMethod specifies the authentication method to use
+	// Options: "api_key" (default), "subscription"
+	AuthMethod AuthType `json:"auth_method,omitempty"`
 
 	// ClaudeCodePath is the path to the claude executable (auto-detected if not provided)
 	ClaudeCodePath string `json:"claude_code_path,omitempty"`
@@ -241,6 +246,79 @@ func (c *ClaudeCodeConfig) ApplyDefaults() {
 			c.APIKey = apiKey
 		}
 	}
+
+	// Set default auth method if not specified
+	if c.AuthMethod == "" {
+		if c.APIKey != "" {
+			c.AuthMethod = AuthTypeAPIKey
+		} else {
+			// Try to detect if subscription auth is available
+			if c.isSubscriptionAuthAvailable() {
+				c.AuthMethod = AuthTypeSubscription
+			} else {
+				c.AuthMethod = AuthTypeAPIKey // Default fallback
+			}
+		}
+	}
+}
+
+// isSubscriptionAuthAvailable checks if subscription authentication is available.
+func (c *ClaudeCodeConfig) isSubscriptionAuthAvailable() bool {
+	// Check if Claude CLI is available
+	candidates := []string{"claude", "npx claude"}
+	
+	for _, candidate := range candidates {
+		if strings.Contains(candidate, " ") {
+			// For commands like "npx claude", test by running with --version
+			parts := strings.Fields(candidate)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			if err := cmd.Run(); err == nil {
+				return true
+			}
+		} else {
+			// For single commands, check if available in PATH
+			if _, err := exec.LookPath(candidate); err == nil {
+				return true
+			}
+		}
+	}
+	
+	return false
+}
+
+// GetAuthenticator returns the appropriate authenticator based on the configured auth method.
+func (c *ClaudeCodeConfig) GetAuthenticator() Authenticator {
+	switch c.AuthMethod {
+	case AuthTypeAPIKey:
+		if c.APIKey != "" {
+			return &APIKeyAuth{APIKey: c.APIKey}
+		}
+	case AuthTypeSubscription:
+		return &SubscriptionAuth{}
+	}
+	
+	// Fallback: try to auto-detect
+	if c.APIKey != "" {
+		return &APIKeyAuth{APIKey: c.APIKey}
+	}
+	
+	// Default to subscription auth if available
+	if c.isSubscriptionAuthAvailable() {
+		return &SubscriptionAuth{}
+	}
+	
+	// Final fallback to API key auth (will fail validation later if no key)
+	return &APIKeyAuth{}
+}
+
+// IsUsingSubscriptionAuth returns true if the configuration is set up for subscription authentication.
+func (c *ClaudeCodeConfig) IsUsingSubscriptionAuth() bool {
+	return c.AuthMethod == AuthTypeSubscription
+}
+
+// IsUsingAPIKeyAuth returns true if the configuration is set up for API key authentication.
+func (c *ClaudeCodeConfig) IsUsingAPIKeyAuth() bool {
+	return c.AuthMethod == AuthTypeAPIKey
 }
 
 // Validate performs validation on the configuration.

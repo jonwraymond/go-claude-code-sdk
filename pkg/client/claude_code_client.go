@@ -3,6 +3,7 @@ package client
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -99,12 +100,16 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	}
 
 	if config.SessionID == "" {
-		config.SessionID = fmt.Sprintf("go-sdk-%d", time.Now().Unix())
+		// Generate a simple UUID-like ID for session
+		config.SessionID = generateSessionID()
 	}
 
 	if config.Model == "" {
 		config.Model = "claude-3-5-sonnet-20241022"
 	}
+
+	// Apply defaults including authentication method detection
+	config.ApplyDefaults()
 
 	// Find claude command
 	claudeCmd, err := findClaudeCodeCommand(config.ClaudeCodePath)
@@ -170,6 +175,13 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 
 	// Set environment variables
 	cmd.Env = append(os.Environ(), c.buildEnvironment()...)
+
+	// Debug: print the command being executed
+	if c.config.Debug {
+		fmt.Printf("[DEBUG] Executing: %s %s\n", c.claudeCodeCmd, strings.Join(args, " "))
+		fmt.Printf("[DEBUG] Working directory: %s\n", c.workingDir)
+		fmt.Printf("[DEBUG] Environment: %v\n", c.buildEnvironment())
+	}
 
 	// Capture output
 	output, err := cmd.Output()
@@ -741,6 +753,11 @@ func (c *ClaudeCodeClient) ListSessions() []string {
 func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streaming bool) ([]string, error) {
 	args := make([]string, 0)
 
+	// Add print flag for non-interactive use
+	if !streaming {
+		args = append(args, "--print")
+	}
+
 	// Add model selection
 	if request.Model != "" {
 		args = append(args, "--model", request.Model)
@@ -750,7 +767,7 @@ func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streamin
 
 	// Add session ID for conversation persistence
 	if c.sessionID != "" {
-		args = append(args, "--session", c.sessionID)
+		args = append(args, "--session-id", c.sessionID)
 	}
 
 	// Add streaming flag if requested
@@ -848,9 +865,21 @@ func (c *ClaudeCodeClient) extractTextContent(content interface{}) string {
 func (c *ClaudeCodeClient) buildEnvironment() []string {
 	env := make([]string, 0)
 
-	// Add API key from config
-	if c.config.APIKey != "" {
-		env = append(env, "ANTHROPIC_API_KEY="+c.config.APIKey)
+	// Handle authentication based on configured method
+	switch c.config.AuthMethod {
+	case types.AuthTypeAPIKey:
+		// Add API key from config for API key authentication
+		if c.config.APIKey != "" {
+			env = append(env, "ANTHROPIC_API_KEY="+c.config.APIKey)
+		}
+	case types.AuthTypeSubscription:
+		// For subscription auth, the CLI handles authentication automatically
+		// No additional environment variables needed
+	default:
+		// Fallback: if API key is available, use it
+		if c.config.APIKey != "" {
+			env = append(env, "ANTHROPIC_API_KEY="+c.config.APIKey)
+		}
 	}
 
 	// Add custom environment variables
@@ -918,6 +947,31 @@ func findClaudeCodeCommand(customPath string) (string, error) {
 	}
 
 	return "", fmt.Errorf("claude code executable not found. Please install claude code via 'npm install -g @anthropic-ai/claude-code' or provide custom path")
+}
+
+// generateSessionID generates a UUID v4 session ID for Claude CLI
+func generateSessionID() string {
+	// Generate a proper UUID v4
+	uuid := make([]byte, 16)
+	if _, err := rand.Read(uuid); err != nil {
+		// Fallback to time-based if crypto/rand fails
+		now := time.Now().UnixNano()
+		for i := range uuid {
+			uuid[i] = byte(now >> (8 * (i % 8)))
+		}
+	}
+	
+	// Set version (4) and variant bits
+	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant bits
+	
+	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+		uint32(uuid[0])<<24|uint32(uuid[1])<<16|uint32(uuid[2])<<8|uint32(uuid[3]),
+		uint16(uuid[4])<<8|uint16(uuid[5]),
+		uint16(uuid[6])<<8|uint16(uuid[7]),
+		uint16(uuid[8])<<8|uint16(uuid[9]),
+		uint64(uuid[10])<<40|uint64(uuid[11])<<32|uint64(uuid[12])<<24|uint64(uuid[13])<<16|uint64(uuid[14])<<8|uint64(uuid[15]),
+	)
 }
 
 // claudeCodeQueryStream implements QueryStream for Claude Code subprocess streaming.

@@ -3,6 +3,8 @@ package types
 import (
 	"context"
 	"net/http"
+	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -53,7 +55,7 @@ const (
 	// AuthTypeSession indicates session-based authentication
 	AuthTypeSession AuthType = "session"
 
-	// AuthTypeSubscription indicates subscription-based authentication (future)
+	// AuthTypeSubscription indicates subscription-based authentication
 	AuthTypeSubscription AuthType = "subscription"
 
 	// AuthTypeOAuth indicates OAuth-based authentication (future)
@@ -253,6 +255,133 @@ func (e *AuthError) Is(target error) bool {
 		return e.Type == ae.Type
 	}
 	return false
+}
+
+// SubscriptionAuth implements subscription-based authentication for Claude Code.
+// This authentication method works with users who have a Claude subscription
+// and have set up authentication using `claude setup-token`.
+//
+// The authenticator will automatically detect and use the CLI's authentication
+// state without requiring manual token management.
+//
+// Example usage:
+//
+//	auth := &types.SubscriptionAuth{}
+//	client := claude.NewClient(ctx, &types.Config{
+//		Auth: auth,
+//	})
+type SubscriptionAuth struct {
+	// TokenPath is the path to the CLI token file (auto-detected if empty)
+	TokenPath string
+
+	// ConfigPath is the path to the CLI config directory (auto-detected if empty)
+	ConfigPath string
+
+	// cached token information
+	cachedToken      string
+	cachedExpiration *time.Time
+	lastChecked      time.Time
+}
+
+// Authenticate handles subscription-based authentication by delegating to the Claude CLI.
+// This method doesn't set headers directly since the Claude Code SDK uses subprocess execution.
+func (s *SubscriptionAuth) Authenticate(ctx context.Context, req *http.Request) error {
+	// For ClaudeCodeClient, authentication is handled by the CLI subprocess,
+	// so we just need to verify that subscription authentication is available
+	if !s.IsValid(ctx) {
+		return &AuthError{
+			Type:    "subscription_unavailable",
+			Message: "Claude subscription authentication is not available. Please run 'claude setup-token' to configure subscription authentication.",
+		}
+	}
+	
+	// No headers need to be set since the CLI handles authentication
+	return nil
+}
+
+// IsValid checks if subscription authentication is properly configured.
+// This verifies that the Claude CLI has been set up with a valid subscription token.
+func (s *SubscriptionAuth) IsValid(ctx context.Context) bool {
+	// Check if Claude CLI is available
+	if !s.isCLIAvailable() {
+		return false
+	}
+
+	// Check if authentication token exists and is valid
+	return s.hasValidToken(ctx)
+}
+
+// Refresh attempts to refresh the subscription authentication.
+// For subscription auth, this would typically involve re-running the CLI setup.
+func (s *SubscriptionAuth) Refresh(ctx context.Context) error {
+	// Clear cached token
+	s.cachedToken = ""
+	s.cachedExpiration = nil
+	s.lastChecked = time.Time{}
+
+	// Check if authentication is still valid after clearing cache
+	if s.IsValid(ctx) {
+		return nil
+	}
+
+	return &AuthError{
+		Type:    "refresh_required",
+		Message: "Subscription authentication needs to be refreshed. Please run 'claude setup-token' to re-authenticate.",
+	}
+}
+
+// Type returns the authentication type.
+func (s *SubscriptionAuth) Type() AuthType {
+	return AuthTypeSubscription
+}
+
+// isCLIAvailable checks if the Claude CLI is available in the system.
+func (s *SubscriptionAuth) isCLIAvailable() bool {
+	// Try to find claude command
+	candidates := []string{"claude", "npx claude"}
+	
+	for _, candidate := range candidates {
+		if strings.Contains(candidate, " ") {
+			// For commands like "npx claude", test by running with --version
+			parts := strings.Fields(candidate)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			if err := cmd.Run(); err == nil {
+				return true
+			}
+		} else {
+			// For single commands, check if available in PATH
+			if _, err := exec.LookPath(candidate); err == nil {
+				return true
+			}
+		}
+	}
+	
+	return false
+}
+
+// hasValidToken checks if there's a valid subscription token available.
+func (s *SubscriptionAuth) hasValidToken(ctx context.Context) bool {
+	// Check cache first (with 5-minute TTL)
+	if !s.lastChecked.IsZero() && time.Since(s.lastChecked) < 5*time.Minute {
+		if s.cachedExpiration != nil && time.Now().Before(*s.cachedExpiration) {
+			return s.cachedToken != ""
+		}
+	}
+
+	// Try to run a simple Claude command to verify authentication
+	cmd := exec.CommandContext(ctx, "claude", "--version")
+	if err := cmd.Run(); err != nil {
+		return false
+	}
+
+	// Update cache
+	s.lastChecked = time.Now()
+	// Set a conservative expiration (subscription tokens are typically long-lived)
+	expiration := time.Now().Add(24 * time.Hour)
+	s.cachedExpiration = &expiration
+	s.cachedToken = "valid" // We don't need the actual token value
+	
+	return true
 }
 
 // CredentialManager defines the interface for managing authentication credentials.

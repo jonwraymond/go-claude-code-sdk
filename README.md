@@ -62,7 +62,59 @@ This SDK focuses exclusively on Claude Code CLI functionality and does not inclu
   ```bash
   npm install -g @anthropic-ai/claude-code
   ```
-- Valid Anthropic API key
+- Authentication via one of:
+  - **Claude Subscription** (recommended): Run `claude setup-token` 
+  - **API Key**: Valid Anthropic API key
+
+### Authentication Options
+
+The SDK supports two authentication methods:
+
+#### 1. Subscription Authentication (Recommended)
+
+If you have a Claude subscription, set up long-lived authentication:
+
+```bash
+# Set up subscription authentication
+claude setup-token
+```
+
+Then use in your Go code:
+
+```go
+config := &types.ClaudeCodeConfig{
+    WorkingDirectory: ".",
+    AuthMethod:      types.AuthTypeSubscription,
+}
+```
+
+#### 2. API Key Authentication
+
+For API key authentication, set your key as an environment variable:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+```
+
+Then use in your Go code:
+
+```go
+config := &types.ClaudeCodeConfig{
+    WorkingDirectory: ".",
+    APIKey:          "sk-ant-api03-your-key-here", // or omit to use env var
+    AuthMethod:      types.AuthTypeAPIKey,
+}
+```
+
+#### 3. Automatic Detection
+
+The SDK can automatically detect your preferred authentication method:
+
+```go
+// Automatically detects subscription or API key auth
+config := types.NewClaudeCodeConfig()
+// AuthMethod will be set automatically based on what's available
+```
 
 ### Installation
 
@@ -85,26 +137,33 @@ import (
 )
 
 func main() {
-    // Create a new Claude Code client
-    cfg := types.NewClaudeCodeConfig()
-    cfg.APIKey = "your-api-key" // Or use ANTHROPIC_API_KEY env var
+    ctx := context.Background()
     
-    client, err := client.NewClaudeCodeClient(cfg)
+    // Create a new Claude Code client with automatic auth detection
+    config := types.NewClaudeCodeConfig()
+    // AuthMethod will be automatically detected (subscription or API key)
+    
+    client, err := client.NewClaudeCodeClient(ctx, config)
     if err != nil {
         log.Fatal(err)
     }
     defer client.Close()
     
-    // Simple query with streaming
-    ctx := context.Background()
-    messages, err := client.QueryMessages(ctx, "Explain this Go code", nil)
+    // Simple query
+    response, err := client.Query(ctx, &types.QueryRequest{
+        Messages: []types.Message{
+            {Role: types.RoleUser, Content: "Explain this Go code"},
+        },
+    })
     if err != nil {
         log.Fatal(err)
     }
     
-    // Process streaming messages
-    for msg := range messages {
-        fmt.Printf("[%s]: %s\n", msg.Role, msg.GetText())
+    // Extract and print the response
+    for _, block := range response.Content {
+        if block.Type == "text" {
+            fmt.Println(block.Text)
+        }
     }
 }
 ```
