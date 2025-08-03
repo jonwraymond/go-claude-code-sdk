@@ -22,11 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Authentication via API key and environment variables
 - Concurrent session support
 - Context cancellation and timeout handling
-- Comprehensive examples directory with 5 example programs
+- Comprehensive examples directory with all examples (consolidated from .examples)
 - Integration test suite covering all major features
 - GitHub Actions CI/CD pipeline with multi-version testing
 - Package documentation for all public APIs
 - Feature parity with official Python and TypeScript SDKs
+
+### Changed
+- Consolidated `.examples` directory into `examples` for better visibility and consistency
 
 ### Features
 - **Client Package**: Main client for interacting with Claude Code CLI
