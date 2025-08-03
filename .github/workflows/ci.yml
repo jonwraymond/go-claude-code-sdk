@@ -139,6 +139,7 @@ jobs:
           go-version: '1.22'
       # Run performance benchmarks (skip if directory doesn't exist)
       - name: Run Performance Tests
+        shell: bash
         run: |
           if [ -d "./tests/performance" ]; then
             go test -bench=. -benchmem ./tests/performance/... || echo "Performance tests failed or no benchmarks found"
@@ -147,6 +148,7 @@ jobs:
           fi
       # Run memory profiling (skip if directory doesn't exist)
       - name: Run Memory Profiling
+        shell: bash
         run: |
           if [ -d "./tests/performance" ]; then
             go test -memprofile=mem.prof -cpuprofile=cpu.prof ./tests/performance/... || echo "Profiling tests failed or no profiling tests found"
