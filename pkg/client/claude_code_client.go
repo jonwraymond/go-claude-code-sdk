@@ -194,7 +194,7 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 		fmt.Printf("[DEBUG] Executing: %s %s\n", c.claudeCodeCmd, strings.Join(args, " "))
 		fmt.Printf("[DEBUG] Working directory: %s\n", c.workingDir)
 		// Don't log environment variables as they may contain sensitive information
-		fmt.Printf("[DEBUG] Environment: %d variables set\n", len(c.buildEnvironment()))
+		fmt.Printf("[DEBUG] Environment variables configured for authentication\n")
 	}
 
 	// Capture output
