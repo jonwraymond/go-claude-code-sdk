@@ -128,7 +128,16 @@ func NewClaudeCodeSessionManagerWithConfig(client *ClaudeCodeClient, config *Cla
 }
 
 // CreateSession creates a new Claude Code conversation session.
+// The sessionID must be a valid UUID or empty (in which case a new UUID is generated).
+// Non-UUID session IDs will be automatically converted to a deterministic UUID.
 func (sm *ClaudeCodeSessionManager) CreateSession(ctx context.Context, sessionID string) (*ClaudeCodeSession, error) {
+	// Normalize the session ID to ensure it's a valid UUID
+	normalizedID, err := NormalizeSessionID(sessionID)
+	if err != nil {
+		return nil, FormatSessionIDError(sessionID)
+	}
+	sessionID = normalizedID
+
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -164,11 +173,9 @@ func (sm *ClaudeCodeSessionManager) CreateSession(ctx context.Context, sessionID
 	session.metadata["project_dir"] = session.projectDir
 	session.metadata["model"] = session.model
 
-	// Get project context for the session
+	// Get project context for the session (simplified)
 	if projectCtx, err := sm.client.GetProjectContext(ctx); err == nil {
-		session.metadata["language"] = projectCtx.Language
-		session.metadata["framework"] = projectCtx.Framework
-		session.metadata["project_name"] = projectCtx.ProjectName
+		session.metadata["working_directory"] = projectCtx.WorkingDirectory
 	}
 
 	sm.sessions[sessionID] = session
@@ -214,7 +221,7 @@ func (sm *ClaudeCodeSessionManager) CloseSession(sessionID string) error {
 
 	session, exists := sm.sessions[sessionID]
 	if exists {
-		session.Close()
+		_ = session.Close() // Ignore error during cleanup
 		delete(sm.sessions, sessionID)
 	}
 
@@ -248,7 +255,7 @@ func (sm *ClaudeCodeSessionManager) Close() error {
 	defer sm.mu.Unlock()
 
 	for _, session := range sm.sessions {
-		session.Close()
+		_ = session.Close() // Ignore error during cleanup
 	}
 	sm.sessions = make(map[string]*ClaudeCodeSession)
 
@@ -276,7 +283,7 @@ func (sm *ClaudeCodeSessionManager) cleanupExpiredSessions() {
 
 	for id, session := range sm.sessions {
 		if session.IsExpired() {
-			session.Close()
+			_ = session.Close() // Ignore error during cleanup
 			delete(sm.sessions, id)
 		}
 	}
@@ -516,6 +523,23 @@ func (s *ClaudeCodeSession) Close() error {
 	}
 
 	return nil
+}
+
+// GetInfo returns basic session information
+// Simplified to match official SDK capabilities
+func (s *ClaudeCodeSession) GetInfo() (*types.SimpleSessionInfo, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	info := &types.SimpleSessionInfo{
+		ID:         s.ID,
+		CreatedAt:  s.createdAt,
+		LastUsedAt: s.lastUsedAt,
+		Model:      s.model,
+		Metadata:   s.metadata,
+	}
+
+	return info, nil
 }
 
 // claudeCodeSessionStream wraps a QueryStream for session management.

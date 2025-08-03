@@ -294,7 +294,7 @@ func (s *SubscriptionAuth) Authenticate(ctx context.Context, req *http.Request) 
 			Message: "Claude subscription authentication is not available. Please run 'claude setup-token' to configure subscription authentication.",
 		}
 	}
-	
+
 	// No headers need to be set since the CLI handles authentication
 	return nil
 }
@@ -339,12 +339,12 @@ func (s *SubscriptionAuth) Type() AuthType {
 func (s *SubscriptionAuth) isCLIAvailable() bool {
 	// Try to find claude command
 	candidates := []string{"claude", "npx claude"}
-	
+
 	for _, candidate := range candidates {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return true
 			}
@@ -355,7 +355,7 @@ func (s *SubscriptionAuth) isCLIAvailable() bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -380,7 +380,7 @@ func (s *SubscriptionAuth) hasValidToken(ctx context.Context) bool {
 	expiration := time.Now().Add(24 * time.Hour)
 	s.cachedExpiration = &expiration
 	s.cachedToken = "valid" // We don't need the actual token value
-	
+
 	return true
 }
 

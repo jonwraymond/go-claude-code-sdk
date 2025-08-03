@@ -8,6 +8,9 @@ import (
 // QueryRequest represents a request to the Claude Code API.
 // It contains the message content and configuration for how Claude should respond.
 //
+// This struct provides comprehensive configuration options for controlling Claude's
+// behavior, including model selection, response parameters, tool usage, and more.
+//
 // Example usage:
 //
 //	request := &types.QueryRequest{
@@ -19,6 +22,26 @@ import (
 //			},
 //		},
 //		MaxTokens: 1000,
+//		Temperature: 0.7,
+//		System: "You are a helpful Go programming assistant",
+//	}
+//
+// Advanced usage with tools:
+//
+//	request := &types.QueryRequest{
+//		Model: "claude-3-5-sonnet-20241022",
+//		Messages: []types.Message{{Role: types.RoleUser, Content: "What's the weather?"}},
+//		Tools: []Tool{{
+//			Name: "get_weather",
+//			Description: "Get current weather for a location",
+//			InputSchema: map[string]any{
+//				"type": "object",
+//				"properties": map[string]any{
+//					"location": map[string]any{"type": "string"},
+//				},
+//			},
+//		}},
+//		ToolChoice: "auto",
 //	}
 type QueryRequest struct {
 	// Model specifies which Claude model to use for the request
@@ -58,7 +81,27 @@ type QueryRequest struct {
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
-// Validate performs basic validation on the query request.
+// Validate performs comprehensive validation on the query request.
+// It checks for required fields, validates parameter ranges, and ensures
+// the request is properly formed for the Claude Code API.
+//
+// Returns:
+//   - nil if the request is valid
+//   - ValidationError if any validation rules are violated
+//
+// Validation rules:
+//   - Model must be specified
+//   - At least one message is required
+//   - MaxTokens must be greater than 0
+//   - Temperature must be between 0.0 and 1.0
+//   - All message roles must be valid
+//
+// Example:
+//
+//	if err := request.Validate(); err != nil {
+//		log.Printf("Invalid request: %v", err)
+//		return err
+//	}
 func (q *QueryRequest) Validate() error {
 	if q.Model == "" {
 		return &ValidationError{
@@ -102,7 +145,33 @@ func (q *QueryRequest) Validate() error {
 }
 
 // QueryResponse represents a response from the Claude Code API.
-// It contains Claude's response message and metadata about the request.
+// It contains Claude's response message and comprehensive metadata about the request.
+//
+// The response includes the generated content, usage statistics, model information,
+// and details about why generation stopped. Content is provided as structured
+// blocks that can contain text, tool calls, or other data types.
+//
+// Example usage:
+//
+//	response, err := client.Query(ctx, request)
+//	if err != nil {
+//		return err
+//	}
+//
+//	// Extract text content
+//	text := response.GetTextContent()
+//	fmt.Printf("Claude's response: %s\n", text)
+//
+//	// Check for tool calls
+//	toolCalls := response.GetToolCalls()
+//	for _, call := range toolCalls {
+//		fmt.Printf("Tool called: %s\n", call.Function.Name)
+//	}
+//
+//	// Check token usage
+//	if response.Usage != nil {
+//		fmt.Printf("Tokens used: %d\n", response.Usage.TotalTokens)
+//	}
 type QueryResponse struct {
 	// ID is a unique identifier for this response
 	ID string `json:"id"`
@@ -136,7 +205,24 @@ type QueryResponse struct {
 }
 
 // GetTextContent extracts all text content from the response.
+// It concatenates text from all text-type content blocks in the response.
+// Non-text blocks (like tool calls) are ignored.
+//
+// Returns:
+//   - string: The concatenated text content from all text blocks
+//   - Empty string if no text content is found or response is nil
+//
+// Example:
+//
+//	response, _ := client.Query(ctx, request)
+//	text := response.GetTextContent()
+//	if text != "" {
+//		fmt.Println("Claude said:", text)
+//	}
 func (r *QueryResponse) GetTextContent() string {
+	if r == nil || r.Content == nil {
+		return ""
+	}
 	var content string
 	for _, block := range r.Content {
 		if block.Type == "text" {
@@ -147,8 +233,27 @@ func (r *QueryResponse) GetTextContent() string {
 }
 
 // GetToolCalls extracts all tool calls from the response.
+// It parses tool_use content blocks and converts them into ToolCall structs
+// with properly formatted function names and arguments.
+//
+// Returns:
+//   - []ToolCall: A slice of tool calls found in the response
+//   - Empty slice if no tool calls are found or response is nil
+//
+// Example:
+//
+//	response, _ := client.Query(ctx, request)
+//	toolCalls := response.GetToolCalls()
+//	for _, call := range toolCalls {
+//		fmt.Printf("Tool: %s\n", call.Function.Name)
+//		args, _ := call.Function.ParseArguments()
+//		fmt.Printf("Args: %+v\n", args)
+//	}
 func (r *QueryResponse) GetToolCalls() []ToolCall {
 	var toolCalls []ToolCall
+	if r == nil || r.Content == nil {
+		return toolCalls
+	}
 	for _, block := range r.Content {
 		if block.Type == "tool_use" {
 			// Parse tool call from block data

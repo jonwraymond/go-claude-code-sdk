@@ -327,13 +327,13 @@ type MessageStopEvent struct {
 
 // ContentBlock represents a block of content within a message.
 type ContentBlock struct {
-	Type string      `json:"type"`
-	Text string      `json:"text,omitempty"`
-	Data any `json:"data,omitempty"`
+	Type string `json:"type"`
+	Text string `json:"text,omitempty"`
+	Data any    `json:"data,omitempty"`
 
 	// Tool-specific fields
-	ID    string                 `json:"id,omitempty"`    // For tool_use blocks
-	Name  string                 `json:"name,omitempty"`  // For tool_use blocks
+	ID    string         `json:"id,omitempty"`    // For tool_use blocks
+	Name  string         `json:"name,omitempty"`  // For tool_use blocks
 	Input map[string]any `json:"input,omitempty"` // For tool_use blocks
 
 	// Tool result fields

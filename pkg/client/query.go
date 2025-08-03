@@ -51,6 +51,9 @@ type QueryOptions struct {
 	// Stream enables streaming responses
 	Stream bool
 
+	// ResponseFormat configures the output format (e.g., "json" for one-shot JSON response)
+	ResponseFormat string
+
 	// Timeout sets the query timeout
 	Timeout int
 
@@ -99,7 +102,7 @@ func (c *ClaudeCodeClient) QueryMessages(ctx context.Context, prompt string, opt
 		defer close(messageChan)
 		defer func() {
 			if !session.closed {
-				session.Close()
+				_ = session.Close() // Ignore error during cleanup
 			}
 		}()
 
@@ -168,7 +171,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 	cmdArgs := c.buildQueryCommand(session, cmd, options)
 
 	// Create and start claude process
-	process := exec.CommandContext(ctx, c.claudeCodeCmd, cmdArgs...)
+	process := exec.CommandContext(ctx, c.claudeCodeCmd, cmdArgs...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	process.Dir = c.workingDir
 
 	// Create pipes for stdout
@@ -200,7 +203,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 		c.processMu.Lock()
 		delete(c.activeProcesses, processID)
 		c.processMu.Unlock()
-		process.Process.Kill()
+		_ = process.Process.Kill() // Ignore error, best effort cleanup
 	}()
 
 	// Parse streaming output
@@ -376,31 +379,36 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 	}
 
 	// Add system prompt
+	// Claude CLI uses --append-system-prompt
 	if options.SystemPrompt != "" {
-		args = append(args, "--system-prompt", options.SystemPrompt)
+		args = append(args, "--append-system-prompt", options.SystemPrompt)
 	}
 
-	// Add max turns
-	if options.MaxTurns > 0 {
-		args = append(args, "--max-turns", fmt.Sprintf("%d", options.MaxTurns))
-	}
+	// Note: Claude CLI does not support --max-turns flag
+	// MaxTurns would need to be handled differently
 
 	// Add permission mode
+	// Claude CLI uses --permission-mode with specific values
 	switch options.PermissionMode {
 	case PermissionModeAcceptEdits:
-		args = append(args, "--accept-edits")
+		args = append(args, "--permission-mode", "acceptEdits")
 	case PermissionModeRejectEdits:
-		args = append(args, "--reject-edits")
+		// There's no direct "rejectEdits" mode, use default instead
+		args = append(args, "--permission-mode", "default")
 	}
 
 	// Add allowed tools
+	// Claude CLI uses --allowedTools (not --tools)
 	if len(options.AllowedTools) > 0 {
-		args = append(args, "--tools", strings.Join(options.AllowedTools, ","))
+		args = append(args, "--allowedTools", strings.Join(options.AllowedTools, ","))
 	}
 
-	// Add timeout
-	if options.Timeout > 0 {
-		args = append(args, "--timeout", fmt.Sprintf("%d", options.Timeout))
+	// Note: Claude CLI does not support --timeout flag
+	// Timeout would need to be handled at the process level
+
+	// Response format flag (json or stream-json)
+	if options.ResponseFormat != "" {
+		args = append(args, "--format", options.ResponseFormat)
 	}
 
 	// Add the prompt

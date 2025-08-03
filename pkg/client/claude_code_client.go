@@ -183,7 +183,7 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 	}
 
 	// Execute claude command
-	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
+	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	cmd.Dir = c.workingDir
 
 	// Set environment variables
@@ -193,7 +193,8 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 	if c.config.Debug {
 		fmt.Printf("[DEBUG] Executing: %s %s\n", c.claudeCodeCmd, strings.Join(args, " "))
 		fmt.Printf("[DEBUG] Working directory: %s\n", c.workingDir)
-		fmt.Printf("[DEBUG] Environment: %v\n", c.buildEnvironment())
+		// Don't log environment variables as they may contain sensitive information
+		fmt.Printf("[DEBUG] Environment variables configured for authentication\n")
 	}
 
 	// Capture output
@@ -240,7 +241,7 @@ func (c *ClaudeCodeClient) QueryStream(ctx context.Context, request *types.Query
 	}
 
 	// Create and start claude process
-	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
+	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	cmd.Dir = c.workingDir
 	cmd.Env = append(os.Environ(), c.buildEnvironment()...)
 
@@ -288,14 +289,14 @@ func (c *ClaudeCodeClient) Close() error {
 
 	// Close session manager
 	if c.sessionManager != nil {
-		c.sessionManager.Close()
+		_ = c.sessionManager.Close() // Ignore error during cleanup
 	}
 
 	// Terminate all active processes
 	c.processMu.Lock()
 	for processID, cmd := range c.activeProcesses {
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill() // Ignore error, best effort cleanup
 		}
 		delete(c.activeProcesses, processID)
 	}
@@ -316,6 +317,13 @@ func (c *ClaudeCodeClient) ExecuteSlashCommand(ctx context.Context, slashCommand
 	return executor.ExecuteSlashCommand(ctx, slashCommand)
 }
 
+// ExecuteCommands executes a list of commands according to the specified execution mode.
+// Commands can be executed sequentially, in parallel, or based on dependencies.
+func (c *ClaudeCodeClient) ExecuteCommands(ctx context.Context, cmdList *types.CommandList) (*types.CommandListResult, error) {
+	executor := NewCommandExecutor(c)
+	return executor.ExecuteCommands(ctx, cmdList)
+}
+
 // GetProjectContext returns information about the current project context.
 func (c *ClaudeCodeClient) GetProjectContext(ctx context.Context) (*types.ProjectContext, error) {
 	c.mu.RLock()
@@ -325,29 +333,9 @@ func (c *ClaudeCodeClient) GetProjectContext(ctx context.Context) (*types.Projec
 	}
 	c.mu.RUnlock()
 
+	// Simplified to match official SDK scope - just working directory
 	context := &types.ProjectContext{
 		WorkingDirectory: c.workingDir,
-		ProjectName:      filepath.Base(c.workingDir),
-	}
-
-	// Detect primary language
-	if lang := c.detectPrimaryLanguage(); lang != "" {
-		context.Language = lang
-	}
-
-	// Detect framework
-	if framework := c.detectFramework(); framework != "" {
-		context.Framework = framework
-	}
-
-	// Get git information if available
-	if gitInfo := c.getGitInfo(); gitInfo != nil {
-		context.GitRepository = gitInfo
-	}
-
-	// Get file information
-	if files := c.getProjectFiles(); files != nil {
-		context.Files = files
 	}
 
 	return context, nil
@@ -379,263 +367,10 @@ func (c *ClaudeCodeClient) SetWorkingDirectory(ctx context.Context, path string)
 	return nil
 }
 
-// detectPrimaryLanguage detects the primary programming language in the project.
-func (c *ClaudeCodeClient) detectPrimaryLanguage() string {
-	languageCounts := make(map[string]int)
-
-	// Language extension mappings
-	languageMap := map[string]string{
-		".go":    "Go",
-		".js":    "JavaScript",
-		".ts":    "TypeScript",
-		".py":    "Python",
-		".java":  "Java",
-		".cpp":   "C++",
-		".c":     "C",
-		".cs":    "C#",
-		".rb":    "Ruby",
-		".php":   "PHP",
-		".rs":    "Rust",
-		".swift": "Swift",
-		".kt":    "Kotlin",
-		".scala": "Scala",
-	}
-
-	// Walk the directory and count files by extension
-	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
-		}
-
-		ext := filepath.Ext(path)
-		if lang, exists := languageMap[ext]; exists {
-			languageCounts[lang]++
-		}
-		return nil
-	})
-
-	// Find the language with the most files
-	maxCount := 0
-	primaryLang := ""
-	for lang, count := range languageCounts {
-		if count > maxCount {
-			maxCount = count
-			primaryLang = lang
-		}
-	}
-
-	return primaryLang
-}
-
-// detectFramework detects the primary framework used in the project.
-func (c *ClaudeCodeClient) detectFramework() string {
-	// Check for common framework indicators
-	frameworkFiles := map[string]func() string{
-		"package.json":     c.detectJSFramework,
-		"go.mod":           func() string { return "Go Modules" },
-		"Cargo.toml":       func() string { return "Cargo" },
-		"pom.xml":          func() string { return "Maven" },
-		"build.gradle":     func() string { return "Gradle" },
-		"requirements.txt": func() string { return "Python" },
-		"Pipfile":          func() string { return "Pipenv" },
-		"composer.json":    func() string { return "Composer" },
-	}
-
-	for filename, detector := range frameworkFiles {
-		if _, err := os.Stat(filepath.Join(c.workingDir, filename)); err == nil {
-			return detector()
-		}
-	}
-
-	return ""
-}
-
-// detectJSFramework detects JavaScript/TypeScript framework from package.json.
-func (c *ClaudeCodeClient) detectJSFramework() string {
-	packagePath := filepath.Join(c.workingDir, "package.json")
-	data, err := os.ReadFile(packagePath)
-	if err != nil {
-		return "Node.js"
-	}
-
-	var pkg struct {
-		Dependencies    map[string]string `json:"dependencies"`
-		DevDependencies map[string]string `json:"devDependencies"`
-	}
-
-	if err := json.Unmarshal(data, &pkg); err != nil {
-		return "Node.js"
-	}
-
-	// Check for popular frameworks
-	frameworks := []struct {
-		name    string
-		modules []string
-	}{
-		{"Next.js", []string{"next"}},
-		{"React", []string{"react"}},
-		{"Vue.js", []string{"vue"}},
-		{"Angular", []string{"@angular/core"}},
-		{"Express", []string{"express"}},
-		{"Fastify", []string{"fastify"}},
-		{"NestJS", []string{"@nestjs/core"}},
-	}
-
-	allDeps := make(map[string]string)
-	for k, v := range pkg.Dependencies {
-		allDeps[k] = v
-	}
-	for k, v := range pkg.DevDependencies {
-		allDeps[k] = v
-	}
-
-	for _, framework := range frameworks {
-		for _, module := range framework.modules {
-			if _, exists := allDeps[module]; exists {
-				return framework.name
-			}
-		}
-	}
-
-	return "Node.js"
-}
-
-// getGitInfo retrieves git repository information.
-func (c *ClaudeCodeClient) getGitInfo() *types.GitInfo {
-	gitDir := filepath.Join(c.workingDir, ".git")
-	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
-		return nil
-	}
-
-	gitInfo := &types.GitInfo{}
-
-	// Get current branch
-	if branch := c.getGitBranch(); branch != "" {
-		gitInfo.Branch = branch
-	}
-
-	// Get remote URL
-	if remoteURL := c.getGitRemoteURL(); remoteURL != "" {
-		gitInfo.RemoteURL = remoteURL
-	}
-
-	// Get current commit hash
-	if commit := c.getGitCommitHash(); commit != "" {
-		gitInfo.CommitHash = commit
-	}
-
-	// Check if repo is dirty
-	gitInfo.IsDirty = c.isGitDirty()
-
-	return gitInfo
-}
-
-// getGitBranch gets the current git branch.
-func (c *ClaudeCodeClient) getGitBranch() string {
-	cmd := exec.Command("git", "branch", "--show-current")
-	cmd.Dir = c.workingDir
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(string(output))
-}
-
-// getGitRemoteURL gets the git remote URL.
-func (c *ClaudeCodeClient) getGitRemoteURL() string {
-	cmd := exec.Command("git", "remote", "get-url", "origin")
-	cmd.Dir = c.workingDir
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(string(output))
-}
-
-// getGitCommitHash gets the current commit hash.
-func (c *ClaudeCodeClient) getGitCommitHash() string {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
-	cmd.Dir = c.workingDir
-	output, err := cmd.Output()
-	if err != nil {
-		return ""
-	}
-	return strings.TrimSpace(string(output))
-}
-
-// isGitDirty checks if the git repository has uncommitted changes.
-func (c *ClaudeCodeClient) isGitDirty() bool {
-	cmd := exec.Command("git", "status", "--porcelain")
-	cmd.Dir = c.workingDir
-	output, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-	return len(strings.TrimSpace(string(output))) > 0
-}
-
-// getProjectFiles gets information about project files.
-func (c *ClaudeCodeClient) getProjectFiles() *types.ProjectFiles {
-	files := &types.ProjectFiles{
-		Languages:      make(map[string]int),
-		ImportantFiles: make([]string, 0),
-		Structure:      make(map[string]any),
-	}
-
-	// Count files by extension
-	extensionMap := map[string]string{
-		".go":   "Go",
-		".js":   "JavaScript",
-		".ts":   "TypeScript",
-		".py":   "Python",
-		".java": "Java",
-		".cpp":  "C++",
-		".c":    "C",
-		".rs":   "Rust",
-		".rb":   "Ruby",
-		".php":  "PHP",
-	}
-
-	totalFiles := 0
-	importantFileNames := []string{
-		"README.md", "README.txt", "LICENSE", "Makefile",
-		"package.json", "go.mod", "Cargo.toml", "requirements.txt",
-		"docker-compose.yml", "Dockerfile", ".gitignore",
-	}
-
-	_ = filepath.Walk(c.workingDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
-			return nil
-		}
-
-		// Skip hidden files and directories
-		if strings.HasPrefix(info.Name(), ".") && info.Name() != ".gitignore" {
-			return nil
-		}
-
-		totalFiles++
-
-		// Count by language
-		ext := filepath.Ext(path)
-		if lang, exists := extensionMap[ext]; exists {
-			files.Languages[lang]++
-		}
-
-		// Check for important files
-		for _, important := range importantFileNames {
-			if info.Name() == important {
-				relPath, _ := filepath.Rel(c.workingDir, path)
-				files.ImportantFiles = append(files.ImportantFiles, relPath)
-				break
-			}
-		}
-
-		return nil
-	})
-
-	files.TotalFiles = totalFiles
-	return files
-}
+// REMOVED: Complex project analysis methods beyond official SDK scope
+// Official Claude Code SDKs only provide basic query functionality.
+// Advanced project analysis features like language detection, framework analysis,
+// git information, and file scanning are not part of the official API surface.
 
 // MCP returns the MCP manager for managing Model Context Protocol servers.
 func (c *ClaudeCodeClient) MCP() *MCPManager {
@@ -748,8 +483,22 @@ func (c *ClaudeCodeClient) Sessions() *ClaudeCodeSessionManager {
 }
 
 // CreateSession creates a new conversation session with Claude Code.
+// The sessionID must be a valid UUID or empty (in which case a new UUID is generated).
+// Non-UUID session IDs will be automatically converted to a deterministic UUID.
 func (c *ClaudeCodeClient) CreateSession(ctx context.Context, sessionID string) (*ClaudeCodeSession, error) {
 	return c.sessionManager.CreateSession(ctx, sessionID)
+}
+
+// GenerateSessionID is a convenience method that generates a new UUID v4 session ID.
+// This ensures compatibility with Claude Code CLI which requires UUID-formatted session IDs.
+//
+// Example usage:
+//
+//	client, _ := NewClaudeCodeClient(config)
+//	sessionID := client.GenerateSessionID()
+//	session, err := client.Sessions().CreateSession(ctx, sessionID)
+func (c *ClaudeCodeClient) GenerateSessionID() string {
+	return GenerateSessionID()
 }
 
 // GetSession retrieves an existing session by ID.
@@ -783,10 +532,8 @@ func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streamin
 		args = append(args, "--session-id", c.sessionID)
 	}
 
-	// Add streaming flag if requested
-	if streaming {
-		args = append(args, "--stream")
-	}
+	// Note: Claude CLI does not have a --stream flag
+	// Streaming is handled differently based on --print and --output-format flags
 
 	// Add MCP configuration if there are enabled servers
 	if enabledServers := c.mcpManager.GetEnabledServers(); len(enabledServers) > 0 {
@@ -797,19 +544,13 @@ func (c *ClaudeCodeClient) buildClaudeArgs(request *types.QueryRequest, streamin
 	}
 
 	// Add system prompt if provided
+	// Claude CLI uses --append-system-prompt instead of --system
 	if request.System != "" {
-		args = append(args, "--system", request.System)
+		args = append(args, "--append-system-prompt", request.System)
 	}
 
-	// Add max tokens if specified
-	if request.MaxTokens > 0 {
-		args = append(args, "--max-tokens", fmt.Sprintf("%d", request.MaxTokens))
-	}
-
-	// Add temperature if specified
-	if request.Temperature > 0 {
-		args = append(args, "--temperature", fmt.Sprintf("%.2f", request.Temperature))
-	}
+	// Note: Claude CLI does not support --max-tokens or --temperature flags
+	// These settings would need to be configured differently or omitted
 
 	// Convert messages to prompt
 	if len(request.Messages) > 0 {
@@ -947,7 +688,7 @@ func findClaudeCodeCommand(customPath string) (string, error) {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return candidate, nil
 			}
@@ -973,11 +714,11 @@ func generateSessionID() string {
 			uuid[i] = byte(now >> (8 * (i % 8)))
 		}
 	}
-	
+
 	// Set version (4) and variant bits
 	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
 	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant bits
-	
+
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
 		uint32(uuid[0])<<24|uint32(uuid[1])<<16|uint32(uuid[2])<<8|uint32(uuid[3]),
 		uint16(uuid[4])<<8|uint16(uuid[5]),
@@ -1058,12 +799,12 @@ func (s *claudeCodeQueryStream) Close() error {
 
 	// Close stdout pipe
 	if s.stdout != nil {
-		s.stdout.Close()
+		_ = s.stdout.Close() // Ignore error during cleanup
 	}
 
 	// Terminate the process
 	if s.cmd != nil && s.cmd.Process != nil {
-		s.cmd.Process.Kill()
+		_ = s.cmd.Process.Kill() // Ignore error, best effort cleanup
 	}
 
 	// Remove from client's active processes

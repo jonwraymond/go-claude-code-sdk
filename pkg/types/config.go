@@ -21,7 +21,7 @@ import (
 //		Auth: &types.APIKeyAuth{
 //			APIKey: "your-api-key-here",
 //		},
-//		BaseURL: "https://api.anthropic.com",
+//		BaseURL: "https://example.com",
 //		Model:   types.ModelClaude35Sonnet,
 //	}
 //	client := claude.NewClient(ctx, config)
@@ -270,12 +270,12 @@ func (c *ClaudeCodeConfig) ApplyDefaults() {
 func (c *ClaudeCodeConfig) isSubscriptionAuthAvailable() bool {
 	// Check if Claude CLI is available
 	candidates := []string{"claude", "npx claude"}
-	
+
 	for _, candidate := range candidates {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return true
 			}
@@ -286,7 +286,7 @@ func (c *ClaudeCodeConfig) isSubscriptionAuthAvailable() bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -300,17 +300,17 @@ func (c *ClaudeCodeConfig) GetAuthenticator() Authenticator {
 	case AuthTypeSubscription:
 		return &SubscriptionAuth{}
 	}
-	
+
 	// Fallback: try to auto-detect
 	if c.APIKey != "" {
 		return &APIKeyAuth{APIKey: c.APIKey}
 	}
-	
+
 	// Default to subscription auth if available
 	if c.isSubscriptionAuthAvailable() {
 		return &SubscriptionAuth{}
 	}
-	
+
 	// Final fallback to API key auth (will fail validation later if no key)
 	return &APIKeyAuth{}
 }
@@ -523,7 +523,7 @@ type TLSConfig struct {
 // Constants for default configuration values
 const (
 	// DefaultBaseURL is the default Claude Code API base URL
-	DefaultBaseURL = "https://api.anthropic.com"
+	DefaultBaseURL = "https://example.com"
 
 	// DefaultModel is the default Claude model to use
 	DefaultModel = ModelClaude35Sonnet
@@ -976,7 +976,7 @@ func (l LogLevel) IsValid() bool {
 // Environment variable names for configuration
 const (
 	// EnvAPIKey is the environment variable for the API key
-	EnvAPIKey = "CLAUDE_API_KEY"
+	EnvAPIKey = "CLAUDE_API_KEY" // #nosec G101 - This is just the environment variable name, not a credential
 
 	// EnvBaseURL is the environment variable for the base URL
 	EnvBaseURL = "CLAUDE_BASE_URL"

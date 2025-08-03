@@ -45,10 +45,16 @@ func (s *MCPIntegrationSuite) SetupSuite() {
 	s.config.APIKey = apiKey
 	s.config.ClaudeExecutable = "claude"
 	s.config.Timeout = 30 * time.Second
+	
+	// Enable TestMode in CI environment to skip Claude Code CLI requirement
+	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
+		s.config.TestMode = true
+	}
 
 	// Create client
 	var err error
-	s.client, err = client.NewClaudeCodeClient(s.config)
+	ctx := context.Background()
+	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
 	require.NoError(s.T(), err)
 
 	// Get MCP manager
@@ -57,12 +63,11 @@ func (s *MCPIntegrationSuite) SetupSuite() {
 
 func (s *MCPIntegrationSuite) TearDownSuite() {
 	if s.client != nil {
-		// Stop all MCP servers
+		// Remove all MCP servers
 		if s.mcpManager != nil {
-			ctx := context.Background()
 			servers := s.mcpManager.ListServers()
 			for name := range servers {
-				s.mcpManager.StopServer(ctx, name)
+				s.mcpManager.RemoveServer(name)
 			}
 		}
 		s.client.Close()
@@ -72,15 +77,15 @@ func (s *MCPIntegrationSuite) TearDownSuite() {
 func (s *MCPIntegrationSuite) TestRegisterMCPServer() {
 	// Test basic MCP server registration
 	serverConfig := &types.MCPServerConfig{
-		Name:    "test-echo-server",
 		Command: "echo",
 		Args:    []string{"MCP Echo Server"},
 		Environment: map[string]string{
 			"TEST_ENV": "test_value",
 		},
+		Enabled: true,
 	}
 
-	err := s.mcpManager.RegisterServer("test-echo", serverConfig)
+	err := s.mcpManager.AddServer("test-echo", serverConfig)
 	require.NoError(s.T(), err)
 
 	// Check if server is registered
@@ -88,83 +93,67 @@ func (s *MCPIntegrationSuite) TestRegisterMCPServer() {
 	assert.Contains(s.T(), servers, "test-echo")
 }
 
-func (s *MCPIntegrationSuite) TestStartStopMCPServer() {
-	ctx := context.Background()
-
+func (s *MCPIntegrationSuite) TestEnableDisableMCPServer() {
 	// Register a simple server
 	serverConfig := &types.MCPServerConfig{
-		Name:    "test-server",
 		Command: "sleep",
 		Args:    []string{"30"}, // Sleep for 30 seconds
+		Enabled: false, // Start disabled
 	}
 
-	err := s.mcpManager.RegisterServer("test-sleep", serverConfig)
+	err := s.mcpManager.AddServer("test-sleep", serverConfig)
 	require.NoError(s.T(), err)
 
-	// Start the server
-	err = s.mcpManager.StartServer(ctx, "test-sleep")
+	// Enable the server
+	err = s.mcpManager.EnableServer("test-sleep")
 	require.NoError(s.T(), err)
 
-	// Check server status
-	status, err := s.mcpManager.GetServerStatus(ctx, "test-sleep")
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), "running", status.State)
+	// Check if server is in enabled servers list
+	enabledServers := s.mcpManager.GetEnabledServers()
+	assert.Contains(s.T(), enabledServers, "test-sleep")
 
-	// Stop the server
-	err = s.mcpManager.StopServer(ctx, "test-sleep")
+	// Disable the server
+	err = s.mcpManager.DisableServer("test-sleep")
 	require.NoError(s.T(), err)
 
-	// Check server is stopped
-	status, err = s.mcpManager.GetServerStatus(ctx, "test-sleep")
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), "stopped", status.State)
+	// Check server is not in enabled list
+	enabledServers = s.mcpManager.GetEnabledServers()
+	assert.NotContains(s.T(), enabledServers, "test-sleep")
+
+	// Clean up
+	s.mcpManager.RemoveServer("test-sleep")
 }
 
-func (s *MCPIntegrationSuite) TestMCPServerTools() {
+func (s *MCPIntegrationSuite) TestMCPServerConfiguration() {
 	// Skip this test if no MCP servers are available
 	mcpServerPath := os.Getenv("TEST_MCP_SERVER_PATH")
 	if mcpServerPath == "" {
 		s.T().Skip("TEST_MCP_SERVER_PATH not set. Skipping MCP server tools test")
 	}
-
-	ctx := context.Background()
+	_ = mcpServerPath // Mark as used for test
 
 	// Register an actual MCP server (if available)
 	serverConfig := &types.MCPServerConfig{
-		Name:    "test-mcp-server",
 		Command: mcpServerPath,
 		Args:    []string{},
+		Enabled: true,
 	}
 
-	err := s.mcpManager.RegisterServer("test-mcp", serverConfig)
+	err := s.mcpManager.AddServer("test-mcp", serverConfig)
 	require.NoError(s.T(), err)
 
-	// Start the server
-	err = s.mcpManager.StartServer(ctx, "test-mcp")
+	// Get the server configuration back
+	retrievedConfig, err := s.mcpManager.GetServer("test-mcp")
 	require.NoError(s.T(), err)
-	defer s.mcpManager.StopServer(ctx, "test-mcp")
+	assert.Equal(s.T(), mcpServerPath, retrievedConfig.Command)
+	assert.True(s.T(), retrievedConfig.Enabled)
 
-	// Wait for server to be ready
-	time.Sleep(2 * time.Second)
+	// Clean up
+	s.mcpManager.RemoveServer("test-mcp")
 
-	// Get tools provided by the MCP server
-	tools, err := s.mcpManager.GetServerTools(ctx, "test-mcp")
-	require.NoError(s.T(), err)
-	assert.NotEmpty(s.T(), tools, "MCP server should provide tools")
-
-	// List all tools (including MCP tools)
-	allTools, err := s.client.Tools().ListTools(ctx)
-	require.NoError(s.T(), err)
-
-	// Check that MCP tools are included
-	mcpToolFound := false
-	for _, tool := range allTools {
-		if tool.Source == "test-mcp" {
-			mcpToolFound = true
-			break
-		}
-	}
-	assert.True(s.T(), mcpToolFound, "MCP server tools should be available")
+	// Test that we can list tools after MCP server registration
+	allTools := s.client.Tools().ListTools()
+	assert.NotNil(s.T(), allTools, "Should be able to list tools")
 }
 
 func (s *MCPIntegrationSuite) TestMultipleMCPServers() {
@@ -178,24 +167,24 @@ func (s *MCPIntegrationSuite) TestMultipleMCPServers() {
 		{
 			name: "server1",
 			config: &types.MCPServerConfig{
-				Name:    "echo-server-1",
 				Command: "echo",
 				Args:    []string{"Server 1"},
+				Enabled: true,
 			},
 		},
 		{
 			name: "server2",
 			config: &types.MCPServerConfig{
-				Name:    "echo-server-2",
 				Command: "echo",
 				Args:    []string{"Server 2"},
+				Enabled: true,
 			},
 		},
 	}
 
 	// Register all servers
 	for _, server := range servers {
-		err := s.mcpManager.RegisterServer(server.name, server.config)
+		err := s.mcpManager.AddServer(server.name, server.config)
 		require.NoError(s.T(), err)
 	}
 
@@ -203,79 +192,73 @@ func (s *MCPIntegrationSuite) TestMultipleMCPServers() {
 	registeredServers := s.mcpManager.ListServers()
 	assert.GreaterOrEqual(s.T(), len(registeredServers), 2)
 
-	// Start all servers
-	for _, server := range servers {
-		err := s.mcpManager.StartServer(ctx, server.name)
-		// Echo command will exit immediately, so we might get an error
-		// but the server should still be registered
-		_ = err
-	}
-
 	// Check that all servers are registered
 	for _, server := range servers {
 		assert.Contains(s.T(), registeredServers, server.name)
 	}
+
+	// Clean up
+	for _, server := range servers {
+		s.mcpManager.RemoveServer(server.name)
+	}
 }
 
-func (s *MCPIntegrationSuite) TestMCPServerRestart() {
-	ctx := context.Background()
-
+func (s *MCPIntegrationSuite) TestMCPServerGetAndRemove() {
 	// Register a server
 	serverConfig := &types.MCPServerConfig{
-		Name:    "restart-test",
 		Command: "sleep",
 		Args:    []string{"10"},
+		Enabled: true,
 	}
 
-	err := s.mcpManager.RegisterServer("restart-test", serverConfig)
+	err := s.mcpManager.AddServer("get-test", serverConfig)
 	require.NoError(s.T(), err)
 
-	// Start the server
-	err = s.mcpManager.StartServer(ctx, "restart-test")
+	// Get the server config
+	retrievedConfig, err := s.mcpManager.GetServer("get-test")
+	require.NoError(s.T(), err)
+	assert.Equal(s.T(), "sleep", retrievedConfig.Command)
+	assert.Equal(s.T(), []string{"10"}, retrievedConfig.Args)
+	assert.True(s.T(), retrievedConfig.Enabled)
+
+	// Remove the server
+	err = s.mcpManager.RemoveServer("get-test")
 	require.NoError(s.T(), err)
 
-	// Get initial status
-	status1, err := s.mcpManager.GetServerStatus(ctx, "restart-test")
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), "running", status1.State)
-
-	// Restart the server
-	err = s.mcpManager.RestartServer(ctx, "restart-test")
-	require.NoError(s.T(), err)
-
-	// Check status after restart
-	status2, err := s.mcpManager.GetServerStatus(ctx, "restart-test")
-	require.NoError(s.T(), err)
-	assert.Equal(s.T(), "running", status2.State)
-
-	// Stop the server
-	err = s.mcpManager.StopServer(ctx, "restart-test")
-	require.NoError(s.T(), err)
+	// Verify it's removed
+	servers := s.mcpManager.ListServers()
+	assert.NotContains(s.T(), servers, "get-test")
 }
 
-func (s *MCPIntegrationSuite) TestMCPServerHealthCheck() {
-	ctx := context.Background()
-
-	// Register a server that will exit quickly
-	serverConfig := &types.MCPServerConfig{
-		Name:    "health-test",
+func (s *MCPIntegrationSuite) TestMCPServerEnabledDisabledLists() {
+	// Register a server that's enabled
+	enabledConfig := &types.MCPServerConfig{
 		Command: "echo",
-		Args:    []string{"Quick exit"},
+		Args:    []string{"enabled"},
+		Enabled: true,
 	}
 
-	err := s.mcpManager.RegisterServer("health-test", serverConfig)
+	err := s.mcpManager.AddServer("enabled-test", enabledConfig)
 	require.NoError(s.T(), err)
 
-	// Start the server (it will exit immediately)
-	_ = s.mcpManager.StartServer(ctx, "health-test")
+	// Register a server that's disabled
+	disabledConfig := &types.MCPServerConfig{
+		Command: "echo",
+		Args:    []string{"disabled"},
+		Enabled: false,
+	}
 
-	// Wait a moment
-	time.Sleep(100 * time.Millisecond)
-
-	// Health check should show server is not running
-	healthy, err := s.mcpManager.HealthCheck(ctx, "health-test")
+	err = s.mcpManager.AddServer("disabled-test", disabledConfig)
 	require.NoError(s.T(), err)
-	assert.False(s.T(), healthy, "Echo server should have exited")
+
+	// Check enabled servers list
+	enabledServers := s.mcpManager.GetEnabledServers()
+	assert.Contains(s.T(), enabledServers, "enabled-test")
+	assert.NotContains(s.T(), enabledServers, "disabled-test")
+
+	// Clean up
+	s.mcpManager.RemoveServer("enabled-test")
+	s.mcpManager.RemoveServer("disabled-test")
 }
 
 func TestMCPIntegrationSuite(t *testing.T) {

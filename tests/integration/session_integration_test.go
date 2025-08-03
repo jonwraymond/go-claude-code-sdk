@@ -20,7 +20,7 @@ import (
 type SessionIntegrationSuite struct {
 	suite.Suite
 	client         *client.ClaudeCodeClient
-	sessionManager *client.SessionManager
+	sessionManager *client.ClaudeCodeSessionManager
 	config         *types.ClaudeCodeConfig
 }
 
@@ -41,13 +41,20 @@ func (s *SessionIntegrationSuite) SetupSuite() {
 	s.config.APIKey = apiKey
 	s.config.ClaudeExecutable = "claude"
 	s.config.Timeout = 30 * time.Second
+	
+	// Enable TestMode in CI environment to skip Claude Code CLI requirement
+	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
+		s.config.TestMode = true
+	}
 
 	// Create client
 	var err error
-	s.client, err = client.NewClaudeCodeClient(s.config)
+	ctx := context.Background()
+	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
 	require.NoError(s.T(), err)
 
 	// Get session manager
+	s.sessionManager = s.client.Sessions()
 	s.sessionManager = s.client.Sessions()
 }
 

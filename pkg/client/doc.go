@@ -4,7 +4,10 @@ Package client provides the main client implementation for the Claude Code Go SD
 The client package wraps the Claude Code CLI tool, providing idiomatic Go interfaces
 for AI-powered coding assistance. It uses a subprocess-based architecture to interact
 with the Claude Code command-line interface, enabling streaming responses, session
-management, and tool execution.
+management, tool execution, MCP integration, and comprehensive error handling.
+
+This package is the primary entry point for interacting with Claude Code programmatically,
+offering both high-level convenience methods and low-level control for advanced use cases.
 
 # Architecture
 
@@ -23,80 +26,188 @@ Key components:
 
 Create a client and execute a simple query:
 
-	config := types.NewClaudeCodeConfig()
-	config.APIKey = os.Getenv("ANTHROPIC_API_KEY")
+	config := &types.ClaudeCodeConfig{
+		WorkingDirectory: "/path/to/project",
+		SessionID:        "my-session",
+		Model:           "claude-3-5-sonnet-20241022",
+		AuthMethod:      types.AuthTypeAPIKey,
+		APIKey:          os.Getenv("ANTHROPIC_API_KEY"),
+	}
 
-	client, err := client.NewClaudeCodeClient(config)
+	client, err := client.NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer client.Close()
 
 	// Simple query
-	result, err := client.QueryMessagesSync(ctx, "Explain this code", nil)
+	response, err := client.Query(ctx, &types.QueryRequest{
+		Messages: []types.Message{
+			{Role: types.RoleUser, Content: "Analyze this codebase"},
+		},
+		MaxTokens: 1000,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Response: %s\n", response.GetTextContent())
 
 # Streaming Responses
 
-The SDK supports streaming responses through channels:
+The SDK supports streaming responses for real-time output:
 
-	messages, err := client.QueryMessages(ctx, "Write a function", nil)
+	stream, err := client.QueryStream(ctx, &types.QueryRequest{
+		Messages: []types.Message{
+			{Role: types.RoleUser, Content: "Write a Go HTTP server"},
+		},
+		MaxTokens: 2000,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer stream.Close()
 
-	for msg := range messages {
-		fmt.Printf("[%s]: %s\n", msg.Role, msg.GetText())
+	// Process streaming chunks
+	for {
+		chunk, err := stream.Recv()
+		if err != nil {
+			break
+		}
+		if chunk.Done {
+			break
+		}
+		fmt.Print(chunk.Content)
 	}
+
+	// Or collect the complete response
+	response, err := stream.Collect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Complete response: %s\n", response.GetTextContent())
 
 # Session Management
 
-Sessions provide conversation persistence:
+Sessions provide conversation persistence with UUID validation:
 
-	session, err := client.Sessions().CreateSession(ctx, "my-session")
+	// Generate a proper UUID for session ID
+	sessionID := client.GenerateSessionID()
+	
+	// Create a new session
+	session, err := client.CreateSession(ctx, sessionID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session.Close()
 
-	// Multiple queries in the same conversation context
-	session.Query(ctx, &types.QueryRequest{...})
+	// Use session for conversation
+	response, err := session.Query(ctx, &types.QueryRequest{
+		Messages: []types.Message{
+			{Role: types.RoleUser, Content: "Hello Claude"},
+		},
+	})
+
+	// Session automatically maintains conversation context
+	// Subsequent queries will include previous context
+
+	// Get existing session
+	existingSession, err := client.GetSession(sessionID)
+	
+	// List all active sessions
+	sessionIDs := client.ListSessions()
 
 # Tool System
 
 Claude Code provides various tools for file operations and code analysis:
 
+	// Discover all available tools
+	tools, err := client.DiscoverTools(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, tool := range tools {
+		fmt.Printf("Tool: %s - %s\n", tool.Name, tool.Description)
+	}
+
 	// Execute a tool directly
-	result, err := client.Tools().ExecuteTool(ctx, &ClaudeCodeTool{
+	result, err := client.ExecuteTool(ctx, &ClaudeCodeTool{
 		Name: "read_file",
 		Arguments: map[string]any{
 			"path": "main.go",
 		},
 	})
 
-	// Tools are automatically available in conversations
-	options := &QueryOptions{
-		AllowedTools: []string{"read_file", "write_file", "search_code"},
+	// Get a specific tool definition
+	readTool, err := client.GetTool("read_file")
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	// List all available tools
+	allTools := client.ListTools()
 
 # MCP Server Integration
 
 The Model Context Protocol extends Claude Code with additional capabilities:
 
-	// Register an MCP server
-	err := client.MCP().RegisterServer("sqlite", &types.MCPServerConfig{
-		Command: "sqlite-mcp-server",
-		Args:    []string{"./database.db"},
+	// Add an MCP server
+	err := client.AddMCPServer(ctx, "filesystem", &types.MCPServerConfig{
+		Command: "npx",
+		Args:    []string{"@modelcontextprotocol/server-filesystem", "/path/to/project"},
+		Env:     map[string]string{"NODE_ENV": "production"},
+		Enabled: true,
 	})
 
-	// Start the server
-	err = client.MCP().StartServer(ctx, "sqlite")
+	// Setup common MCP servers automatically
+	err = client.SetupCommonMCPServers(ctx)
+
+	// Enable/disable servers
+	err = client.EnableMCPServer(ctx, "filesystem")
+	err = client.DisableMCPServer(ctx, "filesystem")
+
+	// List all configured servers
+	servers := client.ListMCPServers()
+	for name, config := range servers {
+		fmt.Printf("Server: %s, Enabled: %v\n", name, config.Enabled)
+	}
+
+	// Get specific server config
+	config, err := client.GetMCPServer("filesystem")
+
+	// Remove a server
+	err = client.RemoveMCPServer(ctx, "filesystem")
 
 # Project Context
 
-The SDK automatically detects project information:
+The SDK automatically detects and analyzes project information:
 
-	context, err := client.ProjectContext().GetEnhancedProjectContext(ctx)
+	// Get basic project context
+	context, err := client.GetProjectContext(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Working directory: %s\n", context.WorkingDirectory)
+
+	// Get enhanced project analysis
+	enhanced, err := client.GetEnhancedProjectContext(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Returns language, framework, dependencies, architecture patterns, etc.
+
+	// Change working directory
+	err = client.SetWorkingDirectory(ctx, "/new/project/path")
+
+	// Invalidate cached context when project changes
+	client.InvalidateProjectContextCache()
+
+	// Configure cache duration
+	client.SetProjectContextCacheDuration(5 * time.Minute)
+
+	// Get cache information
+	cacheInfo := client.GetProjectContextCacheInfo()
+	fmt.Printf("Cache info: %+v\n", cacheInfo)
 
 # Error Handling
 

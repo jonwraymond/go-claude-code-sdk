@@ -1,6 +1,8 @@
+# Dependabot configuration for Go and GitHub Actions
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 version: 2
 updates:
-  # Maintain dependencies for Go
+  # Keep Go modules up to date
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -8,7 +10,7 @@ updates:
       day: "monday"
       time: "09:00"
     reviewers:
-      - "jraymond"
+      - "jonwraymond"
     labels:
       - "dependencies"
       - "go"
@@ -26,7 +28,7 @@ updates:
       day: "monday"
       time: "09:00"
     reviewers:
-      - "jraymond"
+      - "jonwraymond"
     labels:
       - "dependencies"
       - "github-actions"
