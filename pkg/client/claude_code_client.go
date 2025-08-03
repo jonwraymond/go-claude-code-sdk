@@ -193,7 +193,8 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 	if c.config.Debug {
 		fmt.Printf("[DEBUG] Executing: %s %s\n", c.claudeCodeCmd, strings.Join(args, " "))
 		fmt.Printf("[DEBUG] Working directory: %s\n", c.workingDir)
-		fmt.Printf("[DEBUG] Environment: %v\n", c.buildEnvironment())
+		// Don't log environment variables as they may contain sensitive information
+		fmt.Printf("[DEBUG] Environment: %d variables set\n", len(c.buildEnvironment()))
 	}
 
 	// Capture output

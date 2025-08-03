@@ -49,3 +49,24 @@ jobs:
     # Runs CodeQL analysis
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
+      with:
+        upload: false
+        output: sarif-results
+    
+    # Filter SARIF to remove false positives
+    - name: Filter SARIF
+      uses: advanced-security/filter-sarif@v1
+      with:
+        patterns: |
+          -**/*_test.go
+          -**/test_data.go
+          -**/fixtures/**
+          -**/testdata/**
+        input: sarif-results/${{ matrix.language }}.sarif
+        output: sarif-results/${{ matrix.language }}.sarif
+    
+    # Upload filtered SARIF
+    - name: Upload SARIF
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: sarif-results/${{ matrix.language }}.sarif

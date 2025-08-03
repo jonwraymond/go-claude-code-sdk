@@ -246,7 +246,7 @@ var TestConfigs = struct {
 		Model: "claude-3-5-sonnet-20241022",
 	},
 	WithAPIKey: types.ClaudeCodeConfig{
-		APIKey: "sk-ant-api03-test-key", // ggignore - Test fixture, not a real API key
+		APIKey: "test-api-key-not-real", // ggignore - Test fixture, not a real API key
 		Model:  "claude-3-5-sonnet-20241022",
 	},
 	WithSession: types.ClaudeCodeConfig{

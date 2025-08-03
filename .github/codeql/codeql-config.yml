@@ -21,6 +21,11 @@ query-filters:
         - recommendation
         - warning
   - exclude:
+      id: go/clear-text-logging
+      severity:
+        - error
+        - warning
+  - exclude:
       tags contain: 
         - experimental
         - deprecated

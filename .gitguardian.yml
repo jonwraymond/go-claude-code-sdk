@@ -31,6 +31,8 @@ secret:
   ignored_matches:
     - name: "Test API Key in fixtures"
       match: "sk-ant-api03-test-key"
+    - name: "New test API key pattern"
+      match: "test-api-key-not-real"
     - name: "Test patterns in examples"
       match: "test-key"
     - name: "Mock API patterns"
