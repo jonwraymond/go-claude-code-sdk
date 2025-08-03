@@ -21,6 +21,7 @@ func TestProjectContextManager_Basic(t *testing.T) {
 	// Create a basic test client
 	config := types.NewClaudeCodeConfig()
 	config.WorkingDirectory = tempDir
+	config.TestMode = true
 
 	client, err := NewClaudeCodeClient(context.Background(), config)
 	if err != nil {
@@ -65,6 +66,7 @@ func TestProjectContextManager_Cache(t *testing.T) {
 	// Create a basic test client
 	config := types.NewClaudeCodeConfig()
 	config.WorkingDirectory = tempDir
+	config.TestMode = true
 
 	client, err := NewClaudeCodeClient(context.Background(), config)
 	if err != nil {
@@ -116,6 +118,7 @@ func TestProjectContextManager_InvalidateCache(t *testing.T) {
 	// Create a basic test client
 	config := types.NewClaudeCodeConfig()
 	config.WorkingDirectory = tempDir
+	config.TestMode = true
 
 	client, err := NewClaudeCodeClient(context.Background(), config)
 	if err != nil {
@@ -179,6 +182,7 @@ func TestProjectContextManager_AbsolutePath(t *testing.T) {
 	// Create a basic test client
 	config := types.NewClaudeCodeConfig()
 	config.WorkingDirectory = relativeDir
+	config.TestMode = true
 
 	client, err := NewClaudeCodeClient(context.Background(), config)
 	if err != nil {

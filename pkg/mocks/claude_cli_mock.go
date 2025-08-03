@@ -356,7 +356,7 @@ echo '%s'
 			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 			return exec.CommandContext(ctx, "echo", `{"error": "mock script close failed"}`)
 		}
-		if err := os.Chmod(tmpFile.Name(), 0700); err != nil { // #nosec G302 temporary test script needs execute permission, 0700 is secure (owner only)
+		if err := os.Chmod(tmpFile.Name(), 0700); err != nil { // #nosec G302 - temporary test script needs execute permission, 0700 is secure (owner only)
 			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 			return exec.CommandContext(ctx, "echo", `{"error": "mock script chmod failed"}`)
 		}
