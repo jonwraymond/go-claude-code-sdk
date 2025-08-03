@@ -337,8 +337,9 @@ func (m *ClaudeCLIMock) CreateMockExecutor() func(ctx context.Context, name stri
 		}
 
 		// Create a mock command that calls our mock handler
+		// Use printf with %q to safely quote the response
 		mockScript := fmt.Sprintf(`#!/bin/bash
-echo '%s'
+printf '%%s\n' %q
 `, m.getMockResponse(args))
 
 		// Write mock script to temp file
