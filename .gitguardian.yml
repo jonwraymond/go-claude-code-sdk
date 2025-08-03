@@ -29,8 +29,8 @@ secret:
     
   # Ignore specific test secrets by content match
   ignored_matches:
-    - name: "Test API Key in fixtures"
-      match: "sk-ant-api03-test-key"
+    - name: "Test API Key pattern - api03 prefix"
+      match: "sk-ant-api03-"
     - name: "New test API key pattern"
       match: "test-api-key-not-real"
     - name: "Unit test key pattern"

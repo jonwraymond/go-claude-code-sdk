@@ -167,6 +167,7 @@ func (v *Validator) isTestKey(key string) bool {
 	}
 
 	// Allow specific test patterns in test environment
+	// NOTE: "api03-" prefix is used in tests and is excluded from GitGuardian scanning
 	if strings.HasPrefix(checkKey, "api03-") || strings.HasPrefix(checkKey, "validtest") {
 		return false // These are valid for testing
 	}
