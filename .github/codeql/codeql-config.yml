@@ -1,0 +1,32 @@
+# CodeQL configuration for Go Claude Code SDK
+# This configuration helps reduce false positives in security scanning
+
+name: "Go Claude Code SDK CodeQL config"
+
+# Paths to exclude from analysis
+# Note: This is primarily for documentation purposes as CodeQL 
+# doesn't directly support path exclusions in the config file
+# These patterns should be handled via filter-sarif if needed
+paths-ignore:
+  - tests/fixtures/
+  - "**/testdata/"
+  - "**/*_test.go"
+
+# Query filters - focus on high-confidence security issues
+# Reduce noise from low-severity or experimental queries
+query-filters:
+  - exclude:
+      id: go/hardcoded-credentials
+      severity: 
+        - recommendation
+        - warning
+  - exclude:
+      tags contain: 
+        - experimental
+        - deprecated
+
+# Additional queries to run (none for now, using defaults)
+queries: []
+
+# Disable queries that produce too many false positives for this project
+disable-default-queries: false

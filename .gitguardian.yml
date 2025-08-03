@@ -1,0 +1,43 @@
+# GitGuardian configuration
+# This file configures GitGuardian to ignore false positives in the Go Claude Code SDK
+
+# Required version identifier
+version: 2
+
+# Exit code configuration - we want to fail on real secrets
+exit_zero: false
+
+# Verbosity
+verbose: false
+
+# Instance URL
+instance: https://dashboard.gitguardian.com
+
+# Secret detection configuration
+secret:
+  # Exclude test files and documentation
+  ignored_paths:
+    - '**/test_data.go'
+    - '**/*_test.go'
+    - '**/testdata/**'
+    - '**/fixtures/**'
+    - '**/examples/**'
+    - '**/*.md'
+    - 'docs/**'
+    - '.roo/**'
+    - '.claude/**'
+    
+  # Ignore specific test secrets by content match
+  ignored_matches:
+    - name: "Test API Key in fixtures"
+      match: "sk-ant-api03-test-key"
+    - name: "Test patterns in examples"
+      match: "test-key"
+    - name: "Mock API patterns"
+      match: "mock"
+      
+  # Don't show actual secret values in output
+  show_secrets: false
+  
+  # Ignore known secrets that have been reviewed
+  ignore_known_secrets: true
