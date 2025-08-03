@@ -33,6 +33,8 @@ secret:
       match: "sk-ant-api03-test-key"
     - name: "New test API key pattern"
       match: "test-api-key-not-real"
+    - name: "Unit test key pattern"
+      match: "test-key-for-unit-tests"
     - name: "Test patterns in examples"
       match: "test-key"
     - name: "Mock API patterns"
