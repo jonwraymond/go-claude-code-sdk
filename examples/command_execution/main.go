@@ -311,7 +311,7 @@ func main() {
 	}
 
 	// Clean up
-	os.Remove(testFile)
+	_ = os.Remove(testFile) // Ignore error, best effort cleanup
 	fmt.Printf("✓ Cleaned up test file\n")
 
 	fmt.Println()

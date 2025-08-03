@@ -350,15 +350,25 @@ func TestStreamingResponse_ProcessEvents(t *testing.T) {
 					}
 
 				case err := <-sr.Errors:
-					lastError = err
+					if lastError == nil {
+						lastError = err
+					}
 					// Continue processing to collect any remaining events
 
 				case <-sr.Done:
-					// Stream complete, process any remaining events in channels
+					// Stream complete, process any remaining events and errors in channels
 					for {
 						select {
 						case event, ok := <-sr.Events:
 							if !ok {
+								// Events channel closed, check for any remaining errors
+								select {
+								case err := <-sr.Errors:
+									if lastError == nil {
+										lastError = err
+									}
+								default:
+								}
 								break eventLoop
 							}
 							switch event.Type {
@@ -376,6 +386,7 @@ func TestStreamingResponse_ProcessEvents(t *testing.T) {
 								lastError = err
 							}
 						default:
+							// No more events or errors, break out
 							break eventLoop
 						}
 					}

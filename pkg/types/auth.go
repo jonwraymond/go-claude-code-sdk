@@ -344,7 +344,7 @@ func (s *SubscriptionAuth) isCLIAvailable() bool {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return true
 			}

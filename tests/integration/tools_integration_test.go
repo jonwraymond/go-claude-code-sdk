@@ -20,7 +20,7 @@ import (
 type ToolsIntegrationSuite struct {
 	suite.Suite
 	client      *client.ClaudeCodeClient
-	toolManager *client.ToolManager
+	toolManager *client.ClaudeCodeToolManager
 	config      *types.ClaudeCodeConfig
 	testDir     string
 }
@@ -48,9 +48,15 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 	s.config.ClaudeExecutable = "claude"
 	s.config.WorkingDirectory = s.testDir
 	s.config.Timeout = 30 * time.Second
+	
+	// Enable TestMode in CI environment to skip Claude Code CLI requirement
+	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
+		s.config.TestMode = true
+	}
 
 	// Create client
-	s.client, err = client.NewClaudeCodeClient(s.config)
+	ctx := context.Background()
+	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
 	require.NoError(s.T(), err)
 
 	// Get tool manager
@@ -69,8 +75,7 @@ func (s *ToolsIntegrationSuite) TearDownSuite() {
 func (s *ToolsIntegrationSuite) TestListTools() {
 	ctx := context.Background()
 
-	tools, err := s.toolManager.ListTools(ctx)
-	require.NoError(s.T(), err)
+	tools := s.toolManager.ListTools()
 
 	// Should have standard tools
 	toolNames := make(map[string]bool)

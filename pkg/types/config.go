@@ -275,7 +275,7 @@ func (c *ClaudeCodeConfig) isSubscriptionAuthAvailable() bool {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return true
 			}
@@ -976,7 +976,7 @@ func (l LogLevel) IsValid() bool {
 // Environment variable names for configuration
 const (
 	// EnvAPIKey is the environment variable for the API key
-	EnvAPIKey = "CLAUDE_API_KEY"
+	EnvAPIKey = "CLAUDE_API_KEY" // #nosec G101 - This is just the environment variable name, not a credential
 
 	// EnvBaseURL is the environment variable for the base URL
 	EnvBaseURL = "CLAUDE_BASE_URL"

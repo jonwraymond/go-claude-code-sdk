@@ -102,7 +102,7 @@ func (c *ClaudeCodeClient) QueryMessages(ctx context.Context, prompt string, opt
 		defer close(messageChan)
 		defer func() {
 			if !session.closed {
-				session.Close()
+				_ = session.Close() // Ignore error during cleanup
 			}
 		}()
 
@@ -171,7 +171,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 	cmdArgs := c.buildQueryCommand(session, cmd, options)
 
 	// Create and start claude process
-	process := exec.CommandContext(ctx, c.claudeCodeCmd, cmdArgs...)
+	process := exec.CommandContext(ctx, c.claudeCodeCmd, cmdArgs...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	process.Dir = c.workingDir
 
 	// Create pipes for stdout
@@ -203,7 +203,7 @@ func (c *ClaudeCodeClient) executeQueryWithStreaming(
 		c.processMu.Lock()
 		delete(c.activeProcesses, processID)
 		c.processMu.Unlock()
-		process.Process.Kill()
+		_ = process.Process.Kill() // Ignore error, best effort cleanup
 	}()
 
 	// Parse streaming output

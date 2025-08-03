@@ -348,23 +348,26 @@ echo '%s'
 			return exec.CommandContext(ctx, "echo", `{"error": "mock creation failed"}`)
 		}
 		if _, err := tmpFile.WriteString(mockScript); err != nil {
-			tmpFile.Close()
-			os.Remove(tmpFile.Name())
+			_ = tmpFile.Close() // Ignore error, cleanup attempt
+			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 			return exec.CommandContext(ctx, "echo", `{"error": "mock script write failed"}`)
 		}
-		tmpFile.Close()
-		if err := os.Chmod(tmpFile.Name(), 0755); err != nil {
-			os.Remove(tmpFile.Name())
+		if err := tmpFile.Close(); err != nil {
+			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
+			return exec.CommandContext(ctx, "echo", `{"error": "mock script close failed"}`)
+		}
+		if err := os.Chmod(tmpFile.Name(), 0700); err != nil { // #nosec G302 temporary test script needs execute permission, 0700 is secure (owner only)
+			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 			return exec.CommandContext(ctx, "echo", `{"error": "mock script chmod failed"}`)
 		}
 
 		// Return command that executes our mock script
-		cmd := exec.CommandContext(ctx, tmpFile.Name())
+		cmd := exec.CommandContext(ctx, tmpFile.Name()) // #nosec G204 - tmpFile.Name() is a controlled temporary file path
 
 		// Clean up temp file after command completes
 		go func() {
 			<-ctx.Done()
-			os.Remove(tmpFile.Name())
+			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 		}()
 
 		return cmd

@@ -137,7 +137,7 @@ func sessionPersistenceExample() {
 	session, err := client1.CreateSession(ctx, sessionID)
 	if err != nil {
 		log.Printf("Failed to create session: %v", err)
-		client1.Close()
+		_ = client1.Close() // Ignore error during cleanup
 		return
 	}
 
@@ -152,7 +152,7 @@ func sessionPersistenceExample() {
 	result1, err := client1.QueryMessagesSync(ctx, "My favorite programming language is Go. Please remember this.", options)
 	if err != nil {
 		log.Printf("Failed to send message with first client: %v", err)
-		client1.Close()
+		_ = client1.Close() // Ignore error during cleanup
 		return
 	}
 
@@ -162,7 +162,7 @@ func sessionPersistenceExample() {
 	}
 
 	// Close first client
-	client1.Close()
+	_ = client1.Close() // Ignore error during cleanup
 	fmt.Printf("✓ First client closed\n")
 
 	// Create second client instance with same session ID

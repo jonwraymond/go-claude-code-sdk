@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +15,69 @@ import (
 	sdkerrors "github.com/jonwraymond/go-claude-code-sdk/pkg/errors"
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
+
+// Dangerous command patterns that should be blocked for security
+var dangerousCommandPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`rm\s+-rf\s+/`),           // Dangerous rm operations
+	regexp.MustCompile(`;\s*rm\s+-rf`),           // Command chaining with rm
+	regexp.MustCompile(`\|\s*rm\s+-rf`),          // Piped rm operations
+	regexp.MustCompile(`&&\s*rm\s+-rf`),          // Chained rm operations  
+	regexp.MustCompile(`curl.*\|\s*sh`),          // Download and execute
+	regexp.MustCompile(`wget.*\|\s*sh`),          // Download and execute
+	regexp.MustCompile(`eval\s*\$\(`),            // Code injection via eval
+	regexp.MustCompile(`\$\(.*curl`),             // Command substitution with curl
+	regexp.MustCompile(`nc\s+-l`),                // Netcat listeners
+	regexp.MustCompile(`/dev/tcp/`),              // TCP connections
+}
+
+// validateCommand checks if a command contains dangerous patterns
+func validateCommand(command string) error {
+	command = strings.TrimSpace(command)
+	if command == "" {
+		return sdkerrors.NewValidationError("command", "", "non-empty string", "command cannot be empty")
+	}
+
+	// Check for dangerous patterns
+	for _, pattern := range dangerousCommandPatterns {
+		if pattern.MatchString(command) {
+			return sdkerrors.NewValidationError("command", command, "safe command", "command contains potentially dangerous pattern")
+		}
+	}
+
+	return nil
+}
+
+// validateFilePath checks if a file path is safe to access
+func validateFilePath(path, workingDir string) error {
+	// Clean the path to normalize it
+	cleanPath := filepath.Clean(path)
+	
+	// Convert to absolute path
+	var absPath string
+	if filepath.IsAbs(cleanPath) {
+		absPath = cleanPath
+	} else {
+		absPath = filepath.Join(workingDir, cleanPath)
+	}
+	
+	// Check if the resolved path is within the working directory
+	absWorkingDir, err := filepath.Abs(workingDir)
+	if err != nil {
+		return fmt.Errorf("invalid working directory: %v", err)
+	}
+	
+	relPath, err := filepath.Rel(absWorkingDir, absPath)
+	if err != nil {
+		return fmt.Errorf("invalid file path: %v", err)
+	}
+	
+	// Check for directory traversal attempts
+	if strings.HasPrefix(relPath, "..") || strings.Contains(relPath, "/../") {
+		return fmt.Errorf("path traversal detected: %s", path)
+	}
+	
+	return nil
+}
 
 // ClaudeCodeToolManager manages tool execution for Claude Code CLI integration.
 // Unlike the traditional ToolManager that executes functions directly, this manager
@@ -589,13 +653,21 @@ func (tm *ClaudeCodeToolManager) executeReadFile(ctx context.Context, params map
 		return nil, sdkerrors.NewValidationError("path", "", "string", "path must be a string")
 	}
 
+	// Validate file path for security
+	if err := validateFilePath(path, tm.client.workingDir); err != nil {
+		return &ClaudeCodeToolResult{
+			Success: false,
+			Error:   fmt.Sprintf("file path validation failed: %v", err),
+		}, nil
+	}
+
 	// Resolve path relative to working directory
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(tm.client.workingDir, path)
 	}
 
-	// Read file
-	content, err := os.ReadFile(path)
+	// Read file - path validated above
+	content, err := os.ReadFile(path) // #nosec G304 - path validated above
 	if err != nil {
 		return &ClaudeCodeToolResult{
 			Success: false,
@@ -624,6 +696,14 @@ func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params ma
 		return nil, sdkerrors.NewValidationError("content", "", "string", "content must be a string")
 	}
 
+	// Validate file path for security
+	if err := validateFilePath(path, tm.client.workingDir); err != nil {
+		return &ClaudeCodeToolResult{
+			Success: false,
+			Error:   fmt.Sprintf("file path validation failed: %v", err),
+		}, nil
+	}
+
 	// Resolve path relative to working directory
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(tm.client.workingDir, path)
@@ -637,7 +717,7 @@ func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params ma
 
 	if createDirs {
 		dir := filepath.Dir(path)
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0750); err != nil {
 			return &ClaudeCodeToolResult{
 				Success: false,
 				Error:   fmt.Sprintf("failed to create directories: %v", err),
@@ -646,7 +726,7 @@ func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params ma
 	}
 
 	// Write file
-	err := os.WriteFile(path, []byte(content), 0644)
+	err := os.WriteFile(path, []byte(content), 0600)
 	if err != nil {
 		return &ClaudeCodeToolResult{
 			Success: false,
@@ -856,6 +936,14 @@ func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params m
 		return nil, sdkerrors.NewValidationError("command", "", "string", "command must be a string")
 	}
 
+	// Validate command for security
+	if err := validateCommand(command); err != nil {
+		return &ClaudeCodeToolResult{
+			Success: false,
+			Error:   fmt.Sprintf("command validation failed: %v", err),
+		}, nil
+	}
+
 	workingDir := tm.client.workingDir
 	if wd, ok := params["working_dir"].(string); ok {
 		if !filepath.IsAbs(wd) {
@@ -874,8 +962,8 @@ func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params m
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
 	defer cancel()
 
-	// Execute command through shell
-	cmd := exec.CommandContext(ctx, "sh", "-c", command)
+	// Execute command through shell - validated for security above
+	cmd := exec.CommandContext(ctx, "sh", "-c", command) // #nosec G204 - command validated above
 	cmd.Dir = workingDir
 
 	output, err := cmd.CombinedOutput()

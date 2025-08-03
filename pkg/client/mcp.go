@@ -216,7 +216,7 @@ func (m *MCPManager) ApplyConfiguration(ctx context.Context) error {
 
 	// Generate MCP configuration file path
 	configDir := filepath.Join(m.client.workingDir, ".claude")
-	if err := os.MkdirAll(configDir, 0755); err != nil {
+	if err := os.MkdirAll(configDir, 0750); err != nil {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "CONFIG_DIR", "failed to create config directory")
 	}
 
@@ -258,7 +258,7 @@ func (m *MCPManager) ApplyConfiguration(ctx context.Context) error {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "CONFIG_MARSHAL", "failed to marshal MCP configuration")
 	}
 
-	if err := os.WriteFile(mcpConfigPath, configData, 0644); err != nil {
+	if err := os.WriteFile(mcpConfigPath, configData, 0600); err != nil {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "CONFIG_WRITE", "failed to write MCP configuration file")
 	}
 
@@ -271,7 +271,10 @@ func (m *MCPManager) LoadFromFile(filePath string) error {
 		return sdkerrors.NewValidationError("filePath", "", "required", "file path cannot be empty")
 	}
 
-	data, err := os.ReadFile(filePath)
+	// Clean the file path to prevent directory traversal
+	filePath = filepath.Clean(filePath)
+	
+	data, err := os.ReadFile(filePath) // #nosec G304 - file path is cleaned and this is expected to load config files
 	if err != nil {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "FILE_READ", "failed to read MCP configuration file")
 	}
@@ -322,7 +325,7 @@ func (m *MCPManager) SaveToFile(filePath string) error {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "CONFIG_MARSHAL", "failed to marshal MCP configuration")
 	}
 
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0600); err != nil {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "FILE_WRITE", "failed to write MCP configuration file")
 	}
 

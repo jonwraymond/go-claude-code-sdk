@@ -43,7 +43,7 @@ func (c *ClaudeCodeClient) StreamQuery(ctx context.Context, request *types.Query
 	}
 
 	// Create and start claude process
-	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
+	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	cmd.Dir = c.workingDir
 	cmd.Env = append(os.Environ(), c.buildEnvironment()...)
 
@@ -55,14 +55,14 @@ func (c *ClaudeCodeClient) StreamQuery(ctx context.Context, request *types.Query
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		stdout.Close()
+		_ = stdout.Close() // Ignore error during cleanup
 		return nil, sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "PIPE_CREATION", "failed to create stderr pipe")
 	}
 
 	// Start the process
 	if err := cmd.Start(); err != nil {
-		stdout.Close()
-		stderr.Close()
+		_ = stdout.Close() // Ignore error during cleanup
+		_ = stderr.Close() // Ignore error during cleanup
 		return nil, sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "PROCESS_START", "failed to start claude process")
 	}
 
@@ -360,13 +360,13 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 // cleanup releases resources
 func (r *advancedStreamReader) cleanup() {
 	if r.stdout != nil {
-		r.stdout.Close()
+		_ = r.stdout.Close() // Ignore error during cleanup
 	}
 	if r.stderr != nil {
-		r.stderr.Close()
+		_ = r.stderr.Close() // Ignore error during cleanup
 	}
 	if r.cmd != nil && r.cmd.Process != nil {
-		r.cmd.Process.Kill()
+		_ = r.cmd.Process.Kill() // Ignore error, best effort cleanup
 		if err := r.cmd.Wait(); err != nil {
 			// Process already killed, ignore error
 			_ = err

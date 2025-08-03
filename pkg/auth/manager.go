@@ -273,8 +273,13 @@ func (s *FileStore) Retrieve(ctx context.Context, id string) (*StoredCredential,
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	// Validate ID to prevent directory traversal
+	if strings.Contains(id, "..") || strings.Contains(id, "/") || strings.Contains(id, "\\") {
+		return nil, fmt.Errorf("invalid credential ID: %s", id)
+	}
+
 	filePath := filepath.Join(s.basePath, id+".json")
-	data, err := os.ReadFile(filePath)
+	data, err := os.ReadFile(filePath) // #nosec G304 - path constructed from validated ID and safe base path
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, ErrCredentialNotFound

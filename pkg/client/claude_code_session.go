@@ -221,7 +221,7 @@ func (sm *ClaudeCodeSessionManager) CloseSession(sessionID string) error {
 
 	session, exists := sm.sessions[sessionID]
 	if exists {
-		session.Close()
+		_ = session.Close() // Ignore error during cleanup
 		delete(sm.sessions, sessionID)
 	}
 
@@ -255,7 +255,7 @@ func (sm *ClaudeCodeSessionManager) Close() error {
 	defer sm.mu.Unlock()
 
 	for _, session := range sm.sessions {
-		session.Close()
+		_ = session.Close() // Ignore error during cleanup
 	}
 	sm.sessions = make(map[string]*ClaudeCodeSession)
 
@@ -283,7 +283,7 @@ func (sm *ClaudeCodeSessionManager) cleanupExpiredSessions() {
 
 	for id, session := range sm.sessions {
 		if session.IsExpired() {
-			session.Close()
+			_ = session.Close() // Ignore error during cleanup
 			delete(sm.sessions, id)
 		}
 	}

@@ -460,6 +460,7 @@ func TestMCPManager_SaveLoadFromFile(t *testing.T) {
 
 	// Create new manager and load from file
 	client2, err := NewClaudeCodeClient(ctx, &types.ClaudeCodeConfig{
+		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 	})
 	if err != nil {

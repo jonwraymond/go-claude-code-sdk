@@ -183,7 +183,7 @@ func (c *ClaudeCodeClient) Query(ctx context.Context, request *types.QueryReques
 	}
 
 	// Execute claude command
-	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
+	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	cmd.Dir = c.workingDir
 
 	// Set environment variables
@@ -240,7 +240,7 @@ func (c *ClaudeCodeClient) QueryStream(ctx context.Context, request *types.Query
 	}
 
 	// Create and start claude process
-	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...)
+	cmd := exec.CommandContext(ctx, c.claudeCodeCmd, args...) // #nosec G204 - claudeCodeCmd is validated during initialization
 	cmd.Dir = c.workingDir
 	cmd.Env = append(os.Environ(), c.buildEnvironment()...)
 
@@ -288,14 +288,14 @@ func (c *ClaudeCodeClient) Close() error {
 
 	// Close session manager
 	if c.sessionManager != nil {
-		c.sessionManager.Close()
+		_ = c.sessionManager.Close() // Ignore error during cleanup
 	}
 
 	// Terminate all active processes
 	c.processMu.Lock()
 	for processID, cmd := range c.activeProcesses {
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill() // Ignore error, best effort cleanup
 		}
 		delete(c.activeProcesses, processID)
 	}
@@ -687,7 +687,7 @@ func findClaudeCodeCommand(customPath string) (string, error) {
 		if strings.Contains(candidate, " ") {
 			// For commands like "npx claude", test by running with --version
 			parts := strings.Fields(candidate)
-			cmd := exec.Command(parts[0], append(parts[1:], "--version")...)
+			cmd := exec.Command(parts[0], append(parts[1:], "--version")...) // #nosec G204 - using predefined safe candidates
 			if err := cmd.Run(); err == nil {
 				return candidate, nil
 			}
@@ -798,12 +798,12 @@ func (s *claudeCodeQueryStream) Close() error {
 
 	// Close stdout pipe
 	if s.stdout != nil {
-		s.stdout.Close()
+		_ = s.stdout.Close() // Ignore error during cleanup
 	}
 
 	// Terminate the process
 	if s.cmd != nil && s.cmd.Process != nil {
-		s.cmd.Process.Kill()
+		_ = s.cmd.Process.Kill() // Ignore error, best effort cleanup
 	}
 
 	// Remove from client's active processes
