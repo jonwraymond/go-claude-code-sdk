@@ -16,11 +16,11 @@ type ValidationError struct {
 
 // ValidationViolation represents a specific validation rule violation.
 type ValidationViolation struct {
-	Field      string      `json:"field"`      // Field path (e.g., "messages.0.content")
-	Code       string      `json:"code"`       // Violation code (e.g., "required", "max_length")
-	Message    string      `json:"message"`    // Human-readable message
-	Value      any `json:"value"`      // The invalid value (sanitized)
-	Constraint any `json:"constraint"` // The constraint that was violated
+	Field      string `json:"field"`      // Field path (e.g., "messages.0.content")
+	Code       string `json:"code"`       // Violation code (e.g., "required", "max_length")
+	Message    string `json:"message"`    // Human-readable message
+	Value      any    `json:"value"`      // The invalid value (sanitized)
+	Constraint any    `json:"constraint"` // The constraint that was violated
 }
 
 // NewValidationError creates a new validation error.
@@ -178,11 +178,11 @@ func NewResponseValidationError(responseType string, statusCode int, violations 
 // ParameterValidationError represents validation errors for specific parameters.
 type ParameterValidationError struct {
 	*ValidationError
-	ParameterName string      // Name of the parameter
-	ParameterType string      // Expected type of the parameter
-	MinValue      any // Minimum allowed value (if applicable)
-	MaxValue      any // Maximum allowed value (if applicable)
-	AllowedValues []string    // List of allowed values (if applicable)
+	ParameterName string   // Name of the parameter
+	ParameterType string   // Expected type of the parameter
+	MinValue      any      // Minimum allowed value (if applicable)
+	MaxValue      any      // Maximum allowed value (if applicable)
+	AllowedValues []string // List of allowed values (if applicable)
 }
 
 // NewParameterValidationError creates a new parameter validation error.

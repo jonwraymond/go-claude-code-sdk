@@ -86,7 +86,7 @@ func TestIsOutputTruncated(t *testing.T) {
 func TestCommandResult_Enhancement(t *testing.T) {
 	// Test that enhanced CommandResult fields work correctly
 	cmd := &types.Command{
-		Type:          types.CommandRead,
+		Type:          CommandRead,
 		Args:          []string{"test.txt"},
 		VerboseOutput: true,
 	}
@@ -140,7 +140,7 @@ func TestExecuteCommand_WithVerboseOutput(t *testing.T) {
 
 	// Test command with verbose output
 	cmd := &types.Command{
-		Type:          types.CommandRead,
+		Type:          CommandRead,
 		Args:          []string{"test.txt"},
 		VerboseOutput: true,
 	}

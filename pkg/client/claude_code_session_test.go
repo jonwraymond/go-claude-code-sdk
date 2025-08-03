@@ -56,6 +56,10 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 
 	sessionManager := client.Sessions()
 
+	// Generate proper UUID session IDs
+	sessionID1 := client.GenerateSessionID()
+	sessionID2 := client.GenerateSessionID()
+
 	tests := []struct {
 		name        string
 		sessionID   string
@@ -63,17 +67,17 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 	}{
 		{
 			name:        "Create new session",
-			sessionID:   "test-session-1",
+			sessionID:   sessionID1,
 			expectError: false,
 		},
 		{
 			name:        "Create another session",
-			sessionID:   "test-session-2",
+			sessionID:   sessionID2,
 			expectError: false,
 		},
 		{
 			name:        "Get existing session",
-			sessionID:   "test-session-1",
+			sessionID:   sessionID1,
 			expectError: false,
 		},
 	}
@@ -177,14 +181,15 @@ func TestClaudeCodeSessionManager_GetSession(t *testing.T) {
 
 	sessionManager := client.Sessions()
 
-	// Create a session
-	session1, err := sessionManager.CreateSession(ctx, "test-session")
+	// Create a session with proper UUID
+	sessionID := client.GenerateSessionID()
+	session1, err := sessionManager.CreateSession(ctx, sessionID)
 	if err != nil {
 		t.Fatalf("Failed to create session: %v", err)
 	}
 
-	// Get the session
-	session2, err := sessionManager.GetSession("test-session")
+	// Get the session using the normalized ID
+	session2, err := sessionManager.GetSession(session1.ID)
 	if err != nil {
 		t.Fatalf("Failed to get session: %v", err)
 	}
@@ -216,8 +221,9 @@ func TestClaudeCodeSessionManager_CloseSession(t *testing.T) {
 
 	sessionManager := client.Sessions()
 
-	// Create a session
-	_, err = sessionManager.CreateSession(ctx, "test-session")
+	// Create a session with proper UUID
+	sessionID := client.GenerateSessionID()
+	session, err := sessionManager.CreateSession(ctx, sessionID)
 	if err != nil {
 		t.Fatalf("Failed to create session: %v", err)
 	}
@@ -227,8 +233,8 @@ func TestClaudeCodeSessionManager_CloseSession(t *testing.T) {
 		t.Error("Expected 1 session")
 	}
 
-	// Close the session
-	err = sessionManager.CloseSession("test-session")
+	// Close the session using the normalized ID
+	err = sessionManager.CloseSession(session.ID)
 	if err != nil {
 		t.Errorf("Failed to close session: %v", err)
 	}
@@ -239,7 +245,7 @@ func TestClaudeCodeSessionManager_CloseSession(t *testing.T) {
 	}
 
 	// Try to get the closed session
-	_, err = sessionManager.GetSession("test-session")
+	_, err = sessionManager.GetSession(session.ID)
 	if err == nil {
 		t.Error("Expected error for closed session")
 	}
@@ -475,7 +481,7 @@ func TestClaudeCodeSession_ExecuteCommand(t *testing.T) {
 
 	// Test with valid command (would require Claude Code to be installed)
 	cmd := &types.Command{
-		Type: types.CommandRead,
+		Type: CommandRead,
 		Args: []string{"test.txt"},
 	}
 
@@ -529,13 +535,16 @@ func TestClaudeCodeClient_SessionIntegration(t *testing.T) {
 	}
 	defer client.Close()
 
-	// Test client-level session methods
-	session1, err := client.CreateSession(ctx, "test-session-1")
+	// Test client-level session methods with proper UUIDs
+	sessionID1 := client.GenerateSessionID()
+	sessionID2 := client.GenerateSessionID()
+
+	session1, err := client.CreateSession(ctx, sessionID1)
 	if err != nil {
 		t.Fatalf("Failed to create session: %v", err)
 	}
 
-	_, err = client.CreateSession(ctx, "test-session-2")
+	session2, err := client.CreateSession(ctx, sessionID2)
 	if err != nil {
 		t.Fatalf("Failed to create session: %v", err)
 	}
@@ -546,8 +555,8 @@ func TestClaudeCodeClient_SessionIntegration(t *testing.T) {
 		t.Errorf("Expected 2 sessions, got %d", len(sessions))
 	}
 
-	// Get session
-	retrievedSession, err := client.GetSession("test-session-1")
+	// Get session using the normalized ID
+	retrievedSession, err := client.GetSession(session1.ID)
 	if err != nil {
 		t.Fatalf("Failed to get session: %v", err)
 	}
@@ -556,8 +565,8 @@ func TestClaudeCodeClient_SessionIntegration(t *testing.T) {
 		t.Errorf("Expected session ID %s, got %s", session1.ID, retrievedSession.ID)
 	}
 
-	// Close session through manager
-	err = client.Sessions().CloseSession("test-session-2")
+	// Close session through manager using normalized ID
+	err = client.Sessions().CloseSession(session2.ID)
 	if err != nil {
 		t.Errorf("Failed to close session: %v", err)
 	}
@@ -568,7 +577,7 @@ func TestClaudeCodeClient_SessionIntegration(t *testing.T) {
 		t.Errorf("Expected 1 session after closing, got %d", len(sessions))
 	}
 
-	if sessions[0] != "test-session-1" {
-		t.Errorf("Expected remaining session to be 'test-session-1', got %s", sessions[0])
+	if sessions[0] != session1.ID {
+		t.Errorf("Expected remaining session to be %s, got %s", session1.ID, sessions[0])
 	}
 }

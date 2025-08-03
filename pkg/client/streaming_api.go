@@ -139,7 +139,7 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 
 	var currentMessage *types.StreamMessage
 	contentBlocks := make([]types.ContentBlock, 0)
-	
+
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
@@ -148,7 +148,7 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 		}
 
 		line := scanner.Text()
-		
+
 		// Parse streaming event
 		event, err := r.parseStreamEvent(line)
 		if err != nil {
@@ -169,27 +169,27 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 			if r.opts.OnMessage != nil {
 				r.opts.OnMessage(event.Message)
 			}
-			
+
 		case types.StreamEventContentBlockStart:
 			if event.ContentBlock != nil {
 				contentBlocks = append(contentBlocks, *event.ContentBlock)
 			}
-			
+
 		case types.StreamEventContentBlockDelta:
 			if event.ContentDelta != nil && r.opts.OnContentDelta != nil {
 				r.opts.OnContentDelta(event.ContentDelta)
 			}
-			
+
 		case types.StreamEventMessageDelta:
 			if event.MessageDelta != nil && r.opts.OnMessageDelta != nil {
 				r.opts.OnMessageDelta(event.MessageDelta)
 			}
-			
+
 		case types.StreamEventContentBlockStop:
 			if event.Index < len(contentBlocks) && r.opts.OnContentBlock != nil {
 				r.opts.OnContentBlock(event.Index, &contentBlocks[event.Index])
 			}
-			
+
 		case types.StreamEventMessageStop:
 			if currentMessage != nil && r.opts.OnComplete != nil {
 				currentMessage.Content = contentBlocks
@@ -268,7 +268,7 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 				}
 			}
 		}
-		
+
 	case "content_block_start":
 		if blockData, ok := raw["content_block"]; ok {
 			var block streamContentBlock
@@ -279,7 +279,7 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 				}
 			}
 		}
-		
+
 	case "content_block_delta":
 		if deltaData, ok := raw["delta"]; ok {
 			var delta streamDelta
@@ -290,7 +290,7 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 				}
 			}
 		}
-		
+
 	case "message_delta":
 		if deltaData, ok := raw["delta"]; ok {
 			var delta streamDelta
@@ -302,7 +302,7 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 				}
 			}
 		}
-		
+
 	case "message_stop":
 		// Extract usage if present
 		if usageData, ok := raw["usage"]; ok {
@@ -311,7 +311,7 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 				event.Usage = &usage
 			}
 		}
-		
+
 	case "error":
 		if errorData, ok := raw["error"]; ok {
 			var errorInfo map[string]any
@@ -345,7 +345,7 @@ func (r *advancedStreamReader) cleanup() {
 		r.cmd.Process.Kill()
 		r.cmd.Wait()
 	}
-	
+
 	// Remove from active processes
 	r.client.processMu.Lock()
 	delete(r.client.activeProcesses, r.processID)

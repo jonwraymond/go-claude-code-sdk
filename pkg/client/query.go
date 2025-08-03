@@ -51,6 +51,9 @@ type QueryOptions struct {
 	// Stream enables streaming responses
 	Stream bool
 
+	// ResponseFormat configures the output format (e.g., "json" for one-shot JSON response)
+	ResponseFormat string
+
 	// Timeout sets the query timeout
 	Timeout int
 
@@ -402,6 +405,11 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 
 	// Note: Claude CLI does not support --timeout flag
 	// Timeout would need to be handled at the process level
+
+	// Response format flag (json or stream-json)
+	if options.ResponseFormat != "" {
+		args = append(args, "--format", options.ResponseFormat)
+	}
 
 	// Add the prompt
 	args = append(args, cmd.Args[0])

@@ -39,13 +39,13 @@ type CredentialStore interface {
 
 // StoredCredential represents a credential in storage
 type StoredCredential struct {
-	ID         string                 `json:"id"`
-	Type       types.AuthType         `json:"type"`
-	Credential string                 `json:"credential"` // Encrypted in production
+	ID         string         `json:"id"`
+	Type       types.AuthType `json:"type"`
+	Credential string         `json:"credential"` // Encrypted in production
 	Metadata   map[string]any `json:"metadata,omitempty"`
-	CreatedAt  time.Time              `json:"created_at"`
-	LastUsed   *time.Time             `json:"last_used,omitempty"`
-	ExpiresAt  *time.Time             `json:"expires_at,omitempty"`
+	CreatedAt  time.Time      `json:"created_at"`
+	LastUsed   *time.Time     `json:"last_used,omitempty"`
+	ExpiresAt  *time.Time     `json:"expires_at,omitempty"`
 }
 
 // Manager handles credential management and lifecycle

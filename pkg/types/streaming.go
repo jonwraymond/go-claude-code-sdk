@@ -45,9 +45,9 @@ type StreamEvent struct {
 
 	// MessageDelta contains message-level incremental updates (for message_delta events)
 	MessageDelta *MessageDelta `json:"message_delta,omitempty"`
-	
+
 	// ContentDelta contains content-level incremental updates (for content_block_delta events)
-	ContentDelta *ContentDelta `json:"content_delta,omitempty"`
+	ContentDelta *ContentDelta `json:"delta,omitempty"`
 
 	// Error contains error information (for error events)
 	Error *APIError `json:"error,omitempty"`
@@ -93,7 +93,7 @@ type StreamMessage struct {
 type ContentDelta struct {
 	// Type indicates the delta type (e.g., "text_delta")
 	Type string `json:"type,omitempty"`
-	
+
 	// Text contains incremental text updates
 	Text string `json:"text,omitempty"`
 }
@@ -108,7 +108,7 @@ type StreamOptions struct {
 
 	// OnContentDelta is called for each incremental content update
 	OnContentDelta func(delta *ContentDelta) error
-	
+
 	// OnMessageDelta is called for message-level updates (stop reason, usage)
 	OnMessageDelta func(delta *MessageDelta) error
 
@@ -232,7 +232,7 @@ type StreamCallback func(event *StreamEvent) error
 // SimpleStreamOptions creates StreamOptions with a single callback
 func SimpleStreamOptions(callback StreamCallback) *StreamOptions {
 	opts := DefaultStreamOptions()
-	
+
 	// Route all events through the single callback
 	opts.OnMessage = func(msg *StreamMessage) error {
 		return callback(&StreamEvent{
@@ -240,7 +240,7 @@ func SimpleStreamOptions(callback StreamCallback) *StreamOptions {
 			Message: msg,
 		})
 	}
-	
+
 	opts.OnContentBlock = func(index int, block *ContentBlock) error {
 		return callback(&StreamEvent{
 			Type:         StreamEventContentBlockStart,
@@ -248,21 +248,21 @@ func SimpleStreamOptions(callback StreamCallback) *StreamOptions {
 			ContentBlock: block,
 		})
 	}
-	
+
 	opts.OnContentDelta = func(delta *ContentDelta) error {
 		return callback(&StreamEvent{
 			Type:         StreamEventContentBlockDelta,
 			ContentDelta: delta,
 		})
 	}
-	
+
 	opts.OnMessageDelta = func(delta *MessageDelta) error {
 		return callback(&StreamEvent{
 			Type:         StreamEventMessageDelta,
 			MessageDelta: delta,
 		})
 	}
-	
+
 	opts.OnError = func(err error) error {
 		if apiErr, ok := err.(*APIError); ok {
 			return callback(&StreamEvent{
@@ -272,6 +272,6 @@ func SimpleStreamOptions(callback StreamCallback) *StreamOptions {
 		}
 		return err
 	}
-	
+
 	return opts
 }

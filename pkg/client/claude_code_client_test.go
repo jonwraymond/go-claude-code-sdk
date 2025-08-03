@@ -126,11 +126,9 @@ func TestBuildClaudeArgs(t *testing.T) {
 
 	// Check that arguments contain expected values
 	expectedArgs := map[string]bool{
-		"--model":       false,
-		"--session-id":  false,
-		"--max-tokens":  false,
-		"--temperature": false,
-		"--system":      false,
+		"--model":                false,
+		"--session-id":           false,
+		"--append-system-prompt": false,
 	}
 
 	for i, arg := range args {
@@ -149,22 +147,22 @@ func TestBuildClaudeArgs(t *testing.T) {
 		}
 	}
 
-	// Test streaming args
+	// Test streaming args (Claude CLI doesn't use --stream flag)
 	streamArgs, err := client.buildClaudeArgs(request, true)
 	if err != nil {
 		t.Fatalf("Failed to build streaming claude arguments: %v", err)
 	}
 
-	// Check that streaming flag is present
-	streamFlagFound := false
+	// Check that --print flag is NOT present for streaming (it's omitted for streaming mode)
+	printFlagFound := false
 	for _, arg := range streamArgs {
-		if arg == "--stream" {
-			streamFlagFound = true
+		if arg == "--print" {
+			printFlagFound = true
 			break
 		}
 	}
-	if !streamFlagFound {
-		t.Error("Expected --stream flag in streaming arguments")
+	if printFlagFound {
+		t.Error("Expected --print flag to be omitted in streaming mode")
 	}
 }
 
@@ -283,8 +281,8 @@ func TestParseClaudeOutput(t *testing.T) {
 
 func TestBuildEnvironment(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
-		TestMode:         true, // Skip Claude Code CLI requirement for testing
-		APIKey: "test-api-key",
+		TestMode: true, // Skip Claude Code CLI requirement for testing
+		APIKey:   "test-api-key",
 		Environment: map[string]string{
 			"CUSTOM_VAR": "custom_value",
 			"DEBUG":      "true",

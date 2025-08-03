@@ -89,7 +89,7 @@ The package handles HTTP header generation:
 
 	auth := auth.NewAPIKeyAuth("sk-ant-...")
 	headers := auth.Headers()
-	// Returns: {"X-API-Key": "sk-ant-...", "anthropic-version": "..."}
+	// Returns: {"X-API-Key": "sk-...", "api-version": "..."}
 
 # Multi-Project Support
 

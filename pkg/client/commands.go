@@ -18,43 +18,40 @@ type CommandList = types.CommandList
 type CommandListResult = types.CommandListResult
 type CommandExecutionMode = types.CommandExecutionMode
 
-// Re-export command type constants from types package
+// Re-export execution mode constants from types package
 const (
-	// File operations
-	CommandRead   = types.CommandRead
-	CommandWrite  = types.CommandWrite
-	CommandEdit   = types.CommandEdit
-	CommandSearch = types.CommandSearch
-
-	// Code operations
-	CommandAnalyze  = types.CommandAnalyze
-	CommandExplain  = types.CommandExplain
-	CommandRefactor = types.CommandRefactor
-	CommandTest     = types.CommandTest
-	CommandDebug    = types.CommandDebug
-
-	// Git operations
-	CommandGitStatus = types.CommandGitStatus
-	CommandGitCommit = types.CommandGitCommit
-	CommandGitDiff   = types.CommandGitDiff
-	CommandGitLog    = types.CommandGitLog
-
-	// Project operations
-	CommandBuild   = types.CommandBuild
-	CommandRun     = types.CommandRun
-	CommandInstall = types.CommandInstall
-	CommandClean   = types.CommandClean
-
-	// Session operations
-	CommandHistory = types.CommandHistory
-	CommandClear   = types.CommandClear
-	CommandSave    = types.CommandSave
-	CommandLoad    = types.CommandLoad
-
-	// Execution modes
 	ExecutionModeSequential = types.ExecutionModeSequential
 	ExecutionModeParallel   = types.ExecutionModeParallel
 	ExecutionModeDependency = types.ExecutionModeDependency
+)
+
+// Common command types as string constants for convenience
+// These are not part of the official SDK API - users can send any prompt
+const (
+	CommandRead     CommandType = "read"
+	CommandWrite    CommandType = "write"
+	CommandEdit     CommandType = "edit"
+	CommandSearch   CommandType = "search"
+	CommandAnalyze  CommandType = "analyze"
+	CommandExplain  CommandType = "explain"
+	CommandRefactor CommandType = "refactor"
+	CommandTest     CommandType = "test"
+	CommandDebug    CommandType = "debug"
+
+	CommandGitStatus CommandType = "git-status"
+	CommandGitCommit CommandType = "git-commit"
+	CommandGitDiff   CommandType = "git-diff"
+	CommandGitLog    CommandType = "git-log"
+
+	CommandBuild   CommandType = "build"
+	CommandRun     CommandType = "run"
+	CommandInstall CommandType = "install"
+	CommandClean   CommandType = "clean"
+
+	CommandHistory CommandType = "history"
+	CommandClear   CommandType = "clear"
+	CommandSave    CommandType = "save"
+	CommandLoad    CommandType = "load"
 )
 
 // CommandExecutor provides command execution capabilities for Claude Code
@@ -159,7 +156,7 @@ func (ce *CommandExecutor) ExecuteCommands(ctx context.Context, cmdList *Command
 	}
 
 	startTime := time.Now()
-	
+
 	// Default execution mode is sequential
 	mode := cmdList.ExecutionMode
 	if mode == "" {
@@ -212,7 +209,7 @@ func (ce *CommandExecutor) executeSequential(ctx context.Context, cmdList *Comma
 			result.FailedCommands++
 			result.Success = false
 			result.Errors = append(result.Errors, fmt.Sprintf("command %d error: %v", i+1, err))
-			
+
 			// Create a failed result
 			cmdResult = &CommandResult{
 				Command: cmd,
@@ -282,7 +279,7 @@ func (ce *CommandExecutor) executeParallel(ctx context.Context, cmdList *Command
 
 			// Execute command
 			cmdResult, err := ce.ExecuteCommand(ctx, command)
-			
+
 			mu.Lock()
 			defer mu.Unlock()
 
@@ -290,7 +287,7 @@ func (ce *CommandExecutor) executeParallel(ctx context.Context, cmdList *Command
 				result.FailedCommands++
 				result.Success = false
 				result.Errors = append(result.Errors, fmt.Sprintf("command %d error: %v", index+1, err))
-				
+
 				// Create a failed result
 				cmdResult = &CommandResult{
 					Command: command,
@@ -558,16 +555,16 @@ func (ce *CommandExecutor) isOutputTruncated(output string) bool {
 	// Check for incomplete patterns (e.g., cut off mid-sentence or mid-JSON)
 	if len(output) > 20 { // Reduced threshold for better detection
 		lastChar := output[len(output)-1]
-		
+
 		// Check for incomplete JSON/code structures
 		openBraces := strings.Count(output, "{") - strings.Count(output, "}")
 		openBrackets := strings.Count(output, "[") - strings.Count(output, "]")
 		openQuotes := strings.Count(output, `"`) % 2
-		
+
 		if openBraces > 0 || openBrackets > 0 || openQuotes != 0 {
 			return true
 		}
-		
+
 		// If doesn't end with typical punctuation, might be truncated
 		if lastChar != '.' && lastChar != '!' && lastChar != '?' && lastChar != '\n' && lastChar != '}' && lastChar != ']' && lastChar != '"' && lastChar != '\'' {
 			// Additional check: if it looks like it ends mid-word or mid-sentence

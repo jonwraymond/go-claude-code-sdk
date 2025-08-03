@@ -14,7 +14,7 @@ func TestGenerateSessionID(t *testing.T) {
 		if !IsValidUUID(id) {
 			t.Errorf("GenerateSessionID() returned invalid UUID: %s", id)
 		}
-		
+
 		// Ensure each ID is unique
 		id2 := GenerateSessionID()
 		if id == id2 {
@@ -107,26 +107,26 @@ func TestNormalizeSessionID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := NormalizeSessionID(tt.input)
-			
+
 			if tt.shouldError && err == nil {
 				t.Errorf("NormalizeSessionID(%q) expected error but got none", tt.input)
 			}
-			
+
 			if !tt.shouldError && err != nil {
 				t.Errorf("NormalizeSessionID(%q) unexpected error: %v", tt.input, err)
 			}
-			
+
 			if err == nil {
 				// Result should be a valid UUID
 				if !IsValidUUID(result) {
 					t.Errorf("NormalizeSessionID(%q) returned invalid UUID: %s", tt.input, result)
 				}
-				
+
 				// If input was already a valid UUID, it should pass through unchanged
 				if IsValidUUID(tt.input) && result != tt.input {
 					t.Errorf("NormalizeSessionID(%q) changed valid UUID to %s", tt.input, result)
 				}
-				
+
 				// Same input should produce same output (deterministic)
 				if tt.input != "" {
 					result2, _ := NormalizeSessionID(tt.input)
@@ -170,27 +170,27 @@ func TestGenerateUUIDFromString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := GenerateUUIDFromString(tt.input)
-			
+
 			if tt.shouldError && err == nil {
 				t.Errorf("GenerateUUIDFromString(%q) expected error but got none", tt.input)
 			}
-			
+
 			if !tt.shouldError && err != nil {
 				t.Errorf("GenerateUUIDFromString(%q) unexpected error: %v", tt.input, err)
 			}
-			
+
 			if err == nil {
 				// Result should be a valid UUID
 				if !IsValidUUID(result) {
 					t.Errorf("GenerateUUIDFromString(%q) returned invalid UUID: %s", tt.input, result)
 				}
-				
+
 				// Same input should always produce same output
 				result2, _ := GenerateUUIDFromString(tt.input)
 				if result != result2 {
 					t.Errorf("GenerateUUIDFromString(%q) not deterministic: %s != %s", tt.input, result, result2)
 				}
-				
+
 				// Different inputs should produce different outputs
 				if tt.input != "test" {
 					otherResult, _ := GenerateUUIDFromString("test")
@@ -232,15 +232,15 @@ func TestValidateSessionID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ValidateSessionID(tt.sessionID)
-			
+
 			if tt.shouldError && err == nil {
 				t.Errorf("ValidateSessionID(%q) expected error but got none", tt.sessionID)
 			}
-			
+
 			if !tt.shouldError && err != nil {
 				t.Errorf("ValidateSessionID(%q) unexpected error: %v", tt.sessionID, err)
 			}
-			
+
 			if tt.shouldError && err != nil && tt.errorPart != "" {
 				if !strings.Contains(err.Error(), tt.errorPart) {
 					t.Errorf("ValidateSessionID(%q) error = %v, want error containing %q", tt.sessionID, err, tt.errorPart)
@@ -276,15 +276,15 @@ func TestFormatSessionIDError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := FormatSessionIDError(tt.sessionID)
-			
+
 			if tt.wantError && err == nil {
 				t.Errorf("FormatSessionIDError(%q) expected error but got none", tt.sessionID)
 			}
-			
+
 			if !tt.wantError && err != nil {
 				t.Errorf("FormatSessionIDError(%q) unexpected error: %v", tt.sessionID, err)
 			}
-			
+
 			// Check that error messages are helpful
 			if err != nil {
 				errStr := err.Error()
@@ -321,28 +321,28 @@ func TestSuggestSessionID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			primary, suggestions, err := SuggestSessionID(tt.input)
-			
+
 			if err != nil {
 				t.Errorf("SuggestSessionID(%q) unexpected error: %v", tt.input, err)
 			}
-			
+
 			// Primary should be a valid UUID
 			if !IsValidUUID(primary) {
 				t.Errorf("SuggestSessionID(%q) primary suggestion is not valid UUID: %s", tt.input, primary)
 			}
-			
+
 			// All suggestions should be valid UUIDs
 			for _, s := range suggestions {
 				if !IsValidUUID(s) {
 					t.Errorf("SuggestSessionID(%q) suggestion is not valid UUID: %s", tt.input, s)
 				}
 			}
-			
+
 			// Should have at least one suggestion
 			if len(suggestions) == 0 {
 				t.Errorf("SuggestSessionID(%q) returned no suggestions", tt.input)
 			}
-			
+
 			// If input was valid UUID, primary should be the same
 			if IsValidUUID(tt.input) && primary != tt.input {
 				t.Errorf("SuggestSessionID(%q) changed valid UUID to %s", tt.input, primary)

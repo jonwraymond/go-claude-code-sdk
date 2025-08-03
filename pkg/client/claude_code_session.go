@@ -173,11 +173,9 @@ func (sm *ClaudeCodeSessionManager) CreateSession(ctx context.Context, sessionID
 	session.metadata["project_dir"] = session.projectDir
 	session.metadata["model"] = session.model
 
-	// Get project context for the session
+	// Get project context for the session (simplified)
 	if projectCtx, err := sm.client.GetProjectContext(ctx); err == nil {
-		session.metadata["language"] = projectCtx.Language
-		session.metadata["framework"] = projectCtx.Framework
-		session.metadata["project_name"] = projectCtx.ProjectName
+		session.metadata["working_directory"] = projectCtx.WorkingDirectory
 	}
 
 	sm.sessions[sessionID] = session
@@ -525,6 +523,23 @@ func (s *ClaudeCodeSession) Close() error {
 	}
 
 	return nil
+}
+
+// GetInfo returns basic session information
+// Simplified to match official SDK capabilities
+func (s *ClaudeCodeSession) GetInfo() (*types.SimpleSessionInfo, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	info := &types.SimpleSessionInfo{
+		ID:         s.ID,
+		CreatedAt:  s.createdAt,
+		LastUsedAt: s.lastUsedAt,
+		Model:      s.model,
+		Metadata:   s.metadata,
+	}
+
+	return info, nil
 }
 
 // claudeCodeSessionStream wraps a QueryStream for session management.
