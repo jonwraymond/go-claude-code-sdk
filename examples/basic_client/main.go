@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Claude Code Client Initialization Examples ===\n")
+	fmt.Println("=== Claude Code Client Initialization Examples ===")
 
 	// Example 1: Basic client with minimal configuration
 	basicClientExample()

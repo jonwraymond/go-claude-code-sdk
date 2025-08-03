@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Claude Code Streaming Queries Examples ===\n")
+	fmt.Println("=== Claude Code Streaming Queries Examples ===")
 
 	// Example 1: Basic streaming query
 	basicStreamingExample()

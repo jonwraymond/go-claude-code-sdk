@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Claude Code Synchronous Queries Examples ===\n")
+	fmt.Println("=== Claude Code Synchronous Queries Examples ===")
 
 	// Example 1: Basic synchronous query
 	basicSyncQueryExample()

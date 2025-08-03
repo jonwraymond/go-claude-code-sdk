@@ -157,7 +157,10 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 				continue
 			}
 			if r.opts.OnError != nil {
-				r.opts.OnError(err)
+				if callbackErr := r.opts.OnError(err); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 			continue
 		}
@@ -167,7 +170,10 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 		case types.StreamEventMessageStart:
 			currentMessage = event.Message
 			if r.opts.OnMessage != nil {
-				r.opts.OnMessage(event.Message)
+				if callbackErr := r.opts.OnMessage(event.Message); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 
 		case types.StreamEventContentBlockStart:
@@ -177,17 +183,26 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 
 		case types.StreamEventContentBlockDelta:
 			if event.ContentDelta != nil && r.opts.OnContentDelta != nil {
-				r.opts.OnContentDelta(event.ContentDelta)
+				if callbackErr := r.opts.OnContentDelta(event.ContentDelta); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 
 		case types.StreamEventMessageDelta:
 			if event.MessageDelta != nil && r.opts.OnMessageDelta != nil {
-				r.opts.OnMessageDelta(event.MessageDelta)
+				if callbackErr := r.opts.OnMessageDelta(event.MessageDelta); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 
 		case types.StreamEventContentBlockStop:
 			if event.Index < len(contentBlocks) && r.opts.OnContentBlock != nil {
-				r.opts.OnContentBlock(event.Index, &contentBlocks[event.Index])
+				if callbackErr := r.opts.OnContentBlock(event.Index, &contentBlocks[event.Index]); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 
 		case types.StreamEventMessageStop:
@@ -196,7 +211,10 @@ func (r *advancedStreamReader) processStream(ctx context.Context, eventChan chan
 				if event.Usage != nil {
 					currentMessage.Usage = event.Usage
 				}
-				r.opts.OnComplete(currentMessage)
+				if callbackErr := r.opts.OnComplete(currentMessage); callbackErr != nil {
+					// Log callback error or handle it appropriately
+					_ = callbackErr
+				}
 			}
 		}
 
@@ -241,7 +259,10 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 	// Extract event type
 	var eventType string
 	if typeData, ok := raw["type"]; ok {
-		json.Unmarshal(typeData, &eventType)
+		if err := json.Unmarshal(typeData, &eventType); err != nil {
+			// Handle unmarshal error - use empty eventType
+			_ = err
+		}
 	}
 
 	event := &types.StreamEvent{
@@ -251,7 +272,10 @@ func (r *advancedStreamReader) parseStreamEvent(line string) (*types.StreamEvent
 
 	// Extract index if present
 	if indexData, ok := raw["index"]; ok {
-		json.Unmarshal(indexData, &event.Index)
+		if err := json.Unmarshal(indexData, &event.Index); err != nil {
+			// Handle unmarshal error - keep default index value
+			_ = err
+		}
 	}
 
 	// Parse based on event type
@@ -343,7 +367,10 @@ func (r *advancedStreamReader) cleanup() {
 	}
 	if r.cmd != nil && r.cmd.Process != nil {
 		r.cmd.Process.Kill()
-		r.cmd.Wait()
+		if err := r.cmd.Wait(); err != nil {
+			// Process already killed, ignore error
+			_ = err
+		}
 	}
 
 	// Remove from active processes

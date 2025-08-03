@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Advanced Claude Code Client Examples ===\n")
+	fmt.Println("=== Advanced Claude Code Client Examples ===")
 
 	// Example 1: Client with timeout configuration
 	timeoutConfigurationExample()
@@ -110,7 +110,7 @@ func mcpServerExample() {
 	servers := claudeClient.ListMCPServers()
 	fmt.Printf("Current MCP servers: %d configured\n", len(servers))
 	for name, config := range servers {
-		fmt.Printf("  - %s: %s\n", name, config.Command[0])
+		fmt.Printf("  - %s: %s\n", name, config.Command)
 	}
 
 	// Add a common MCP server (filesystem)

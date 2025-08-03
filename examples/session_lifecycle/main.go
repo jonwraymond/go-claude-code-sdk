@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Claude Code Session Lifecycle Examples ===\n")
+	fmt.Println("=== Claude Code Session Lifecycle Examples ===")
 
 	// Example 1: Basic session creation and management
 	basicSessionExample()

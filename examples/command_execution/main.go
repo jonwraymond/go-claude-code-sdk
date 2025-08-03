@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Command Execution Examples ===\n")
+	fmt.Println("=== Command Execution Examples ===")
 
 	// Setup client for all examples
 	claudeClient := setupClient()

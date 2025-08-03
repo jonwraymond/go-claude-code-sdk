@@ -342,10 +342,21 @@ echo '%s'
 `, m.getMockResponse(args))
 
 		// Write mock script to temp file
-		tmpFile, _ := os.CreateTemp("", "claude-mock-*.sh")
-		tmpFile.WriteString(mockScript)
+		tmpFile, err := os.CreateTemp("", "claude-mock-*.sh")
+		if err != nil {
+			// Fallback to a basic mock if temp file creation fails
+			return exec.CommandContext(ctx, "echo", `{"error": "mock creation failed"}`)
+		}
+		if _, err := tmpFile.WriteString(mockScript); err != nil {
+			tmpFile.Close()
+			os.Remove(tmpFile.Name())
+			return exec.CommandContext(ctx, "echo", `{"error": "mock script write failed"}`)
+		}
 		tmpFile.Close()
-		os.Chmod(tmpFile.Name(), 0755)
+		if err := os.Chmod(tmpFile.Name(), 0755); err != nil {
+			os.Remove(tmpFile.Name())
+			return exec.CommandContext(ctx, "echo", `{"error": "mock script chmod failed"}`)
+		}
 
 		// Return command that executes our mock script
 		cmd := exec.CommandContext(ctx, tmpFile.Name())

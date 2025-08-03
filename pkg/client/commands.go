@@ -611,23 +611,7 @@ func (ce *CommandExecutor) getFullOutput(ctx context.Context, cmd *Command, trun
 	return ce.ExtractTextContent(response.Content), nil
 }
 
-// Helper functions for truncation detection
-func getLastWord(s string) string {
-	words := strings.Fields(s)
-	if len(words) == 0 {
-		return ""
-	}
-	return words[len(words)-1]
-}
-
-func isCompleteWord(word string) bool {
-	// Simple heuristic: if word ends with common punctuation, it's likely complete
-	if len(word) == 0 {
-		return true
-	}
-	lastChar := word[len(word)-1]
-	return lastChar == '.' || lastChar == ',' || lastChar == ';' || lastChar == ':' || lastChar == ')' || lastChar == ']' || lastChar == '}'
-}
+// Helper functions for truncation detection have been removed as they were unused
 
 // Common command builder methods
 

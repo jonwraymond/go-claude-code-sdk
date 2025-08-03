@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== MCP Server Integration Example ===\n")
+	fmt.Println("=== MCP Server Integration Example ===")
 
 	ctx := context.Background()
 	

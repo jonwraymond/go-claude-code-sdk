@@ -154,9 +154,6 @@ type StreamingResponse struct {
 
 	// Cancel cancels the streaming operation
 	Cancel func()
-
-	// reader is the underlying stream reader
-	reader StreamReader
 }
 
 // Collect waits for the stream to complete and returns the full message
