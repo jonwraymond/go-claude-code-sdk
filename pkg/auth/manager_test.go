@@ -24,7 +24,7 @@ func TestManager_StoreAPIKey(t *testing.T) {
 		{
 			name:    "valid API key",
 			id:      "test-api-key",
-			apiKey:  "sk-ant-api03-validtestkey123456789",
+			apiKey:  "test-api-key-not-real-validtestkey123456789",
 			wantErr: false,
 		},
 		{
@@ -132,7 +132,7 @@ func TestManager_GetAuthenticator(t *testing.T) {
 	apiKeyID := "test-api-key"
 	sessionKeyID := "test-session"
 
-	err := manager.StoreAPIKey(ctx, apiKeyID, "sk-ant-api03-validtestkey123456789")
+	err := manager.StoreAPIKey(ctx, apiKeyID, "test-api-key-not-real-validtestkey123456789")
 	if err != nil {
 		t.Fatalf("Failed to store API key: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestManager_DeleteCredential(t *testing.T) {
 
 	// Store and then delete
 	id := "test-delete"
-	err := manager.StoreAPIKey(ctx, id, "sk-ant-api03-validtestkey123456789")
+	err := manager.StoreAPIKey(ctx, id, "test-api-key-not-real-validtestkey123456789")
 	if err != nil {
 		t.Fatalf("Failed to store credential: %v", err)
 	}
@@ -215,9 +215,9 @@ func TestManager_ListCredentials(t *testing.T) {
 
 	// Store multiple credentials
 	creds := map[string]string{
-		"api-1": "sk-ant-api03-test1234567890123456",
-		"api-2": "sk-ant-api03-test2345678901234567",
-		"api-3": "sk-ant-api03-test3456789012345678",
+		"api-1": "test-api-key-not-real-test1234567890123456",
+		"api-2": "test-api-key-not-real-test2345678901234567",
+		"api-3": "test-api-key-not-real-test3456789012345678",
 	}
 
 	for id, key := range creds {
@@ -397,7 +397,7 @@ func TestManager_RefreshCredential(t *testing.T) {
 
 	// Test refresh for API key (should not error)
 	apiKeyID := "api-refresh-test"
-	err = manager.StoreAPIKey(ctx, apiKeyID, "sk-ant-api03-validtestkey123456789")
+	err = manager.StoreAPIKey(ctx, apiKeyID, "test-api-key-not-real-validtestkey123456789")
 	if err != nil {
 		t.Fatalf("Failed to store API key: %v", err)
 	}

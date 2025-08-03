@@ -82,7 +82,7 @@ func main() {
 		WorkingDirectory: ".",
 		SessionID:        "fallback-example",
 		Model:            "claude-3-5-sonnet-20241022",
-		APIKey:           "sk-ant-api03-your-api-key-here", // Replace with your API key
+		APIKey:           "test-api-key-not-real-your-api-key-here", // Replace with your API key
 		AuthMethod:       types.AuthTypeAPIKey,
 	}
 

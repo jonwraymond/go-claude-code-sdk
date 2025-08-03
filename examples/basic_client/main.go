@@ -76,7 +76,7 @@ func apiKeyClientExample() {
 		fmt.Printf("✓ Using API key from environment\n")
 	} else {
 		// Use a placeholder for demonstration
-		config.APIKey = "sk-ant-api03-..." // Your actual API key
+		config.APIKey = "test-api-key-not-real-..." // Your actual API key
 		config.AuthMethod = types.AuthTypeAPIKey
 		fmt.Printf("⚠ Using placeholder API key (set ANTHROPIC_API_KEY environment variable)\n")
 	}

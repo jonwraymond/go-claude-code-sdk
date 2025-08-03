@@ -134,7 +134,7 @@ npm install -g @anthropic-ai/claude-code
 claude setup-token
 
 # Option B: Use API key
-export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+export ANTHROPIC_API_KEY="test-api-key-not-real-your-key-here"
 ```
 
 ### 4. Write your first program
@@ -203,7 +203,7 @@ The SDK will automatically detect and use subscription authentication when avail
 
 ```bash
 # Set your API key as an environment variable
-export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+export ANTHROPIC_API_KEY="test-api-key-not-real-your-key-here"
 ```
 
 Or configure it directly in code:
@@ -726,7 +726,7 @@ Error: authentication failed: invalid API key
 **Solutions**:
 1. **For API Key Authentication**:
    ```bash
-   export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
+   export ANTHROPIC_API_KEY="test-api-key-not-real-your-key-here"
    ```
    Or set it directly in code:
    ```go
