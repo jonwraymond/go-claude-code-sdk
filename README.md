@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Compatible-blue.svg)](https://github.com/anthropics/claude-code)
 [![Test Status](https://img.shields.io/badge/Tests-Passing-green.svg)](#testing)
-[![Go Version](https://img.shields.io/badge/Go-1.20+-blue.svg)](https://golang.org/doc/devel/release.html)
+[![Go Version](https://img.shields.io/badge/Go-1.20%2B-blue.svg)](https://golang.org/doc/devel/release.html)
 [![Coverage](https://img.shields.io/badge/Coverage-85%25-green.svg)](#testing)
 
 A comprehensive Go SDK providing programmatic access to the [Claude Code CLI](https://github.com/anthropics/claude-code). This SDK offers idiomatic Go interfaces for subprocess-based Claude Code integration, enabling powerful AI-assisted development workflows directly from Go applications.
@@ -99,7 +99,7 @@ The Go Claude Code SDK provides a production-ready Go wrapper for the Claude Cod
 
 ### Prerequisites
 
-- **Go 1.20 or higher** - The SDK uses modern Go features and requires Go 1.20+
+- **Go 1.20 or higher** - The SDK uses modern Go features and requires Go 1.20+ (tested up to Go 1.24)
 - **Claude Code CLI** - Install the official Claude Code CLI:
   ```bash
   npm install -g @anthropic-ai/claude-code
@@ -539,7 +539,8 @@ messages, err := client.QueryMessages(ctx, "Long running task", nil)
 - ✅ **Go 1.20** - Minimum required version
 - ✅ **Go 1.21** - Fully supported with enhanced features
 - ✅ **Go 1.22** - Latest features and optimizations
-- ✅ **Go 1.23** - Beta support (tested but not guaranteed)
+- ✅ **Go 1.23** - Stable, fully tested and supported
+- ✅ **Go 1.24** - Latest version, fully tested and supported
 
 ### Claude Code CLI
 - ✅ **Latest Version** - Always recommended for best compatibility
