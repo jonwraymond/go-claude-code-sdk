@@ -302,8 +302,9 @@ func ClassifyAuthError(statusCode int, responseBody []byte, headers http.Header)
 	case http.StatusForbidden:
 		return classifyForbiddenError(responseBody, headers)
 	default:
-		return NewAuthenticationError("unknown", fmt.Sprintf("HTTP %d", statusCode)).
-			BaseError.WithHTTPStatus(statusCode)
+		authErr := NewAuthenticationError("unknown", fmt.Sprintf("HTTP %d", statusCode))
+		authErr.WithHTTPStatus(statusCode)
+		return authErr
 	}
 }
 

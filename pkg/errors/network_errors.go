@@ -224,13 +224,17 @@ func ClassifyNetworkError(err error) SDKError {
 			"Operation was canceled").WithCause(err).WithRetryable(false)
 	}
 	if err == context.DeadlineExceeded {
-		return NewTimeoutError("context", 0, 0).BaseError.WithCause(err)
+		timeoutErr := NewTimeoutError("context", 0, 0)
+		timeoutErr.WithCause(err)
+		return timeoutErr
 	}
 
 	// Check for net.Error interface
 	if netErr, ok := err.(net.Error); ok {
 		if netErr.Timeout() {
-			return NewTimeoutError("network operation", 0, 0).BaseError.WithCause(err)
+			timeoutErr := NewTimeoutError("network operation", 0, 0)
+			timeoutErr.WithCause(err)
+			return timeoutErr
 		}
 		if netErr.Temporary() {
 			return NewNetworkError("network operation", "", err)
@@ -273,7 +277,9 @@ func classifyOpError(opErr *net.OpError) SDKError {
 	}
 
 	if opErr.Timeout() {
-		return NewTimeoutError(op, 0, 0).BaseError.WithCause(opErr)
+		timeoutErr := NewTimeoutError(op, 0, 0)
+		timeoutErr.WithCause(opErr)
+		return timeoutErr
 	}
 
 	// Check the underlying error
@@ -295,7 +301,9 @@ func classifyOpError(opErr *net.OpError) SDKError {
 // classifyURLError analyzes a url.Error and creates an appropriate error type.
 func classifyURLError(urlErr *url.Error) SDKError {
 	if urlErr.Timeout() {
-		return NewTimeoutError(urlErr.Op, 0, 0).BaseError.WithCause(urlErr)
+		timeoutErr := NewTimeoutError(urlErr.Op, 0, 0)
+		timeoutErr.WithCause(urlErr)
+		return timeoutErr
 	}
 
 	// Recursively classify the underlying error
