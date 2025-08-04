@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Claude SDK Performance Benchmarks ===\n")
+	fmt.Println("=== Claude SDK Performance Benchmarks ===")
 
 	// System info
 	printSystemInfo()
@@ -319,7 +319,6 @@ func benchmark5MessageProcessing() {
 		// Generate content
 		content := generateContent(ms.size)
 
-		ctx := context.Background()
 		iterations := 100
 
 		processingTimes := make([]time.Duration, iterations)

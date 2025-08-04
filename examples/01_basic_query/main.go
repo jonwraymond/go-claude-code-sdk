@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Basic Query Examples ===\n")
+	fmt.Println("=== Basic Query Examples ===")
 
 	// Example 1: Simple query with default options
 	example1SimpleQuery()

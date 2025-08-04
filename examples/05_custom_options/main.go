@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Custom Options Examples ===\n")
+	fmt.Println("=== Custom Options Examples ===")
 
 	// Example 1: Tool restrictions
 	example1ToolRestrictions()
@@ -288,16 +288,16 @@ func example5MCPServers() {
 	// Configure MCP servers
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-filesystem"},
-			Env: map[string]string{
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-filesystem"},
+			"env": map[string]string{
 				"MCP_READ_ONLY": "true",
 			},
 		},
 		"github": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-github"},
-			Env: map[string]string{
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-github"},
+			"env": map[string]string{
 				"GITHUB_TOKEN": os.Getenv("GITHUB_TOKEN"),
 			},
 		},
@@ -308,7 +308,9 @@ func example5MCPServers() {
 
 	fmt.Println("Configured MCP servers:")
 	for name, config := range options.MCPServers {
-		fmt.Printf("  - %s: %s %v\n", name, config.Command, config.Args)
+		if cmd, ok := config["command"]; ok {
+			fmt.Printf("  - %s: %v %v\n", name, cmd, config["args"])
+		}
 	}
 	fmt.Printf("Enabled MCP tools: %v\n\n", options.MCPTools)
 

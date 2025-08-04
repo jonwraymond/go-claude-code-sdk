@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Tool Usage Examples ===\n")
+	fmt.Println("=== Tool Usage Examples ===")
 
 	// Example 1: Basic tool usage
 	example1BasicToolUsage()
@@ -219,15 +219,12 @@ func example3ToolResultHandling() {
 
 	msgChan := claudecode.Query(ctx, query, options)
 
-	currentToolUse := ""
-
 	for msg := range msgChan {
 		switch m := msg.(type) {
 		case *claudecode.AssistantMessage:
 			for _, block := range m.Content {
 				switch b := block.(type) {
 				case claudecode.ToolUseBlock:
-					currentToolUse = b.ID
 					fmt.Printf("🔧 Tool Use: %s (ID: %s)\n", b.Name, b.ID)
 
 					result := ToolResult{

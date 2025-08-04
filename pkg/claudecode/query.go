@@ -102,15 +102,13 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 
 		defer func() { _ = t.Disconnect() }()
 
-		// Send initial message
+		// Send initial message in the format expected by Claude CLI
 		message := map[string]interface{}{
-			"type":               "user",
-			"message":            map[string]interface{}{"role": "user", "content": prompt},
-			"parent_tool_use_id": nil,
-			"session_id":         "default",
+			"role":    "user",
+			"content": prompt,
 		}
 
-		if err := t.SendRequest([]map[string]interface{}{message}, map[string]interface{}{"session_id": "default"}); err != nil {
+		if err := t.SendRequest([]map[string]interface{}{message}, nil); err != nil {
 			msgChan <- &types.SystemMessage{
 				Subtype: "error",
 				Data: map[string]interface{}{
@@ -119,6 +117,9 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 			}
 			return
 		}
+
+		// For one-shot queries, close stdin to signal completion
+		_ = t.CloseStdin()
 
 		// Receive messages
 		for {

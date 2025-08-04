@@ -166,15 +166,25 @@ func parseUserMessageFromRaw(raw map[string]interface{}) (*types.UserMessage, er
 func parseAssistantMessageFromRaw(raw map[string]interface{}) (*types.AssistantMessage, error) {
 	var content []types.ContentBlock
 
+	// Check if content is directly on the root object
+	var contentArray []interface{}
+	
 	if contentRaw, ok := raw["content"].([]interface{}); ok {
-		for _, blockRaw := range contentRaw {
-			if blockMap, ok := blockRaw.(map[string]interface{}); ok {
-				block, err := parseContentBlockFromRaw(blockMap)
-				if err != nil {
-					return nil, err
-				}
-				content = append(content, block)
+		contentArray = contentRaw
+	} else if message, ok := raw["message"].(map[string]interface{}); ok {
+		// Check if content is nested inside a "message" object (Claude CLI format)
+		if contentRaw, ok := message["content"].([]interface{}); ok {
+			contentArray = contentRaw
+		}
+	}
+
+	for _, blockRaw := range contentArray {
+		if blockMap, ok := blockRaw.(map[string]interface{}); ok {
+			block, err := parseContentBlockFromRaw(blockMap)
+			if err != nil {
+				return nil, err
 			}
+			content = append(content, block)
 		}
 	}
 

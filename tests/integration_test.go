@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -13,11 +14,39 @@ import (
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
-// TestBasicQuery tests basic query functionality
-func TestBasicQuery(t *testing.T) {
+// isClaudeAvailable checks if Claude CLI is available and can potentially run queries
+func isClaudeAvailable() bool {
+	// Check if claude command exists
+	_, err := exec.LookPath("claude")
+	if err != nil {
+		return false
+	}
+
+	// Try a simple version check that should work even without full auth
+	cmd := exec.Command("claude", "--version")
+	err = cmd.Run()
+	return err == nil
+}
+
+// skipIfClaudeUnavailable skips the test if Claude CLI is not available
+func skipIfClaudeUnavailable(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
+	
+	if !isClaudeAvailable() {
+		t.Skip("Claude CLI not available - skipping integration test")
+	}
+	
+	// Check if we have an API key
+	if os.Getenv("ANTHROPIC_API_KEY") == "" {
+		t.Skip("ANTHROPIC_API_KEY not set - skipping integration test")
+	}
+}
+
+// TestBasicQuery tests basic query functionality
+func TestBasicQuery(t *testing.T) {
+	skipIfClaudeUnavailable(t)
 
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "What is 2+2?", nil)
@@ -50,9 +79,7 @@ func TestBasicQuery(t *testing.T) {
 
 // TestQueryWithOptions tests query with custom options
 func TestQueryWithOptions(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	options := claudecode.NewClaudeCodeOptions()
 	options.SystemPrompt = claudecode.StringPtr("You are a helpful math tutor. Be concise.")
@@ -73,9 +100,7 @@ func TestQueryWithOptions(t *testing.T) {
 
 // TestInteractiveClient tests interactive client functionality
 func TestInteractiveClient(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()
@@ -111,9 +136,7 @@ func TestInteractiveClient(t *testing.T) {
 
 // TestMultipleSessions tests multiple concurrent sessions
 func TestMultipleSessions(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()
@@ -154,9 +177,7 @@ func TestMultipleSessions(t *testing.T) {
 
 // TestContextCancellation tests context cancellation
 func TestContextCancellation(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
@@ -177,9 +198,7 @@ func TestContextCancellation(t *testing.T) {
 
 // TestErrorHandling tests various error scenarios
 func TestErrorHandling(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	tests := []struct {
 		name        string
@@ -231,9 +250,7 @@ func TestErrorHandling(t *testing.T) {
 
 // TestToolUsage tests tool usage functionality
 func TestToolUsage(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	options := claudecode.NewClaudeCodeOptions()
 	options.AllowedTools = []string{"Read", "Write"}
@@ -260,9 +277,7 @@ func TestToolUsage(t *testing.T) {
 
 // TestPermissionModes tests different permission modes
 func TestPermissionModes(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	testDir := t.TempDir()
 
@@ -301,9 +316,7 @@ func TestPermissionModes(t *testing.T) {
 
 // TestQuerySync tests synchronous query functionality
 func TestQuerySync(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	ctx := context.Background()
 	messages, err := claudecode.QuerySync(ctx, "What is the capital of Japan?", nil)
@@ -330,9 +343,7 @@ func TestQuerySync(t *testing.T) {
 
 // TestInterrupt tests interrupt functionality
 func TestInterrupt(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()
@@ -369,9 +380,7 @@ func TestInterrupt(t *testing.T) {
 
 // TestReceiveResponse tests the ReceiveResponse convenience method
 func TestReceiveResponse(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+	skipIfClaudeUnavailable(t)
 
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()

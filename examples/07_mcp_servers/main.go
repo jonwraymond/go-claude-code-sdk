@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== MCP Server Examples ===\n")
+	fmt.Println("=== MCP Server Examples ===")
 
 	// Example 1: Basic MCP server setup
 	example1BasicMCPSetup()
@@ -127,7 +127,9 @@ func example2MultipleMCPServers() {
 
 	fmt.Println("📡 Configured multiple MCP servers:")
 	for name, config := range options.MCPServers {
-		fmt.Printf("   - %s: %s %v\n", name, config.Command, config.Args)
+		if cmd, ok := config["command"]; ok {
+			fmt.Printf("   - %s: %v %v\n", name, cmd, config["args"])
+		}
 	}
 	fmt.Printf("\n🔧 Enabled MCP tools: %v\n\n", options.MCPTools)
 
@@ -210,9 +212,9 @@ func example3MCPWithEnv() {
 	// Configure MCP server with environment variables
 	options.MCPServers = map[string]types.McpServerConfig{
 		"custom": {
-			Command: "node",
-			Args:    []string{"./custom-mcp-server.js"},
-			Env: map[string]string{
+			"command": "node",
+			"args":    []string{"./custom-mcp-server.js"},
+			"env": map[string]string{
 				"API_KEY":     "${MCP_API_KEY}",     // Will be expanded
 				"DEBUG":       "${MCP_DEBUG}",       // Will be expanded
 				"CUSTOM_PATH": "${MCP_CUSTOM_PATH}", // Will be expanded
@@ -227,13 +229,17 @@ func example3MCPWithEnv() {
 		fmt.Printf("     %s=%s\n", key, value)
 	}
 	fmt.Println("\n   MCP server will receive:")
-	for key, value := range options.MCPServers["custom"].Env {
-		expanded := os.ExpandEnv(value)
-		fmt.Printf("     %s=%s", key, value)
-		if expanded != value {
-			fmt.Printf(" → %s", expanded)
+	if customConfig, ok := options.MCPServers["custom"]; ok {
+		if env, ok := customConfig["env"].(map[string]string); ok {
+			for key, value := range env {
+				expanded := os.ExpandEnv(value)
+				fmt.Printf("     %s=%s", key, value)
+				if expanded != value {
+					fmt.Printf(" → %s", expanded)
+				}
+				fmt.Println()
+			}
 		}
-		fmt.Println()
 	}
 
 	// Test with environment-dependent behavior
@@ -262,8 +268,8 @@ func example4MCPToolFiltering() {
 	// Set up MCP server with many tools
 	options.MCPServers = map[string]types.McpServerConfig{
 		"toolkit": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-toolkit"},
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-toolkit"},
 		},
 	}
 
@@ -350,9 +356,9 @@ func example5CustomMCPServers() {
 		{
 			name: "docker",
 			config: types.McpServerConfig{
-				Command: "docker",
-				Args:    []string{"run", "--rm", "-i", "custom/mcp-docker:latest"},
-				Env: map[string]string{
+				"command": "docker",
+				"args":    []string{"run", "--rm", "-i", "custom/mcp-docker:latest"},
+				"env": map[string]string{
 					"DOCKER_HOST": "unix:///var/run/docker.sock",
 				},
 			},
@@ -361,9 +367,9 @@ func example5CustomMCPServers() {
 		{
 			name: "python-script",
 			config: types.McpServerConfig{
-				Command: "python3",
-				Args:    []string{"-m", "mcp_server", "--port", "8080"},
-				Env: map[string]string{
+				"command": "python3",
+				"args":    []string{"-m", "mcp_server", "--port", "8080"},
+				"env": map[string]string{
 					"PYTHONPATH": "./mcp_modules",
 				},
 			},
@@ -372,9 +378,9 @@ func example5CustomMCPServers() {
 		{
 			name: "remote-server",
 			config: types.McpServerConfig{
-				Command: "mcp-client",
-				Args:    []string{"--connect", "wss://mcp.example.com/ws"},
-				Env: map[string]string{
+				"command": "mcp-client",
+				"args":    []string{"--connect", "wss://mcp.example.com/ws"},
+				"env": map[string]string{
 					"MCP_AUTH_TOKEN": "${MCP_REMOTE_TOKEN}",
 					"MCP_CLIENT_ID":  "claude-sdk-example",
 				},
@@ -384,22 +390,24 @@ func example5CustomMCPServers() {
 		{
 			name: "local-binary",
 			config: types.McpServerConfig{
-				Command: "./bin/mcp-server",
-				Args:    []string{"--config", "./config/mcp.yaml"},
-				Env:     map[string]string{},
+				"command": "./bin/mcp-server",
+				"args":    []string{"--config", "./config/mcp.yaml"},
+				"env":     map[string]string{},
 			},
 			desc: "Local binary MCP server",
 		},
 	}
 
-	fmt.Println("📡 Custom MCP Server Configurations:\n")
+	fmt.Println("📡 Custom MCP Server Configurations:")
 
 	for _, server := range customServers {
 		fmt.Printf("🔧 %s - %s\n", server.name, server.desc)
-		fmt.Printf("   Command: %s %v\n", server.config.Command, server.config.Args)
-		if len(server.config.Env) > 0 {
+		if cmd, ok := server.config["command"]; ok {
+			fmt.Printf("   Command: %v %v\n", cmd, server.config["args"])
+		}
+		if envMap, ok := server.config["env"].(map[string]string); ok && len(envMap) > 0 {
 			fmt.Printf("   Environment:\n")
-			for key, value := range server.config.Env {
+			for key, value := range envMap {
 				fmt.Printf("     %s=%s\n", key, value)
 			}
 		}
@@ -446,21 +454,21 @@ func example5CustomMCPServers() {
 	// Complex multi-server setup
 	advancedOptions.MCPServers = map[string]types.McpServerConfig{
 		"orchestrator": {
-			Command: "mcp-orchestrator",
-			Args:    []string{"--mode", "distributed"},
-			Env: map[string]string{
+			"command": "mcp-orchestrator",
+			"args":    []string{"--mode", "distributed"},
+			"env": map[string]string{
 				"MCP_CLUSTER_NODES": "node1:8080,node2:8080,node3:8080",
 				"MCP_LOAD_BALANCE":  "round-robin",
 			},
 		},
 		"cache": {
-			Command: "mcp-cache-server",
-			Args:    []string{"--ttl", "3600", "--max-size", "1GB"},
+			"command": "mcp-cache-server",
+			"args":    []string{"--ttl", "3600", "--max-size", "1GB"},
 		},
 		"security": {
-			Command: "mcp-security-server",
-			Args:    []string{"--audit-log", "/var/log/mcp-audit.log"},
-			Env: map[string]string{
+			"command": "mcp-security-server",
+			"args":    []string{"--audit-log", "/var/log/mcp-audit.log"},
+			"env": map[string]string{
 				"MCP_SECURITY_LEVEL": "high",
 				"MCP_ENCRYPT_DATA":   "true",
 			},

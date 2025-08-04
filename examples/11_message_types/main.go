@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Message Types Examples ===\n")
+	fmt.Println("=== Message Types Examples ===")
 
 	// Example 1: User messages
 	example1UserMessages()
@@ -414,9 +414,9 @@ func example5ContentBlocks() {
 					fmt.Printf("       ID: %s\n", b.ID)
 
 					// Show input parameters
-					if inputMap, ok := b.Input.(map[string]interface{}); ok {
+					if len(b.Input) > 0 {
 						fmt.Printf("       Parameters:\n")
-						for key, value := range inputMap {
+						for key, value := range b.Input {
 							valueStr := fmt.Sprintf("%v", value)
 							if len(valueStr) > 50 {
 								valueStr = valueStr[:50] + "..."

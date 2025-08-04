@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Multi-Session Examples ===\n")
+	fmt.Println("=== Multi-Session Examples ===")
 
 	// Example 1: Basic multi-session
 	example1BasicMultiSession()
@@ -258,10 +258,6 @@ func example3SessionIsolation() {
 	if err := client.Connect(ctx); err != nil {
 		log.Fatal("Failed to connect:", err)
 	}
-
-	// Track context by session
-	sessionContext := make(map[string]map[string]interface{})
-	var mu sync.Mutex
 
 	go func() {
 		for msg := range client.ReceiveMessages() {

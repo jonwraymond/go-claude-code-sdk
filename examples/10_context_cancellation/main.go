@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Context Cancellation Examples ===\n")
+	fmt.Println("=== Context Cancellation Examples ===")
 
 	// Example 1: Basic timeout
 	example1BasicTimeout()

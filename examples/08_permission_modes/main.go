@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Permission Mode Examples ===\n")
+	fmt.Println("=== Permission Mode Examples ===")
 
 	// Example 1: Default permission mode
 	example1DefaultMode()
@@ -34,7 +34,7 @@ func main() {
 func example1DefaultMode() {
 	fmt.Println("Example 1: Default Permission Mode")
 	fmt.Println("----------------------------------")
-	fmt.Println("In default mode, Claude will ask for permission before making changes.\n")
+	fmt.Println("In default mode, Claude will ask for permission before making changes.")
 
 	// Create test directory
 	testDir, err := os.MkdirTemp("", "claude-perm-default")
@@ -57,7 +57,7 @@ func example1DefaultMode() {
 	fmt.Printf("📁 Working directory: %s\n", testDir)
 	fmt.Println("📝 Task: Update config.json to enable debug mode")
 	fmt.Println("\nIn default mode, you would normally see permission prompts.")
-	fmt.Println("For this example, we'll simulate the behavior.\n")
+	fmt.Println("For this example, we'll simulate the behavior.")
 
 	msgChan := claudecode.Query(ctx,
 		fmt.Sprintf("Update the config.json file to set debug to true. The file is at %s", testFile),
@@ -97,7 +97,7 @@ func example1DefaultMode() {
 func example2AcceptEditsMode() {
 	fmt.Println("Example 2: Accept Edits Mode")
 	fmt.Println("----------------------------")
-	fmt.Println("In accept-edits mode, file edits are automatically approved.\n")
+	fmt.Println("In accept-edits mode, file edits are automatically approved.")
 
 	testDir, err := os.MkdirTemp("", "claude-perm-accept")
 	if err != nil {
@@ -130,7 +130,7 @@ func example2AcceptEditsMode() {
 	fmt.Printf("📁 Working directory: %s\n", testDir)
 	fmt.Printf("📝 Created files: %v\n", files)
 	fmt.Println("\n🔓 Permission mode: ACCEPT EDITS")
-	fmt.Println("   All file modifications will be automatically approved.\n")
+	fmt.Println("   All file modifications will be automatically approved.")
 
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx,
@@ -148,10 +148,8 @@ func example2AcceptEditsMode() {
 				case claudecode.ToolUseBlock:
 					if b.Name == "Edit" || b.Name == "Write" {
 						editsPerformed++
-						if input, ok := b.Input.(map[string]interface{}); ok {
-							if filePath, ok := input["file_path"].(string); ok {
-								filesModified = append(filesModified, filepath.Base(filePath))
-							}
+						if filePath, ok := b.Input["file_path"].(string); ok {
+							filesModified = append(filesModified, filepath.Base(filePath))
 						}
 						fmt.Printf("✅ Auto-approved edit #%d\n", editsPerformed)
 					}
@@ -179,7 +177,7 @@ func example2AcceptEditsMode() {
 func example3BypassMode() {
 	fmt.Println("Example 3: Bypass Permissions Mode")
 	fmt.Println("----------------------------------")
-	fmt.Println("In bypass mode, all operations proceed without any permission checks.\n")
+	fmt.Println("In bypass mode, all operations proceed without any permission checks.")
 
 	testDir, err := os.MkdirTemp("", "claude-perm-bypass")
 	if err != nil {
@@ -198,7 +196,7 @@ func example3BypassMode() {
 	fmt.Printf("📁 Working directory: %s\n", testDir)
 	fmt.Println("\n⚡ Permission mode: BYPASS PERMISSIONS")
 	fmt.Println("   All operations will proceed without permission checks.")
-	fmt.Println("   Use with caution!\n")
+	fmt.Println("   Use with caution!")
 
 	// Track operations
 	operations := make(map[string]int)
@@ -271,7 +269,7 @@ func example3BypassMode() {
 func example4InteractivePermissions() {
 	fmt.Println("Example 4: Interactive Permission Handling")
 	fmt.Println("------------------------------------------")
-	fmt.Println("Simulating interactive permission decisions.\n")
+	fmt.Println("Simulating interactive permission decisions.")
 
 	testDir, err := os.MkdirTemp("", "claude-perm-interactive")
 	if err != nil {
@@ -303,8 +301,6 @@ func example4InteractivePermissions() {
 	options := claudecode.NewClaudeCodeOptions()
 	options.CWD = &testDir
 	options.AllowedTools = []string{"Write", "Edit", "Bash", "Read"}
-
-	ctx := context.Background()
 
 	// Test various operations
 	testOperations := []struct {

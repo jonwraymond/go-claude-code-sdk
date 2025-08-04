@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Real World Application Examples ===\n")
+	fmt.Println("=== Real World Application Examples ===")
 
 	// Example 1: Code reviewer
 	example1CodeReviewer()
@@ -177,11 +177,9 @@ func (c *Calculator) Factorial(n int) int {
 			for _, block := range assistantMsg.Content {
 				if toolUse, ok := block.(claudecode.ToolUseBlock); ok {
 					if toolUse.Name == "Write" {
-						if input, ok := toolUse.Input.(map[string]interface{}); ok {
-							if filepath, ok := input["file_path"].(string); ok {
-								filesCreated = append(filesCreated, filepath)
-								fmt.Printf("   ✅ Generated: %s\n", filepath)
-							}
+						if filepath, ok := toolUse.Input["file_path"].(string); ok {
+							filesCreated = append(filesCreated, filepath)
+							fmt.Printf("   ✅ Generated: %s\n", filepath)
 						}
 					}
 				}
@@ -478,15 +476,14 @@ Requirements:
 			for _, block := range assistantMsg.Content {
 				if toolUse, ok := block.(claudecode.ToolUseBlock); ok {
 					if toolUse.Name == "Write" {
-						if input, ok := toolUse.Input.(map[string]interface{}); ok {
-							file := GeneratedFile{
-								Path: input["file_path"].(string),
-							}
-							if content, ok := input["content"].(string); ok {
-								file.Lines = countLines(content)
-							}
-							generatedFiles = append(generatedFiles, file)
+						file := GeneratedFile{}
+						if filePath, ok := toolUse.Input["file_path"].(string); ok {
+							file.Path = filePath
 						}
+						if content, ok := toolUse.Input["content"].(string); ok {
+							file.Lines = countLines(content)
+						}
+						generatedFiles = append(generatedFiles, file)
 					}
 				}
 			}

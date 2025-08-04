@@ -60,7 +60,7 @@ func (t *SubprocessCLITransport) Connect() error {
 	env = append(env, "CLAUDE_CODE_ENTRYPOINT=sdk-go")
 
 	// Create the command with appropriate args
-	args := []string{"code", "start", "--streaming"}
+	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
 
 	// Add options as CLI flags
 	if t.options != nil {
@@ -190,11 +190,33 @@ func (t *SubprocessCLITransport) SendRequest(messages []map[string]interface{}, 
 		return NewClaudeSDKError("Failed to marshal request", err)
 	}
 
+	if t.stdin == nil {
+		return NewCLIConnectionError("stdin already closed", nil)
+	}
+
 	_, err = t.stdin.Write(append(data, '\n'))
 	if err != nil {
 		return NewCLIConnectionError("Failed to write to Claude CLI", err)
 	}
 
+	// For one-shot queries, close stdin to signal end of input
+	// This is determined by checking if we're in a simple Query vs interactive Client
+	// Interactive clients need to keep stdin open for multiple messages
+	// We'll leave stdin open for now and close it in Disconnect()
+
+	return nil
+}
+
+// CloseStdin closes the stdin pipe to signal end of input.
+func (t *SubprocessCLITransport) CloseStdin() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.stdin != nil {
+		err := t.stdin.Close()
+		t.stdin = nil
+		return err
+	}
 	return nil
 }
 

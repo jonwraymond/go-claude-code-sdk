@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Streaming Query Examples ===\n")
+	fmt.Println("=== Streaming Query Examples ===")
 
 	// Example 1: Basic streaming with real-time output
 	example1BasicStreaming()
@@ -150,13 +150,8 @@ func example4StreamingTools() {
 					fmt.Printf("\n🔧 Tool Use #%d: %s\n", toolUseCount, b.Name)
 
 					// Show tool parameters
-					switch params := b.Input.(type) {
-					case map[string]interface{}:
-						for key, value := range params {
-							fmt.Printf("   %s: %v\n", key, value)
-						}
-					default:
-						fmt.Printf("   Input: %v\n", b.Input)
+					for key, value := range b.Input {
+						fmt.Printf("   %s: %v\n", key, value)
 					}
 				}
 			}
@@ -171,7 +166,7 @@ func example4StreamingTools() {
 			if m.TotalCostUSD != nil {
 				fmt.Printf("\n   Cost: $%.6f", *m.TotalCostUSD)
 			}
-			fmt.Println("\n")
+			fmt.Println()
 		}
 	}
 }

@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -14,7 +12,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Interactive Client Examples ===\n")
+	fmt.Println("=== Interactive Client Examples ===")
 
 	// Example 1: Basic interactive session
 	example1BasicInteractive()
@@ -61,7 +59,7 @@ func example1BasicInteractive() {
 
 	// Wait for response
 	time.Sleep(3 * time.Second)
-	fmt.Println("\n---Session 1 Complete---\n")
+	fmt.Println("\n---Session 1 Complete---")
 }
 
 func example2MultiTurnConversation() {
@@ -104,7 +102,7 @@ func example2MultiTurnConversation() {
 	}
 
 	close(done)
-	fmt.Println("\n---Multi-turn Tutorial Complete---\n")
+	fmt.Println("\n---Multi-turn Tutorial Complete---")
 }
 
 func example3StatefulCoding() {
@@ -157,7 +155,7 @@ func example3StatefulCoding() {
 		}
 	}
 
-	fmt.Println("\n---Stateful Project Building Complete---\n")
+	fmt.Println("\n---Stateful Project Building Complete---")
 }
 
 func example4ContextAware() {
@@ -184,7 +182,7 @@ func example4ContextAware() {
 	}()
 
 	fmt.Println("Interactive session started. Type 'exit' to quit.")
-	fmt.Println("Try asking about something, then refer back to it!\n")
+	fmt.Println("Try asking about something, then refer back to it!")
 
 	// Demo conversation
 	demoQueries := []string{

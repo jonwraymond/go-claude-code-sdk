@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Error Handling Examples ===\n")
+	fmt.Println("=== Error Handling Examples ===")
 
 	// Example 1: Connection errors
 	example1ConnectionErrors()

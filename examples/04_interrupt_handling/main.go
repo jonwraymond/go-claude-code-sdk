@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Interrupt Handling Examples ===\n")
+	fmt.Println("=== Interrupt Handling Examples ===")
 
 	// Example 1: Basic interrupt
 	example1BasicInterrupt()
@@ -88,7 +88,7 @@ func example1BasicInterrupt() {
 
 	// Give some time to see the effect
 	time.Sleep(1 * time.Second)
-	fmt.Println("✅ Interrupt handled successfully\n")
+	fmt.Println("✅ Interrupt handled successfully")
 }
 
 func example2InterruptWithFollowup() {
