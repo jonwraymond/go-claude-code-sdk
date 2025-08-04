@@ -224,9 +224,8 @@ func ClassifyNetworkError(err error) SDKError {
 			"Operation was canceled").WithCause(err).WithRetryable(false)
 	}
 	if err == context.DeadlineExceeded {
-		timeoutErr := NewTimeoutError("context", 0, 0)
-		timeoutErr.WithCause(err)
-		return timeoutErr
+		return NewBaseError(CategoryNetwork, SeverityMedium, "CONTEXT_DEADLINE_EXCEEDED",
+			"Operation timed out").WithCause(err).WithRetryable(true)
 	}
 
 	// Check for net.Error interface

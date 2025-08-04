@@ -16,7 +16,7 @@ func TestValidator_ValidateAPIKey(t *testing.T) {
 	}{
 		{
 			name:    "valid API key",
-			apiKey:  "test-api-key-not-real-abcdefghijklmnopqrstuvwxyz123456789",
+			apiKey:  "sk-ant-api03-validtest-key-abcdefghijklmnopqrstuvwxyz123456789",
 			wantErr: false,
 		},
 		{
@@ -220,7 +220,7 @@ func TestValidator_isTestKey(t *testing.T) {
 		key    string
 		isTest bool
 	}{
-		{"normal key", "test-api-key-not-real-randomstringdata", false},
+		{"normal key", "sk-ant-api03-validtest-randomstringdata12345678", false},
 		{"test key", "sk-ant-test-123456789", true},
 		{"example key", "sk-ant-example-abcdef", true},
 		{"demo key", "sk-ant-demo-xyz", true},
