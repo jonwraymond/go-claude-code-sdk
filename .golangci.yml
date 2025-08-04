@@ -1,15 +1,16 @@
 # golangci-lint configuration
 # https://golangci-lint.run/usage/configuration/
 
+version: 2
+
 run:
   timeout: 5m
   tests: true
   build-tags:
     - integration
   skip-dirs:
-    - examples
-  skip-files:
-    - ".*_test.go"
+    - "examples"
+  skip-dirs-use-default: false
 
 output:
   format: colored-line-number
@@ -19,26 +20,20 @@ output:
 
 linters:
   enable:
-    # Default linters
+    # Default linters (enabled by default)
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
     
-    # Additional linters
+    # Additional useful linters
     - bodyclose
     - dupl
-    - exportloopref
-    - gci
     - gocognit
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
     - goprintffuncname
     - gosec
     - lll
@@ -48,7 +43,6 @@ linters:
     - nolintlint
     - prealloc
     - revive
-    - stylecheck
     - unconvert
     - unparam
     - whitespace
@@ -56,7 +50,6 @@ linters:
   disable:
     - exhaustive
     - godox
-    - wsl
 
 linters-settings:
   errcheck:
@@ -93,15 +86,6 @@ linters-settings:
   lll:
     line-length: 120
     tab-width: 4
-
-  goimports:
-    local-prefixes: github.com/jonwraymond/go-claude-code-sdk
-
-  gci:
-    sections:
-      - standard
-      - default
-      - prefix(github.com/jonwraymond/go-claude-code-sdk)
 
   gocritic:
     enabled-tags:

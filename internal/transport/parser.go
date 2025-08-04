@@ -4,6 +4,10 @@ import (
 	"encoding/json"
 )
 
+const (
+	messageTypeAssistant = "assistant"
+)
+
 // ParseMessage parses raw message data from Claude CLI into a generic message map.
 // The calling code should then convert this to the appropriate message type.
 func ParseMessage(data []byte) (map[string]interface{}, error) {
@@ -35,8 +39,8 @@ func DetermineMessageType(raw map[string]interface{}) string {
 		switch role {
 		case "user":
 			return "user"
-		case "assistant":
-			return "assistant"
+		case messageTypeAssistant:
+			return messageTypeAssistant
 		case "system":
 			return "system"
 		}
@@ -50,7 +54,7 @@ func DetermineMessageType(raw map[string]interface{}) string {
 	}
 
 	// Default to assistant message
-	return "assistant"
+	return messageTypeAssistant
 }
 
 // DetermineContentBlockType determines the type of content block from raw data.

@@ -154,7 +154,9 @@ func (c *ClaudeSDKClient) Connect(ctx context.Context) error {
 	}
 
 	// Set environment variable for SDK entrypoint
-	os.Setenv("CLAUDE_CODE_ENTRYPOINT", "sdk-go-client")
+	if err := os.Setenv("CLAUDE_CODE_ENTRYPOINT", "sdk-go-client"); err != nil {
+		return adapter.ConvertFromInternalError(transport.NewClaudeSDKError("Failed to set environment variable", err))
+	}
 
 	// Convert options to internal format
 	internalOptions := adapter.ConvertToInternalOptions(c.options)
@@ -261,7 +263,7 @@ func (c *ClaudeSDKClient) ReceiveMessages() <-chan types.Message {
 //	if err != nil {
 //	    log.Fatal(err)
 //	}
-func (c *ClaudeSDKClient) Query(ctx context.Context, prompt string, sessionID string) error {
+func (c *ClaudeSDKClient) Query(ctx context.Context, prompt, sessionID string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

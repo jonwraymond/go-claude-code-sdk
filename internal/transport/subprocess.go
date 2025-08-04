@@ -49,65 +49,101 @@ func (t *SubprocessCLITransport) Connect() error {
 		return nil
 	}
 
-	// Find Claude CLI executable
+	claudeCmd, err := t.findClaudeExecutable()
+	if err != nil {
+		return err
+	}
+
+	args := t.buildCommandArgs()
+	env := t.buildEnvironment()
+	
+	if err := t.createCommand(claudeCmd, args, env); err != nil {
+		return err
+	}
+
+	if err := t.createPipes(); err != nil {
+		return err
+	}
+
+	if err := t.cmd.Start(); err != nil {
+		return NewCLIConnectionError("Failed to start Claude CLI", err)
+	}
+
+	t.connected = true
+	go t.readOutput()
+	return nil
+}
+
+// findClaudeExecutable locates the Claude CLI executable.
+func (t *SubprocessCLITransport) findClaudeExecutable() (string, error) {
 	claudeCmd, err := exec.LookPath("claude")
 	if err != nil {
-		return NewCLINotFoundError("Claude CLI not found in PATH", err)
+		return "", NewCLINotFoundError("Claude CLI not found in PATH", err)
 	}
+	return claudeCmd, nil
+}
 
-	// Set environment variable for SDK entrypoint
-	env := os.Environ()
-	env = append(env, "CLAUDE_CODE_ENTRYPOINT=sdk-go")
-
-	// Create the command with appropriate args
+// buildCommandArgs constructs the command line arguments.
+func (t *SubprocessCLITransport) buildCommandArgs() []string {
 	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
-
-	// Add options as CLI flags
-	if t.options != nil {
-		if t.options.SystemPrompt != nil && *t.options.SystemPrompt != "" {
-			args = append(args, "--system-prompt", *t.options.SystemPrompt)
-		}
-		if t.options.MaxTurns != nil {
-			args = append(args, "--max-turns", fmt.Sprintf("%d", *t.options.MaxTurns))
-		}
-		if t.options.PermissionMode != nil {
-			args = append(args, "--permission-mode", string(*t.options.PermissionMode))
-		}
-		if t.options.CWD != nil && *t.options.CWD != "" {
-			args = append(args, "--cwd", *t.options.CWD)
-		}
-		if len(t.options.AllowedTools) > 0 {
-			for _, tool := range t.options.AllowedTools {
-				args = append(args, "--allowed-tool", tool)
-			}
-		}
-		if len(t.options.DisallowedTools) > 0 {
-			for _, tool := range t.options.DisallowedTools {
-				args = append(args, "--disallowed-tool", tool)
-			}
-		}
-		if t.options.Model != nil && *t.options.Model != "" {
-			args = append(args, "--model", *t.options.Model)
-		}
+	
+	if t.options == nil {
+		return args
 	}
 
-	// Create command with context
+	if t.options.SystemPrompt != nil && *t.options.SystemPrompt != "" {
+		args = append(args, "--system-prompt", *t.options.SystemPrompt)
+	}
+	if t.options.MaxTurns != nil {
+		args = append(args, "--max-turns", fmt.Sprintf("%d", *t.options.MaxTurns))
+	}
+	if t.options.PermissionMode != nil {
+		args = append(args, "--permission-mode", string(*t.options.PermissionMode))
+	}
+	if t.options.CWD != nil && *t.options.CWD != "" {
+		args = append(args, "--cwd", *t.options.CWD)
+	}
+	
+	for _, tool := range t.options.AllowedTools {
+		args = append(args, "--allowed-tool", tool)
+	}
+	for _, tool := range t.options.DisallowedTools {
+		args = append(args, "--disallowed-tool", tool)
+	}
+	
+	if t.options.Model != nil && *t.options.Model != "" {
+		args = append(args, "--model", *t.options.Model)
+	}
+	
+	return args
+}
+
+// buildEnvironment constructs the environment variables.
+func (t *SubprocessCLITransport) buildEnvironment() []string {
+	env := os.Environ()
+	return append(env, "CLAUDE_CODE_ENTRYPOINT=sdk-go")
+}
+
+// createCommand creates and configures the exec.Cmd.
+func (t *SubprocessCLITransport) createCommand(claudeCmd string, args, env []string) error {
 	t.cmd = exec.CommandContext(t.ctx, claudeCmd, args...) // #nosec G204 - claudeCmd is validated above
 	t.cmd.Env = env
 
-	// Set working directory if specified
 	if t.options != nil && t.options.CWD != nil {
 		if filepath.IsAbs(*t.options.CWD) {
 			t.cmd.Dir = *t.options.CWD
 		} else {
-			// Make relative path absolute
 			if abs, err := filepath.Abs(*t.options.CWD); err == nil {
 				t.cmd.Dir = abs
 			}
 		}
 	}
+	
+	return nil
+}
 
-	// Create pipes
+// createPipes creates the stdin, stdout, and stderr pipes.
+func (t *SubprocessCLITransport) createPipes() error {
 	stdin, err := t.cmd.StdinPipe()
 	if err != nil {
 		return NewCLIConnectionError("Failed to create stdin pipe", err)
@@ -125,16 +161,6 @@ func (t *SubprocessCLITransport) Connect() error {
 		return NewCLIConnectionError("Failed to create stderr pipe", err)
 	}
 	t.stderr = stderr
-
-	// Start the process
-	if err := t.cmd.Start(); err != nil {
-		return NewCLIConnectionError("Failed to start Claude CLI", err)
-	}
-
-	t.connected = true
-
-	// Start reading output in background
-	go t.readOutput()
 
 	return nil
 }
@@ -178,10 +204,8 @@ func (t *SubprocessCLITransport) SendRequest(messages []map[string]interface{}, 
 	request := map[string]interface{}{
 		"messages": messages,
 	}
-	if metadata != nil {
-		for k, v := range metadata {
-			request[k] = v
-		}
+	for k, v := range metadata {
+		request[k] = v
 	}
 
 	// Send as JSON

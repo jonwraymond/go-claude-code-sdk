@@ -85,96 +85,7 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 	// Process query in goroutine
 	go func() {
 		defer close(msgChan)
-
-		// Convert options to internal format
-		internalOptions := adapter.ConvertToInternalOptions(options)
-
-		// Create transport
-		t := transport.NewSubprocessCLITransport(prompt, internalOptions)
-
-		// Connect
-		if err := t.Connect(); err != nil {
-			// Send error as system message
-			msgChan <- &types.SystemMessage{
-				Subtype: "error",
-				Data: map[string]interface{}{
-					"error": adapter.ConvertFromInternalError(err).Error(),
-				},
-			}
-			return
-		}
-
-		defer func() {
-			if err := t.Disconnect(); err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: error during disconnect: %v\n", err)
-			}
-		}()
-
-		// Send initial message in the format expected by Claude CLI
-		message := map[string]interface{}{
-			"role":    "user",
-			"content": prompt,
-		}
-
-		if err := t.SendRequest([]map[string]interface{}{message}, nil); err != nil {
-			msgChan <- &types.SystemMessage{
-				Subtype: "error",
-				Data: map[string]interface{}{
-					"error": adapter.ConvertFromInternalError(err).Error(),
-				},
-			}
-			return
-		}
-
-		// For one-shot queries, close stdin to signal completion
-		if err := t.CloseStdin(); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: error closing stdin: %v\n", err)
-		}
-
-		// Receive messages
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case data, ok := <-t.ReceiveMessages():
-				if !ok {
-					return
-				}
-
-				rawMsg, err := transport.ParseMessage(data)
-				if err != nil {
-					// Send error but continue processing
-					msgChan <- &types.SystemMessage{
-						Subtype: "error",
-						Data: map[string]interface{}{
-							"error":    adapter.ConvertFromInternalError(err).Error(),
-							"raw_data": string(data),
-						},
-					}
-					continue
-				}
-
-				msg, err := adapter.ParseMessageFromRaw(rawMsg)
-				if err != nil {
-					// Send error but continue processing
-					msgChan <- &types.SystemMessage{
-						Subtype: "error",
-						Data: map[string]interface{}{
-							"error":    err.Error(),
-							"raw_data": string(data),
-						},
-					}
-					continue
-				}
-
-				msgChan <- msg
-
-				// Stop after result message
-				if _, isResult := msg.(*types.ResultMessage); isResult {
-					return
-				}
-			}
-		}
+		processQuery(ctx, prompt, options, msgChan)
 	}()
 
 	return msgChan
@@ -243,8 +154,109 @@ func IntPtr(i int) *int {
 //	options := NewClaudeCodeOptions()
 //	options.PermissionMode = PermissionModePtr(PermissionModeAcceptEdits)
 func PermissionModePtr(pm PermissionMode) *PermissionMode {
-	result := types.PermissionModePtr(types.PermissionMode(pm))
-	// Convert back to local type
-	pm2 := PermissionMode(*result)
-	return &pm2
+	// Direct conversion without unnecessary type conversions
+	return (*PermissionMode)(types.PermissionModePtr(types.PermissionMode(pm)))
+}
+
+// processQuery handles the main query processing logic
+func processQuery(ctx context.Context, prompt string, options *ClaudeCodeOptions, msgChan chan<- types.Message) {
+	// Convert options to internal format
+	internalOptions := adapter.ConvertToInternalOptions(options)
+
+	// Create transport
+	t := transport.NewSubprocessCLITransport(prompt, internalOptions)
+
+	// Connect
+	if err := t.Connect(); err != nil {
+		sendErrorMessage(msgChan, adapter.ConvertFromInternalError(err).Error(), "")
+		return
+	}
+
+	defer func() {
+		if err := t.Disconnect(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: error during disconnect: %v\n", err)
+		}
+	}()
+
+	// Send initial request
+	if err := sendInitialRequest(t, prompt); err != nil {
+		sendErrorMessage(msgChan, adapter.ConvertFromInternalError(err).Error(), "")
+		return
+	}
+
+	// Process messages
+	processMessages(ctx, t, msgChan)
+}
+
+// sendInitialRequest sends the initial user message to Claude CLI
+func sendInitialRequest(t *transport.SubprocessCLITransport, prompt string) error {
+	message := map[string]interface{}{
+		"role":    "user",
+		"content": prompt,
+	}
+
+	if err := t.SendRequest([]map[string]interface{}{message}, nil); err != nil {
+		return err
+	}
+
+	// For one-shot queries, close stdin to signal completion
+	if err := t.CloseStdin(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: error closing stdin: %v\n", err)
+	}
+
+	return nil
+}
+
+// processMessages handles the message processing loop
+func processMessages(ctx context.Context, t *transport.SubprocessCLITransport, msgChan chan<- types.Message) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case data, ok := <-t.ReceiveMessages():
+			if !ok {
+				return
+			}
+
+			if shouldStop := processMessage(data, msgChan); shouldStop {
+				return
+			}
+		}
+	}
+}
+
+// processMessage processes a single message and returns true if processing should stop
+func processMessage(data []byte, msgChan chan<- types.Message) bool {
+	rawMsg, err := transport.ParseMessage(data)
+	if err != nil {
+		sendErrorMessage(msgChan, adapter.ConvertFromInternalError(err).Error(), string(data))
+		return false
+	}
+
+	msg, err := adapter.ParseMessageFromRaw(rawMsg)
+	if err != nil {
+		sendErrorMessage(msgChan, err.Error(), string(data))
+		return false
+	}
+
+	msgChan <- msg
+
+	// Stop after result message
+	_, isResult := msg.(*types.ResultMessage)
+	return isResult
+}
+
+// sendErrorMessage sends an error message to the channel
+func sendErrorMessage(msgChan chan<- types.Message, errorMsg, rawData string) {
+	errorData := map[string]interface{}{
+		"error": errorMsg,
+	}
+	if rawData != "" {
+		errorData["raw_data"] = rawData
+	}
+
+	msgChan <- &types.SystemMessage{
+		Subtype: "error",
+		Data:    errorData,
+	}
 }

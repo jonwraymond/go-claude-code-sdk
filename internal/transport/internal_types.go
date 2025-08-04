@@ -125,7 +125,7 @@ type CLIJSONDecodeError struct {
 }
 
 // NewCLIJSONDecodeError creates a new CLIJSONDecodeError.
-func NewCLIJSONDecodeError(message string, rawData string, cause error) *CLIJSONDecodeError {
+func NewCLIJSONDecodeError(message, rawData string, cause error) *CLIJSONDecodeError {
 	return &CLIJSONDecodeError{
 		ClaudeSDKError: NewClaudeSDKError(message, cause),
 		RawData:        rawData,
