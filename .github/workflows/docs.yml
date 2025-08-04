@@ -1,24 +1,170 @@
-# This workflow builds and deploys the documentation to GitHub Pages.
-# It is triggered on pushes to the main branch.
-name: Docs
+name: Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+    paths:
+      - '**.go'
+      - '**.md'
+      - 'examples/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - 'examples/**'
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  deploy:
+  check-docs:
+    name: Check Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          python-version: 3.x
-      # Install the necessary Python packages to build the documentation.
-      - run: pip install mkdocs-material
-      # Deploy the documentation to the gh-pages branch.
-      - run: mkdocs gh-deploy --force
+          go-version: '1.21'
+          cache: true
+
+      - name: Check Go doc comments
+        run: |
+          # Check for missing doc comments on exported types/functions
+          go install golang.org/x/lint/golint@latest
+          golint_output=$(golint ./... | grep -E "exported (type|function|method|const|var)" || true)
+          if [ -n "$golint_output" ]; then
+            echo "Missing documentation comments:"
+            echo "$golint_output"
+            exit 1
+          fi
+
+      - name: Validate README links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+
+      - name: Check example documentation
+        run: |
+          # Ensure all examples have README files
+          for dir in examples/*/; do
+            if [ -d "$dir" ] && [ ! -f "$dir/README.md" ]; then
+              echo "Missing README.md in $dir"
+              exit 1
+            fi
+          done
+
+  generate-docs:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Generate API documentation
+        run: |
+          go install golang.org/x/tools/cmd/godoc@latest
+          go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+          
+          # Generate markdown API docs
+          mkdir -p docs/api
+          gomarkdoc -o docs/api/claudecode.md ./pkg/claudecode
+          gomarkdoc -o docs/api/types.md ./pkg/types
+          gomarkdoc -o docs/api/errors.md ./pkg/errors
+
+      - name: Generate example index
+        run: |
+          cat > docs/examples.md << 'EOF'
+          # Examples Index
+          
+          This page provides an index of all available examples.
+          
+          ## Examples by Category
+          
+          EOF
+          
+          for dir in examples/*/; do
+            if [ -f "$dir/main.go" ]; then
+              name=$(basename "$dir")
+              echo "### [$name]($dir)" >> docs/examples.md
+              if [ -f "$dir/README.md" ]; then
+                # Extract first paragraph from README
+                awk '/^#/ {p=1} p && /^$/ {exit} p && !/^#/' "$dir/README.md" >> docs/examples.md
+              fi
+              echo "" >> docs/examples.md
+            fi
+          done
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Build documentation site
+        run: |
+          # Create a simple index.html that redirects to README
+          mkdir -p _site
+          cp -r docs _site/
+          cp README.md _site/
+          cp PARITY_REPORT.md _site/
+          cp -r examples _site/
+          
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Go Claude Code SDK</title>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+                  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #333; }
+                  .links { margin-top: 20px; }
+                  .links a { margin-right: 20px; color: #0066cc; text-decoration: none; }
+                  .links a:hover { text-decoration: underline; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>Go Claude Code SDK Documentation</h1>
+                  <div class="links">
+                      <a href="README.md">Getting Started</a>
+                      <a href="docs/api/claudecode.md">API Reference</a>
+                      <a href="docs/examples.md">Examples</a>
+                      <a href="PARITY_REPORT.md">Python SDK Parity</a>
+                      <a href="https://github.com/jonwraymond/go-claude-code-sdk">GitHub</a>
+                      <a href="https://pkg.go.dev/github.com/jonwraymond/go-claude-code-sdk">pkg.go.dev</a>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: _site
+
+  deploy-docs:
+    name: Deploy Documentation
+    needs: generate-docs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2

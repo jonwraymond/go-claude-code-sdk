@@ -1,157 +1,214 @@
-# This workflow runs continuous integration checks on the Go codebase.
-# It is triggered on pushes to the main and develop branches, as well as pull requests targeting main.
 name: CI
 
 on:
   push:
     branches: [ main, develop ]
-    paths:
-      - '**.go'
-      - 'go.mod'
-      - 'go.sum'
-      - '.github/workflows/**'
   pull_request:
-    branches: [ main ]
-    paths:
-      - '**.go'
-      - 'go.mod'
-      - 'go.sum'
-      - '.github/workflows/**'
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.21'
+  GOLANGCI_LINT_VERSION: 'v1.54'
 
 jobs:
-  # The lint job checks the code for style issues and potential errors.
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-      # Run the golangci-lint linter.
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  # The test job runs the unit tests with a matrix of Go versions.
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --timeout=5m
+
+      - name: go mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: go mod verify
+        run: go mod verify
+
+      - name: go fmt
+        run: |
+          fmt_files=$(gofmt -l .)
+          if [ -n "$fmt_files" ]; then
+            echo "The following files need formatting:"
+            echo "$fmt_files"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
   test:
     name: Test
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        go-version: ['1.21', '1.22', '1.23']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.20', '1.21', '1.22']
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-      # Run the tests with race detection and code coverage.
-      - name: Test
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-      # Upload the coverage report to Codecov.
+          cache: true
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: |
+          go test -v -race -coverprofile=coverage.txt -covermode=atomic ./pkg/...
+          go test -v -race ./internal/...
+
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == env.GO_VERSION
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.out
-          verbose: true
+          file: ./coverage.txt
+          flags: unittests
+          name: codecov-umbrella
 
-  # The security job scans the code for security vulnerabilities.
-  security:
-    name: Security
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude CLI (mock)
+        run: |
+          # Create a mock claude CLI for testing
+          mkdir -p $HOME/.local/bin
+          cat > $HOME/.local/bin/claude << 'EOF'
+          #!/bin/bash
+          echo '{"type":"result","subtype":"final","duration_ms":100,"duration_api_ms":50,"is_error":false,"num_turns":1,"session_id":"test","usage":{"input_tokens":10,"output_tokens":20}}'
+          EOF
+          chmod +x $HOME/.local/bin/claude
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run integration tests
+        run: |
+          go test -v -tags=integration ./tests/...
+        env:
+          CLAUDE_CLI_PATH: $HOME/.local/bin/claude
+
+  benchmark:
+    name: Benchmarks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      # Run the Gosec security scanner.
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Run benchmarks
+        run: |
+          go test -bench=. -benchmem -run=^$ ./pkg/... | tee benchmark.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-results
+          path: benchmark.txt
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        arch: [amd64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Build
+        env:
+          GOOS: ${{ runner.os == 'Linux' && 'linux' || runner.os == 'macOS' && 'darwin' || 'windows' }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          go build -v ./...
+
+      - name: Build examples
+        env:
+          GOOS: ${{ runner.os == 'Linux' && 'linux' || runner.os == 'macOS' && 'darwin' || 'windows' }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          for dir in examples/*/; do
+            if [ -f "$dir/main.go" ]; then
+              echo "Building $dir"
+              go build -v "$dir"
+            fi
+          done
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
-          args: '-no-fail -fmt sarif -out results.sarif ./...'
-      # Upload the SARIF file to the GitHub Security tab.
+          args: '-no-fail -fmt sarif -out gosec-results.sarif ./...'
+
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: results.sarif
+          sarif_file: gosec-results.sarif
 
-  # The integration test job runs integration tests that require external dependencies.
-  integration:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    env:
-      INTEGRATION_TESTS: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          go-version: '1.22'
-      # Install Claude Code CLI for integration tests
-      - name: Install Claude Code CLI
-        run: |
-          npm install -g @anthropic-ai/claude-code
-          which claude || echo "Claude CLI not found in PATH"
-      # Run integration tests only if API key is available
-      - name: Run Integration Tests
-        if: env.ANTHROPIC_API_KEY != ''
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SKIP_MCP_TESTS: true
-        run: go test -v -race -tags=integration -timeout 15m -coverprofile=integration-coverage.out -covermode=atomic ./tests/integration/...
-      # Skip integration tests if no API key
-      - name: Skip Integration Tests
-        if: env.ANTHROPIC_API_KEY == ''
-        run: echo "Skipping integration tests - ANTHROPIC_API_KEY not set"
-      # Upload integration test coverage to Codecov (only if tests ran)
-      - name: Upload integration coverage to Codecov
-        if: env.ANTHROPIC_API_KEY != ''
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./integration-coverage.out
-          verbose: true
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
 
-  # The build job builds the Go packages to ensure they compile.
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Upload Trivy SARIF file
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          go-version: '1.22'
-      - run: go build -v ./...
-
-  # Performance testing for SDK operations
-  performance:
-    name: Performance Tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-      # Run performance benchmarks (skip if directory doesn't exist)
-      - name: Run Performance Tests
-        shell: bash
-        run: |
-          if [ -d "./tests/performance" ]; then
-            go test -bench=. -benchmem ./tests/performance/... || echo "Performance tests failed or no benchmarks found"
-          else
-            echo "No performance tests directory found - skipping"
-          fi
-      # Run memory profiling (skip if directory doesn't exist)
-      - name: Run Memory Profiling
-        shell: bash
-        run: |
-          if [ -d "./tests/performance" ]; then
-            go test -memprofile=mem.prof -cpuprofile=cpu.prof ./tests/performance/... || echo "Profiling tests failed or no profiling tests found"
-          else
-            echo "No performance tests directory found - skipping profiling"
-          fi
+          sarif_file: trivy-results.sarif

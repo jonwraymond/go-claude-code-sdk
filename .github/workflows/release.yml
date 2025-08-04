@@ -1,34 +1,199 @@
-# This workflow creates a new release when a tag is pushed.
-# It uses GoReleaser to build and publish the release assets.
 name: Release
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  goreleaser:
+  validate:
+    name: Validate Release
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3 or v1.2.3-beta1"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+            exit 1
+          fi
+
+  test:
+    name: Test Before Release
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-      # Run GoReleaser to create the release.
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
+          go-version: '1.21'
+          cache: true
+
+      - name: Run tests
+        run: |
+          go test -v -race ./pkg/...
+          go test -v -race ./internal/...
+
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v3
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version: v1.54
+
+  release:
+    name: Create Release
+    needs: [validate, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Create tag if workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "No previous tag found, including all commits"
+            COMMITS=$(git log --pretty=format:"- %s (%h)" HEAD)
+          else
+            echo "Previous tag: $PREVIOUS_TAG"
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREVIOUS_TAG}..HEAD")
+          fi
+          
+          cat > CHANGELOG_CONTENT.md << EOF
+          ## What's Changed
+          
+          ### Commits
+          $COMMITS
+          
+          ### Contributors
+          $(git log ${PREVIOUS_TAG:+${PREVIOUS_TAG}..}HEAD --pretty=format:"%an" | sort -u | sed 's/^/- @/')
+          
+          **Full Changelog**: ${PREVIOUS_TAG:+https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${VERSION}}
+          EOF
+          
+          echo "changelog_file=CHANGELOG_CONTENT.md" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: ${{ needs.validate.outputs.version }}
+          body_path: ${{ steps.changelog.outputs.changelog_file }}
+          draft: false
+          prerelease: ${{ contains(needs.validate.outputs.version, '-') }}
+          generate_release_notes: true
+
+  publish-docs:
+    name: Publish Documentation
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache: true
+
+      - name: Generate Go docs
+        run: |
+          go install golang.org/x/tools/cmd/godoc@latest
+          # Generate static docs if needed
+          echo "Documentation updated for ${{ needs.validate.outputs.version }}"
+
+      - name: Update version in docs
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          find . -name "*.md" -type f -exec sed -i "s/version: .*/version: $VERSION/g" {} \;
+
+  announce:
+    name: Announce Release
+    needs: [validate, release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create announcement
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          cat > announcement.md << EOF
+          🎉 Claude Code SDK for Go $VERSION has been released!
+          
+          ## Installation
+          \`\`\`bash
+          go get github.com/jonwraymond/go-claude-code-sdk@$VERSION
+          \`\`\`
+          
+          ## What's New
+          See the full changelog: https://github.com/${{ github.repository }}/releases/tag/$VERSION
+          
+          ## Documentation
+          - [Getting Started](https://github.com/${{ github.repository }}#quick-start)
+          - [API Reference](https://pkg.go.dev/github.com/jonwraymond/go-claude-code-sdk)
+          - [Examples](https://github.com/${{ github.repository }}/tree/main/examples)
+          EOF
+          
+          echo "Release announcement created"

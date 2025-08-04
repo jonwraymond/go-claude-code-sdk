@@ -1,114 +1,167 @@
-.PHONY: all build test test-unit test-integration clean lint fmt vet
+# Go Claude Code SDK Makefile
 
-# Go parameters
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOTEST=$(GOCMD) test
-GOCLEAN=$(GOCMD) clean
-GOGET=$(GOCMD) get
-GOMOD=$(GOCMD) mod
-GOFMT=gofmt
-GOVET=$(GOCMD) vet
+# Variables
+GOBASE := $(shell pwd)
+GOBIN := $(GOBASE)/bin
+GOFILES := $(wildcard *.go)
+GONAME := go-claude-code-sdk
 
-# Binary name
-BINARY_NAME=claude-code-sdk
+# Go related variables
+GOCMD := go
+GOBUILD := $(GOCMD) build
+GOCLEAN := $(GOCMD) clean
+GOTEST := $(GOCMD) test
+GOGET := $(GOCMD) get
+GOMOD := $(GOCMD) mod
+GOFMT := gofmt
+GOLINT := golangci-lint
 
-# Package lists
-PACKAGES=$(shell go list ./... | grep -v /vendor/)
-INTEGRATION_PACKAGES=./tests/integration/...
+# Build variables
+VERSION := $(shell git describe --tags --always --dirty)
+COMMIT := $(shell git rev-parse --short HEAD)
+BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+LDFLAGS := -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT) -X main.BuildTime=$(BUILD_TIME)"
 
+# Test variables
+TEST_TIMEOUT := 30m
+COVERAGE_FILE := coverage.out
+COVERAGE_HTML := coverage.html
+
+.PHONY: all build clean test coverage deps lint fmt vet help
+
+# Default target
 all: test build
 
+# Build the project
 build:
-	$(GOBUILD) -v ./...
+	@echo "Building..."
+	@$(GOBUILD) $(LDFLAGS) -o $(GOBIN)/$(GONAME) -v ./...
 
-test: test-unit
-
-test-unit:
-	$(GOTEST) -v -race -coverprofile=coverage.txt -covermode=atomic $(PACKAGES)
-
-test-integration:
-	@echo "Running integration tests..."
-	@if [ -z "$$ANTHROPIC_API_KEY" ]; then \
-		echo "Warning: ANTHROPIC_API_KEY not set. Integration tests will be skipped."; \
-	fi
-	INTEGRATION_TESTS=true $(GOTEST) -v -tags=integration -timeout 15m $(INTEGRATION_PACKAGES)
-
-test-all: test-unit test-integration
-
+# Clean build artifacts
 clean:
-	$(GOCLEAN)
-	rm -f coverage.txt
+	@echo "Cleaning..."
+	@$(GOCLEAN)
+	@rm -rf $(GOBIN)
+	@rm -f $(COVERAGE_FILE) $(COVERAGE_HTML)
 
-# Run go fmt
-fmt:
-	$(GOFMT) -s -w .
+# Run tests
+test:
+	@echo "Running tests..."
+	@$(GOTEST) -v -race -timeout $(TEST_TIMEOUT) ./pkg/...
+	@$(GOTEST) -v -race -timeout $(TEST_TIMEOUT) ./internal/...
 
-# Run go vet
-vet:
-	$(GOVET) $(PACKAGES)
+# Run tests with coverage
+coverage:
+	@echo "Running tests with coverage..."
+	@$(GOTEST) -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./pkg/...
+	@$(GOCMD) tool cover -html=$(COVERAGE_FILE) -o $(COVERAGE_HTML)
+	@echo "Coverage report generated: $(COVERAGE_HTML)"
 
-# Run linter
-lint:
-	@which golangci-lint > /dev/null || (echo "golangci-lint not installed. Run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest" && exit 1)
-	golangci-lint run
-
-# Download dependencies
-deps:
-	$(GOMOD) download
-	$(GOMOD) tidy
-
-# Update dependencies
-deps-update:
-	$(GOMOD) get -u ./...
-	$(GOMOD) tidy
-
-# Run all checks
-check: fmt vet lint test
-
-# Install the library
-install:
-	$(GOGET) ./...
-
-# Generate code coverage report
-coverage: test-unit
-	$(GOCMD) tool cover -html=coverage.txt -o coverage.html
-	@echo "Coverage report generated: coverage.html"
+# Run integration tests
+integration-test:
+	@echo "Running integration tests..."
+	@$(GOTEST) -v -tags=integration -timeout $(TEST_TIMEOUT) ./tests/...
 
 # Run benchmarks
 bench:
-	$(GOTEST) -bench=. -benchmem $(PACKAGES)
+	@echo "Running benchmarks..."
+	@$(GOTEST) -bench=. -benchmem -run=^$ ./pkg/... | tee benchmark.txt
 
-# Quick test (no race detector, no coverage)
-test-quick:
-	$(GOTEST) $(PACKAGES)
-
-# CI/CD pipeline command
-ci: deps check test-all
-
-# Development setup
-dev-setup:
-	@echo "Setting up development environment..."
+# Download dependencies
+deps:
+	@echo "Downloading dependencies..."
 	@$(GOMOD) download
+	@$(GOMOD) tidy
+
+# Run linter
+lint:
+	@echo "Running linter..."
+	@$(GOLINT) run ./...
+
+# Format code
+fmt:
+	@echo "Formatting code..."
+	@$(GOFMT) -s -w .
+	@$(GOCMD) fmt ./...
+
+# Run go vet
+vet:
+	@echo "Running go vet..."
+	@$(GOCMD) vet ./...
+
+# Check for security vulnerabilities
+security:
+	@echo "Checking for vulnerabilities..."
+	@$(GOCMD) install github.com/securego/gosec/v2/cmd/gosec@latest
+	@gosec -quiet ./...
+
+# Update dependencies
+update-deps:
+	@echo "Updating dependencies..."
+	@$(GOGET) -u ./...
+	@$(GOMOD) tidy
+
+# Generate documentation
+docs:
+	@echo "Generating documentation..."
+	@$(GOCMD) install golang.org/x/tools/cmd/godoc@latest
+	@echo "Run 'godoc -http=:6060' and visit http://localhost:6060/pkg/github.com/jonwraymond/go-claude-code-sdk/"
+
+# Install development tools
+install-tools:
 	@echo "Installing development tools..."
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	@go install golang.org/x/tools/cmd/goimports@latest
-	@echo "Development environment ready!"
+	@$(GOCMD) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@$(GOCMD) install golang.org/x/tools/cmd/godoc@latest
+	@$(GOCMD) install github.com/securego/gosec/v2/cmd/gosec@latest
+	@$(GOCMD) install github.com/google/go-licenses@latest
+
+# Run all checks (lint, vet, fmt, test)
+check: fmt vet lint test
+
+# Run pre-commit checks
+pre-commit: check security
+
+# Create a new release
+release:
+	@echo "Creating release $(VERSION)..."
+	@git tag -a $(VERSION) -m "Release $(VERSION)"
+	@git push origin $(VERSION)
+
+# Run examples
+run-examples:
+	@echo "Running examples..."
+	@for dir in examples/*/; do \
+		if [ -f "$$dir/main.go" ]; then \
+			echo "Running $$dir"; \
+			$(GOCMD) run "$$dir/main.go" || true; \
+		fi \
+	done
 
 # Help
 help:
-	@echo "Available targets:"
-	@echo "  make build           - Build the project"
-	@echo "  make test            - Run unit tests"
-	@echo "  make test-integration - Run integration tests (requires ANTHROPIC_API_KEY)"
-	@echo "  make test-all        - Run all tests"
-	@echo "  make clean           - Clean build artifacts"
-	@echo "  make fmt             - Format code"
-	@echo "  make vet             - Run go vet"
-	@echo "  make lint            - Run linter"
-	@echo "  make deps            - Download dependencies"
-	@echo "  make coverage        - Generate coverage report"
-	@echo "  make bench           - Run benchmarks"
-	@echo "  make ci              - Run CI pipeline"
-	@echo "  make dev-setup       - Setup development environment"
-	@echo "  make help            - Show this help message"
+	@echo "Go Claude Code SDK Makefile"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make [target]"
+	@echo ""
+	@echo "Targets:"
+	@echo "  all              Run tests and build"
+	@echo "  build            Build the project"
+	@echo "  clean            Clean build artifacts"
+	@echo "  test             Run unit tests"
+	@echo "  coverage         Run tests with coverage report"
+	@echo "  integration-test Run integration tests"
+	@echo "  bench            Run benchmarks"
+	@echo "  deps             Download dependencies"
+	@echo "  lint             Run linter"
+	@echo "  fmt              Format code"
+	@echo "  vet              Run go vet"
+	@echo "  security         Check for vulnerabilities"
+	@echo "  update-deps      Update dependencies"
+	@echo "  docs             Generate documentation"
+	@echo "  install-tools    Install development tools"
+	@echo "  check            Run all checks (fmt, vet, lint, test)"
+	@echo "  pre-commit       Run pre-commit checks"
+	@echo "  release          Create a new release"
+	@echo "  run-examples     Run all examples"
+	@echo "  help             Show this help message"

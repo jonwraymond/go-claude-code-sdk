@@ -1,14 +1,13 @@
-# Dependabot configuration for Go and GitHub Actions
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 version: 2
 updates:
-  # Keep Go modules up to date
+  # Enable version updates for Go modules
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
+      time: "08:00"
+    open-pull-requests-limit: 10
     reviewers:
       - "jonwraymond"
     labels:
@@ -17,16 +16,23 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    pull-request-branch-name:
-      separator: "-"
+    groups:
+      # Group all minor and patch updates together
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
-  # Maintain dependencies for GitHub Actions
+  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
+      time: "08:00"
+    open-pull-requests-limit: 5
     reviewers:
       - "jonwraymond"
     labels:
