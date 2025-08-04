@@ -445,7 +445,8 @@ func benchmark7ContextOverhead() {
 		{
 			name: "With Cancel",
 			setupFunc: func() context.Context {
-				ctx, _ := context.WithCancel(context.Background())
+				ctx, cancel := context.WithCancel(context.Background())
+				_ = cancel // We'll return the context for benchmark use
 				return ctx
 			},
 			description: "Context with cancellation",
@@ -453,7 +454,8 @@ func benchmark7ContextOverhead() {
 		{
 			name: "With Timeout",
 			setupFunc: func() context.Context {
-				ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				_ = cancel // We'll return the context for benchmark use
 				return ctx
 			},
 			description: "Context with 10s timeout",
@@ -474,7 +476,8 @@ func benchmark7ContextOverhead() {
 			setupFunc: func() context.Context {
 				ctx := context.Background()
 				ctx = context.WithValue(ctx, "user", "test-user")
-				ctx, _ = context.WithTimeout(ctx, 10*time.Second)
+				ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			_ = cancel // Context will be used for benchmark
 				ctx = context.WithValue(ctx, "session", "test-session")
 				return ctx
 			},

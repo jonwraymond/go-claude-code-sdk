@@ -256,7 +256,9 @@ func (t *SubprocessCLITransport) Disconnect() error {
 
 	// Close stdin to signal end of input
 	if t.stdin != nil {
-		_ = t.stdin.Close()
+		if err := t.stdin.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error closing stdin: %v\n", err)
+		}
 	}
 
 	// Wait for process to exit
@@ -274,10 +276,14 @@ func (t *SubprocessCLITransport) Disconnect() error {
 
 	// Close remaining pipes
 	if t.stdout != nil {
-		_ = t.stdout.Close()
+		if err := t.stdout.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error closing stdout: %v\n", err)
+		}
 	}
 	if t.stderr != nil {
-		_ = t.stderr.Close()
+		if err := t.stderr.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error closing stderr: %v\n", err)
+		}
 	}
 
 	return nil

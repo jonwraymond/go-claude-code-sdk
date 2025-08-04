@@ -168,7 +168,7 @@ func parseAssistantMessageFromRaw(raw map[string]interface{}) (*types.AssistantM
 
 	// Check if content is directly on the root object
 	var contentArray []interface{}
-	
+
 	if contentRaw, ok := raw["content"].([]interface{}); ok {
 		contentArray = contentRaw
 	} else if message, ok := raw["message"].(map[string]interface{}); ok {

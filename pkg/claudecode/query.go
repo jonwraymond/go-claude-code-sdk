@@ -2,6 +2,7 @@ package claudecode
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/jonwraymond/go-claude-code-sdk/internal/adapter"
@@ -73,7 +74,10 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 	}
 
 	// Set environment variable for SDK entrypoint
-	os.Setenv("CLAUDE_CODE_ENTRYPOINT", "sdk-go")
+	if err := os.Setenv("CLAUDE_CODE_ENTRYPOINT", "sdk-go"); err != nil {
+		// Non-critical error, continue execution
+		fmt.Fprintf(os.Stderr, "Warning: failed to set CLAUDE_CODE_ENTRYPOINT: %v\n", err)
+	}
 
 	// Create message channel
 	msgChan := make(chan types.Message, 100)
@@ -100,7 +104,11 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 			return
 		}
 
-		defer func() { _ = t.Disconnect() }()
+		defer func() {
+			if err := t.Disconnect(); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: error during disconnect: %v\n", err)
+			}
+		}()
 
 		// Send initial message in the format expected by Claude CLI
 		message := map[string]interface{}{
@@ -119,7 +127,9 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 		}
 
 		// For one-shot queries, close stdin to signal completion
-		_ = t.CloseStdin()
+		if err := t.CloseStdin(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: error closing stdin: %v\n", err)
+		}
 
 		// Receive messages
 		for {

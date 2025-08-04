@@ -33,11 +33,11 @@ func skipIfClaudeUnavailable(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
-	
+
 	if !isClaudeAvailable() {
 		t.Skip("Claude CLI not available - skipping integration test")
 	}
-	
+
 	// Check if we have an API key
 	if os.Getenv("ANTHROPIC_API_KEY") == "" {
 		t.Skip("ANTHROPIC_API_KEY not set - skipping integration test")
