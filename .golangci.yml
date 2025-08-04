@@ -1,13 +1,10 @@
 # golangci-lint configuration compatible with v1.62
 
-version: 2
+version: "2"
 
 run:
   timeout: 10m
   tests: false  # Disable test file linting to reduce noise
-  skip-dirs:
-    - examples
-    - tests
 
 linters:
   enable:
@@ -21,9 +18,3 @@ linters:
 issues:
   max-same-issues: 5
   max-issues-per-linter: 10
-  
-  exclude-rules:
-    # Allow deprecated methods
-    - text: "SA1019.*deprecated"
-      linters:
-        - staticcheck
