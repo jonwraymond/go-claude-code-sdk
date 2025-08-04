@@ -39,6 +39,23 @@ coverage.html
 .env.local
 .env.*.local
 
+# API Keys and Secrets
+*.key
+*_key
+*_secret
+*-key
+*-secret
+api_key*
+api-key*
+secret_*
+secret-*
+*.pem
+*.p12
+*.pfx
+config/secrets.json
+secrets.json
+.secrets/
+
 # Log files
 *.log
 
