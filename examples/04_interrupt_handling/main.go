@@ -197,7 +197,7 @@ func example3SignalInterrupt() {
 				mu.Unlock()
 
 				for _, block := range m.Content {
-					if textBlock, ok := block.(claudecode.TextBlock); ok {
+					if _, ok := block.(claudecode.TextBlock); ok {
 						// Show streaming output
 						fmt.Print(".")
 					}

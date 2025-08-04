@@ -40,9 +40,9 @@ func example1BasicMCPSetup() {
 	// Configure a filesystem MCP server
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-filesystem", "/tmp"},
-			Env: map[string]string{
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-filesystem", "/tmp"},
+			"env": map[string]string{
 				"MCP_READ_ONLY": "true",
 			},
 		},
@@ -52,8 +52,10 @@ func example1BasicMCPSetup() {
 	options.MCPTools = []string{"mcp_filesystem_*"}
 
 	fmt.Println("📡 Configured MCP filesystem server")
-	fmt.Printf("   Command: %s %v\n", options.MCPServers["filesystem"].Command, options.MCPServers["filesystem"].Args)
-	fmt.Printf("   Environment: %v\n", options.MCPServers["filesystem"].Env)
+	if fs, ok := options.MCPServers["filesystem"]; ok {
+		fmt.Printf("   Command: %v %v\n", fs["command"], fs["args"])
+		fmt.Printf("   Environment: %v\n", fs["env"])
+	}
 
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "Use the MCP filesystem server to list files in /tmp", options)
@@ -95,20 +97,20 @@ func example2MultipleMCPServers() {
 	// Configure multiple MCP servers
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-filesystem", "/tmp"},
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-filesystem", "/tmp"},
 		},
 		"github": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-github"},
-			Env: map[string]string{
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-github"},
+			"env": map[string]string{
 				"GITHUB_TOKEN": os.Getenv("GITHUB_TOKEN"),
 			},
 		},
 		"postgres": {
-			Command: "npx",
-			Args:    []string{"-y", "@modelcontextprotocol/server-postgres"},
-			Env: map[string]string{
+			"command": "npx",
+			"args":    []string{"-y", "@modelcontextprotocol/server-postgres"},
+			"env": map[string]string{
 				"POSTGRES_URL": os.Getenv("DATABASE_URL"),
 			},
 		},

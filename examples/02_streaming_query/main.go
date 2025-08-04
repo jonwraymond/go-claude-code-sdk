@@ -150,10 +150,13 @@ func example4StreamingTools() {
 					fmt.Printf("\n🔧 Tool Use #%d: %s\n", toolUseCount, b.Name)
 
 					// Show tool parameters
-					if params, ok := b.Input.(map[string]interface{}); ok {
+					switch params := b.Input.(type) {
+					case map[string]interface{}:
 						for key, value := range params {
 							fmt.Printf("   %s: %v\n", key, value)
 						}
+					default:
+						fmt.Printf("   Input: %v\n", b.Input)
 					}
 				}
 			}

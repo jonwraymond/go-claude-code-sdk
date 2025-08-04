@@ -164,7 +164,7 @@ func TestContextCancellation(t *testing.T) {
 	msgChan := claudecode.Query(ctx, "Count from 1 to 1000 slowly", nil)
 
 	messageCount := 0
-	for msg := range msgChan {
+	for range msgChan {
 		messageCount++
 		if messageCount > 100 {
 			t.Error("Should have been cancelled before receiving 100 messages")

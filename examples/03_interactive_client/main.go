@@ -174,7 +174,6 @@ func example4ContextAware() {
 	}
 
 	// Interactive REPL-like interface
-	scanner := bufio.NewScanner(os.Stdin)
 	sessionID := "interactive"
 
 	// Start async message processor
