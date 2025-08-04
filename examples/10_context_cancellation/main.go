@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -84,11 +83,11 @@ func example1BasicTimeout() {
 
 		for msg := range msgChan {
 			messageCount++
-			
+
 			select {
 			case <-ctx.Done():
 				elapsed := time.Since(start)
-				fmt.Printf("   ⏱️ Timed out after %v (%d messages received)\n", 
+				fmt.Printf("   ⏱️ Timed out after %v (%d messages received)\n",
 					elapsed.Round(time.Millisecond), messageCount)
 				goto next
 			default:
@@ -138,10 +137,10 @@ func example2ManualCancellation() {
 				for _, block := range m.Content {
 					if textBlock, ok := block.(claudecode.TextBlock); ok {
 						progressMu.Lock()
-						progressSteps = append(progressSteps, 
+						progressSteps = append(progressSteps,
 							fmt.Sprintf("Step %d: %.50s...", len(progressSteps)+1, textBlock.Text))
 						progressMu.Unlock()
-						
+
 						// Cancel after 3 steps
 						if len(progressSteps) == 3 && !cancelled {
 							cancelled = true
@@ -238,12 +237,12 @@ func example3DeadlineContext() {
 
 		// Track timing
 		connectStart := time.Now()
-		
+
 		// Try to connect
 		if err := client.Connect(ctx); err != nil {
 			connectDuration := time.Since(connectStart)
 			if errors.Is(err, context.DeadlineExceeded) {
-				fmt.Printf("   ⏰ Deadline exceeded during connection (after %v)\n", 
+				fmt.Printf("   ⏰ Deadline exceeded during connection (after %v)\n",
 					connectDuration.Round(time.Millisecond))
 			} else {
 				fmt.Printf("   ❌ Connection error: %v\n", err)
@@ -258,7 +257,7 @@ func example3DeadlineContext() {
 				if _, ok := msg.(*claudecode.AssistantMessage); ok && !responseReceived {
 					responseReceived = true
 					remaining := time.Until(test.deadline)
-					fmt.Printf("   ✅ Response received with %v remaining\n", 
+					fmt.Printf("   ✅ Response received with %v remaining\n",
 						remaining.Round(time.Millisecond))
 				}
 			}
@@ -269,7 +268,7 @@ func example3DeadlineContext() {
 		if err := client.Query(ctx, test.query, "deadline-test"); err != nil {
 			queryDuration := time.Since(queryStart)
 			if errors.Is(err, context.DeadlineExceeded) {
-				fmt.Printf("   ⏰ Deadline exceeded during query (after %v)\n", 
+				fmt.Printf("   ⏰ Deadline exceeded during query (after %v)\n",
 					queryDuration.Round(time.Millisecond))
 			} else {
 				fmt.Printf("   ❌ Query error: %v\n", err)
@@ -278,7 +277,7 @@ func example3DeadlineContext() {
 
 		// Wait a bit for response
 		time.Sleep(1 * time.Second)
-		
+
 		if !responseReceived && ctx.Err() == context.DeadlineExceeded {
 			fmt.Println("   ⏰ Deadline exceeded while waiting for response")
 		}
@@ -327,8 +326,8 @@ func example4CascadingCancellation() {
 
 			// Simulate operation with Claude query
 			fmt.Printf("🔄 %s: Starting...\n", operation.name)
-			
-			msgChan := claudecode.Query(childCtx, 
+
+			msgChan := claudecode.Query(childCtx,
 				fmt.Sprintf("Simulate %s operation", operation.name), nil)
 
 			// Wait for completion or cancellation
@@ -337,15 +336,15 @@ func example4CascadingCancellation() {
 
 			select {
 			case <-timer.C:
-				fmt.Printf("✅ %s: Completed after %v\n", 
+				fmt.Printf("✅ %s: Completed after %v\n",
 					operation.name, time.Since(startTime).Round(time.Millisecond))
 			case <-childCtx.Done():
 				atomic.AddInt32(&cancelledOps, 1)
-				fmt.Printf("❌ %s: Cancelled after %v\n", 
+				fmt.Printf("❌ %s: Cancelled after %v\n",
 					operation.name, time.Since(startTime).Round(time.Millisecond))
 			case msg := <-msgChan:
 				if msg != nil {
-					fmt.Printf("📨 %s: Got response after %v\n", 
+					fmt.Printf("📨 %s: Got response after %v\n",
 						operation.name, time.Since(startTime).Round(time.Millisecond))
 				}
 			}
@@ -376,10 +375,10 @@ func example5ContextWithValues() {
 	// Define context keys
 	type contextKey string
 	const (
-		userIDKey     contextKey = "userID"
-		sessionIDKey  contextKey = "sessionID"
-		priorityKey   contextKey = "priority"
-		debugModeKey  contextKey = "debugMode"
+		userIDKey    contextKey = "userID"
+		sessionIDKey contextKey = "sessionID"
+		priorityKey  contextKey = "priority"
+		debugModeKey contextKey = "debugMode"
 	)
 
 	// Create base context with values
@@ -504,15 +503,15 @@ func demonstrateGracefulShutdown() {
 	handleShutdown := func() {
 		shutdownOnce.Do(func() {
 			fmt.Println("🔄 Performing graceful shutdown...")
-			
+
 			// Save state
 			fmt.Println("   💾 Saving state...")
 			time.Sleep(500 * time.Millisecond)
-			
+
 			// Close connections
 			fmt.Println("   🔌 Closing connections...")
 			client.Close()
-			
+
 			// Final cleanup
 			fmt.Println("   🧹 Cleanup complete")
 		})
@@ -523,7 +522,7 @@ func demonstrateGracefulShutdown() {
 	go func() {
 		defer close(done)
 		defer handleShutdown()
-		
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -560,7 +559,7 @@ func demonstrateRacingContexts() {
 
 	// Race contexts
 	start := time.Now()
-	
+
 	select {
 	case <-ctx1.Done():
 		elapsed := time.Since(start)
@@ -604,25 +603,25 @@ func demonstrateContextMerger() {
 
 func demonstrateRetryWithBackoff() {
 	ctx := context.Background()
-	
+
 	// Retry configuration
 	maxRetries := 3
 	baseDelay := 500 * time.Millisecond
-	
+
 	// Simulate operation that might fail
 	attemptQuery := func(attempt int) error {
 		// Create timeout for this attempt
 		attemptCtx, cancel := context.WithTimeout(ctx, time.Duration(attempt)*time.Second)
 		defer cancel()
-		
+
 		fmt.Printf("   Attempt %d (timeout: %v)\n", attempt, time.Duration(attempt)*time.Second)
-		
+
 		// Simulate failure on first attempts
 		if attempt < 3 {
 			time.Sleep(time.Duration(attempt+1) * time.Second) // Will timeout
 			return context.DeadlineExceeded
 		}
-		
+
 		// Success on last attempt
 		msgChan := claudecode.Query(attemptCtx, "What is 2+2?", nil)
 		for msg := range msgChan {
@@ -630,7 +629,7 @@ func demonstrateRetryWithBackoff() {
 				return nil
 			}
 		}
-		
+
 		return fmt.Errorf("no result received")
 	}
 
@@ -638,21 +637,21 @@ func demonstrateRetryWithBackoff() {
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		lastErr = attemptQuery(attempt)
-		
+
 		if lastErr == nil {
 			fmt.Printf("✅ Success on attempt %d\n", attempt)
 			break
 		}
-		
+
 		fmt.Printf("   ❌ Attempt %d failed: %v\n", attempt, lastErr)
-		
+
 		if attempt < maxRetries {
 			delay := baseDelay * time.Duration(1<<(attempt-1)) // Exponential backoff
 			fmt.Printf("   ⏳ Waiting %v before retry...\n", delay)
 			time.Sleep(delay)
 		}
 	}
-	
+
 	if lastErr != nil {
 		fmt.Printf("❌ All %d attempts failed\n", maxRetries)
 	}
@@ -661,7 +660,7 @@ func demonstrateRetryWithBackoff() {
 // Helper function to merge contexts
 func mergeContexts(ctx1, ctx2 context.Context) (context.Context, context.CancelFunc) {
 	merged, cancel := context.WithCancel(context.Background())
-	
+
 	go func() {
 		select {
 		case <-ctx1.Done():
@@ -671,6 +670,6 @@ func mergeContexts(ctx1, ctx2 context.Context) (context.Context, context.CancelF
 		case <-merged.Done():
 		}
 	}()
-	
+
 	return merged, cancel
 }

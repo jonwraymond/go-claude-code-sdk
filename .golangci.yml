@@ -1,6 +1,9 @@
 # golangci-lint configuration
 # https://golangci-lint.run/usage/configuration/
 
+linters-settings:
+  golangci-lint-version: 1.54.x
+
 run:
   timeout: 5m
   tests: true

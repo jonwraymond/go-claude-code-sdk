@@ -15,8 +15,8 @@ type PermissionMode = types.PermissionMode
 
 // Permission mode constants
 const (
-	PermissionModeDefault         = types.PermissionModeDefault
-	PermissionModeAcceptEdits     = types.PermissionModeAcceptEdits
+	PermissionModeDefault          = types.PermissionModeDefault
+	PermissionModeAcceptEdits      = types.PermissionModeAcceptEdits
 	PermissionModeBypassPermission = types.PermissionModeBypassPermissions
 )
 

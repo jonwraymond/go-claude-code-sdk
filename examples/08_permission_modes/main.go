@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"log"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -51,18 +49,18 @@ func example1DefaultMode() {
 	// Default mode - no need to set explicitly
 
 	ctx := context.Background()
-	
+
 	// Create initial file
 	testFile := filepath.Join(testDir, "config.json")
 	os.WriteFile(testFile, []byte(`{"version": "1.0", "debug": false}`), 0644)
-	
+
 	fmt.Printf("📁 Working directory: %s\n", testDir)
 	fmt.Println("📝 Task: Update config.json to enable debug mode")
 	fmt.Println("\nIn default mode, you would normally see permission prompts.")
 	fmt.Println("For this example, we'll simulate the behavior.\n")
 
-	msgChan := claudecode.Query(ctx, 
-		fmt.Sprintf("Update the config.json file to set debug to true. The file is at %s", testFile), 
+	msgChan := claudecode.Query(ctx,
+		fmt.Sprintf("Update the config.json file to set debug to true. The file is at %s", testFile),
 		options)
 
 	for msg := range msgChan {
@@ -71,9 +69,9 @@ func example1DefaultMode() {
 			for _, block := range m.Content {
 				switch b := block.(type) {
 				case claudecode.TextBlock:
-					if strings.Contains(b.Text, "permission") || 
-					   strings.Contains(b.Text, "allow") ||
-					   strings.Contains(b.Text, "edit") {
+					if strings.Contains(b.Text, "permission") ||
+						strings.Contains(b.Text, "allow") ||
+						strings.Contains(b.Text, "edit") {
 						fmt.Printf("🔐 Permission-related message: %s\n", b.Text)
 					}
 				case claudecode.ToolUseBlock:
@@ -89,7 +87,7 @@ func example1DefaultMode() {
 			}
 		}
 	}
-	
+
 	// Check if file was modified
 	content, _ := os.ReadFile(testFile)
 	fmt.Printf("\n📄 Final file content: %s\n", string(content))
@@ -110,7 +108,7 @@ func example2AcceptEditsMode() {
 	options := claudecode.NewClaudeCodeOptions()
 	options.CWD = &testDir
 	options.AllowedTools = []string{"Write", "Edit", "Read", "Bash"}
-	
+
 	// Set to accept edits mode
 	acceptMode := claudecode.PermissionModeAcceptEdits
 	options.PermissionMode = &acceptMode
@@ -118,11 +116,11 @@ func example2AcceptEditsMode() {
 	// Create test files
 	files := []string{
 		"main.go",
-		"utils.go", 
+		"utils.go",
 		"config.yaml",
 		"README.md",
 	}
-	
+
 	for _, file := range files {
 		path := filepath.Join(testDir, file)
 		content := fmt.Sprintf("// Original content of %s\n", file)
@@ -165,7 +163,7 @@ func example2AcceptEditsMode() {
 	fmt.Printf("\n📊 Summary:\n")
 	fmt.Printf("   Edits performed: %d\n", editsPerformed)
 	fmt.Printf("   Files modified: %v\n", filesModified)
-	
+
 	// Show modified content
 	fmt.Println("\n📄 Modified files:")
 	for _, file := range files {
@@ -192,7 +190,7 @@ func example3BypassMode() {
 	options := claudecode.NewClaudeCodeOptions()
 	options.CWD = &testDir
 	options.AllowedTools = []string{"Write", "Edit", "Read", "Bash", "LS"}
-	
+
 	// Set to bypass permissions mode
 	bypassMode := claudecode.PermissionModeBypassPermission
 	options.PermissionMode = &bypassMode
@@ -204,7 +202,7 @@ func example3BypassMode() {
 
 	// Track operations
 	operations := make(map[string]int)
-	
+
 	client := claudecode.NewClaudeSDKClient(options)
 	defer client.Close()
 
@@ -283,12 +281,12 @@ func example4InteractivePermissions() {
 
 	// Simulate different permission decisions
 	permissionDecisions := map[string]bool{
-		"create_sensitive.txt": false,  // Deny
-		"create_safe.txt":      true,   // Allow
-		"edit_config.json":     true,   // Allow
-		"delete_important.log": false,  // Deny
-		"run_safe_command":     true,   // Allow
-		"run_risky_command":    false,  // Deny
+		"create_sensitive.txt": false, // Deny
+		"create_safe.txt":      true,  // Allow
+		"edit_config.json":     true,  // Allow
+		"delete_important.log": false, // Deny
+		"run_safe_command":     true,  // Allow
+		"run_risky_command":    false, // Deny
 	}
 
 	fmt.Println("📋 Simulated permission decisions:")
@@ -307,7 +305,7 @@ func example4InteractivePermissions() {
 	options.AllowedTools = []string{"Write", "Edit", "Bash", "Read"}
 
 	ctx := context.Background()
-	
+
 	// Test various operations
 	testOperations := []struct {
 		query      string
@@ -350,7 +348,7 @@ func example4InteractivePermissions() {
 		fmt.Printf("\n🧪 Test %d: %s\n", i+1, test.reason)
 		fmt.Printf("   Query: %s\n", test.query)
 		fmt.Printf("   Expected: %v\n", test.shouldWork)
-		
+
 		// In real usage, this would involve actual permission prompts
 		// Here we simulate the outcome
 		if test.shouldWork {
@@ -368,11 +366,11 @@ func example5CustomPermissionWorkflow() {
 
 	// Create a permission policy simulator
 	policy := &PermissionPolicy{
-		AllowedPaths: []string{"/tmp", "/home/user/safe"},
-		DeniedPaths:  []string{"/etc", "/sys", "/root"},
+		AllowedPaths:    []string{"/tmp", "/home/user/safe"},
+		DeniedPaths:     []string{"/etc", "/sys", "/root"},
 		AllowedCommands: []string{"ls", "echo", "cat", "grep"},
 		DeniedCommands:  []string{"rm", "dd", "mkfs", "sudo"},
-		MaxFileSize: 1024 * 1024, // 1MB
+		MaxFileSize:     1024 * 1024, // 1MB
 	}
 
 	fmt.Println("📜 Custom Permission Policy:")
@@ -431,12 +429,12 @@ func example5CustomPermissionWorkflow() {
 	fmt.Println("🔍 Policy Evaluation Results:")
 	for i, scenario := range scenarios {
 		allowed, reason := policy.Evaluate(scenario.operation, scenario.details)
-		
+
 		emoji := "✅"
 		if !allowed {
 			emoji = "❌"
 		}
-		
+
 		fmt.Printf("\n%d. %s %s\n", i+1, emoji, scenario.operation)
 		fmt.Printf("   Details: %v\n", scenario.details)
 		fmt.Printf("   Decision: %v\n", allowed)
@@ -445,7 +443,7 @@ func example5CustomPermissionWorkflow() {
 
 	// Demonstrate permission mode switching based on context
 	fmt.Println("\n🔄 Dynamic Permission Mode Switching:")
-	
+
 	contexts := []struct {
 		context string
 		mode    claudecode.PermissionMode
@@ -477,17 +475,17 @@ func example5CustomPermissionWorkflow() {
 		fmt.Printf("\n📍 Context: %s\n", ctx.context)
 		fmt.Printf("   Selected mode: %s\n", ctx.mode)
 		fmt.Printf("   Reason: %s\n", ctx.reason)
-		
+
 		// Show how to apply this mode
 		options := claudecode.NewClaudeCodeOptions()
 		options.PermissionMode = &ctx.mode
-		
+
 		fmt.Printf("   Configuration applied ✓\n")
 	}
 
 	// Advanced permission handling with audit logging
 	fmt.Println("\n📝 Permission Audit Log Example:")
-	
+
 	auditLog := []PermissionAuditEntry{
 		{
 			Timestamp: time.Now().Add(-5 * time.Minute),
@@ -520,7 +518,7 @@ func example5CustomPermissionWorkflow() {
 		if !entry.Allowed {
 			emoji = "❌"
 		}
-		
+
 		fmt.Printf("\n%s [%s] %s\n", emoji, entry.Timestamp.Format("15:04:05"), entry.User)
 		fmt.Printf("   Operation: %s on %s\n", entry.Operation, entry.Target)
 		fmt.Printf("   Mode: %s, Allowed: %v\n", entry.Mode, entry.Allowed)
@@ -542,14 +540,14 @@ func (p *PermissionPolicy) Evaluate(operation string, details map[string]interfa
 	case "write_file", "edit_file":
 		path, _ := details["path"].(string)
 		size, _ := details["size"].(int)
-		
+
 		// Check denied paths
 		for _, denied := range p.DeniedPaths {
 			if strings.HasPrefix(path, denied) {
 				return false, fmt.Sprintf("Path %s is in denied list", path)
 			}
 		}
-		
+
 		// Check allowed paths
 		allowed := false
 		for _, allowedPath := range p.AllowedPaths {
@@ -561,39 +559,39 @@ func (p *PermissionPolicy) Evaluate(operation string, details map[string]interfa
 		if !allowed {
 			return false, fmt.Sprintf("Path %s is not in allowed list", path)
 		}
-		
+
 		// Check file size
 		if size > p.MaxFileSize {
 			return false, fmt.Sprintf("File size %d exceeds maximum %d", size, p.MaxFileSize)
 		}
-		
+
 		return true, "All checks passed"
-		
+
 	case "run_command":
 		command, _ := details["command"].(string)
 		parts := strings.Fields(command)
 		if len(parts) == 0 {
 			return false, "Empty command"
 		}
-		
+
 		cmd := parts[0]
-		
+
 		// Check denied commands
 		for _, denied := range p.DeniedCommands {
 			if cmd == denied {
 				return false, fmt.Sprintf("Command %s is denied", cmd)
 			}
 		}
-		
+
 		// Check allowed commands
 		for _, allowed := range p.AllowedCommands {
 			if cmd == allowed {
 				return true, "Command is allowed"
 			}
 		}
-		
+
 		return false, fmt.Sprintf("Command %s is not in allowed list", cmd)
-		
+
 	default:
 		return false, "Unknown operation"
 	}

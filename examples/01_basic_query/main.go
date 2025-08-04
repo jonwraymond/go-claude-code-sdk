@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {

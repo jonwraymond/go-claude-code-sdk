@@ -36,7 +36,7 @@ func example1BasicMCPSetup() {
 	fmt.Println("---------------------------------")
 
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Configure a filesystem MCP server
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
@@ -47,19 +47,19 @@ func example1BasicMCPSetup() {
 			},
 		},
 	}
-	
+
 	// Allow all MCP tools from this server
 	options.MCPTools = []string{"mcp_filesystem_*"}
-	
+
 	fmt.Println("📡 Configured MCP filesystem server")
 	fmt.Printf("   Command: %s %v\n", options.MCPServers["filesystem"].Command, options.MCPServers["filesystem"].Args)
 	fmt.Printf("   Environment: %v\n", options.MCPServers["filesystem"].Env)
-	
+
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "Use the MCP filesystem server to list files in /tmp", options)
-	
+
 	mcpToolsUsed := []string{}
-	
+
 	for msg := range msgChan {
 		switch m := msg.(type) {
 		case *claudecode.AssistantMessage:
@@ -91,7 +91,7 @@ func example2MultipleMCPServers() {
 	fmt.Println("-------------------------------")
 
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Configure multiple MCP servers
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
@@ -113,35 +113,35 @@ func example2MultipleMCPServers() {
 			},
 		},
 	}
-	
+
 	// Enable tools from all servers
 	options.MCPTools = []string{
 		"mcp_filesystem_read",
-		"mcp_filesystem_write", 
+		"mcp_filesystem_write",
 		"mcp_github_search_repos",
 		"mcp_github_get_repo",
 		"mcp_postgres_query",
 	}
-	
+
 	fmt.Println("📡 Configured multiple MCP servers:")
 	for name, config := range options.MCPServers {
 		fmt.Printf("   - %s: %s %v\n", name, config.Command, config.Args)
 	}
 	fmt.Printf("\n🔧 Enabled MCP tools: %v\n\n", options.MCPTools)
-	
+
 	// Create interactive client for better demonstration
 	client := claudecode.NewClaudeSDKClient(options)
 	defer client.Close()
-	
+
 	ctx := context.Background()
 	if err := client.Connect(ctx); err != nil {
 		log.Printf("Failed to connect: %v\n", err)
 		return
 	}
-	
+
 	// Track MCP usage
 	mcpUsage := make(map[string]int)
-	
+
 	go func() {
 		for msg := range client.ReceiveMessages() {
 			switch m := msg.(type) {
@@ -162,14 +162,14 @@ func example2MultipleMCPServers() {
 			}
 		}
 	}()
-	
+
 	// Test different MCP servers
 	queries := []string{
 		"Check if there's a file called test.txt in /tmp using the filesystem MCP",
 		"Search for Go repositories on GitHub using the GitHub MCP",
 		"If you have access to postgres MCP, show me how to list tables",
 	}
-	
+
 	for i, query := range queries {
 		fmt.Printf("\n📝 Query %d: %s\n", i+1, query)
 		if err := client.Query(ctx, query, "mcp-multi"); err != nil {
@@ -177,7 +177,7 @@ func example2MultipleMCPServers() {
 		}
 		time.Sleep(3 * time.Second)
 	}
-	
+
 	fmt.Printf("\n📊 MCP Usage Summary:\n")
 	for server, count := range mcpUsage {
 		fmt.Printf("   %s: %d calls\n", server, count)
@@ -191,34 +191,34 @@ func example3MCPWithEnv() {
 
 	// Set up test environment variables
 	testEnvVars := map[string]string{
-		"MCP_TEST_VAR":     "test_value",
-		"MCP_API_KEY":      "sk-test-12345",
-		"MCP_DEBUG":        "true",
-		"MCP_CUSTOM_PATH":  "/custom/path",
+		"MCP_TEST_VAR":    "test_value",
+		"MCP_API_KEY":     "sk-test-12345",
+		"MCP_DEBUG":       "true",
+		"MCP_CUSTOM_PATH": "/custom/path",
 	}
-	
+
 	// Set environment variables
 	for key, value := range testEnvVars {
-		os.Setenv(key, value)
+		_ = os.Setenv(key, value)
 		defer os.Unsetenv(key)
 	}
-	
+
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Configure MCP server with environment variables
 	options.MCPServers = map[string]types.McpServerConfig{
 		"custom": {
 			Command: "node",
 			Args:    []string{"./custom-mcp-server.js"},
 			Env: map[string]string{
-				"API_KEY":     "${MCP_API_KEY}",      // Will be expanded
-				"DEBUG":       "${MCP_DEBUG}",        // Will be expanded
-				"CUSTOM_PATH": "${MCP_CUSTOM_PATH}",  // Will be expanded
-				"STATIC_VAR":  "static_value",        // Static value
+				"API_KEY":     "${MCP_API_KEY}",     // Will be expanded
+				"DEBUG":       "${MCP_DEBUG}",       // Will be expanded
+				"CUSTOM_PATH": "${MCP_CUSTOM_PATH}", // Will be expanded
+				"STATIC_VAR":  "static_value",       // Static value
 			},
 		},
 	}
-	
+
 	fmt.Println("📡 MCP Server Environment Configuration:")
 	fmt.Println("   Environment variables set:")
 	for key, value := range testEnvVars {
@@ -233,11 +233,11 @@ func example3MCPWithEnv() {
 		}
 		fmt.Println()
 	}
-	
+
 	// Test with environment-dependent behavior
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "Show me the MCP server configuration", options)
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -256,7 +256,7 @@ func example4MCPToolFiltering() {
 	fmt.Println("-----------------------------")
 
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Set up MCP server with many tools
 	options.MCPServers = map[string]types.McpServerConfig{
 		"toolkit": {
@@ -264,7 +264,7 @@ func example4MCPToolFiltering() {
 			Args:    []string{"-y", "@modelcontextprotocol/server-toolkit"},
 		},
 	}
-	
+
 	// Test different filtering strategies
 	filterTests := []struct {
 		name    string
@@ -292,22 +292,22 @@ func example4MCPToolFiltering() {
 			desc:    "MCP server configured but no tools allowed",
 		},
 	}
-	
+
 	for _, test := range filterTests {
 		fmt.Printf("\n🔍 Test: %s\n", test.name)
 		fmt.Printf("   Description: %s\n", test.desc)
 		fmt.Printf("   Filters: %v\n", test.filters)
-		
+
 		testOptions := claudecode.NewClaudeCodeOptions()
 		testOptions.MCPServers = options.MCPServers
 		testOptions.MCPTools = test.filters
-		
+
 		ctx := context.Background()
 		msgChan := claudecode.Query(ctx, "Try to use MCP toolkit tools", testOptions)
-		
+
 		toolsUsed := []string{}
 		toolsBlocked := 0
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -319,14 +319,14 @@ func example4MCPToolFiltering() {
 						}
 					case claudecode.TextBlock:
 						if strings.Contains(strings.ToLower(b.Text), "not available") ||
-						   strings.Contains(strings.ToLower(b.Text), "not allowed") {
+							strings.Contains(strings.ToLower(b.Text), "not allowed") {
 							toolsBlocked++
 						}
 					}
 				}
 			}
 		}
-		
+
 		fmt.Printf("   Results: %d tools used, %d tools blocked\n", len(toolsUsed), toolsBlocked)
 		if len(toolsUsed) > 0 {
 			fmt.Printf("   Used: %v\n", toolsUsed)
@@ -389,9 +389,9 @@ func example5CustomMCPServers() {
 			desc: "Local binary MCP server",
 		},
 	}
-	
+
 	fmt.Println("📡 Custom MCP Server Configurations:\n")
-	
+
 	for _, server := range customServers {
 		fmt.Printf("🔧 %s - %s\n", server.name, server.desc)
 		fmt.Printf("   Command: %s %v\n", server.config.Command, server.config.Args)
@@ -402,20 +402,20 @@ func example5CustomMCPServers() {
 			}
 		}
 		fmt.Println()
-		
+
 		// Demonstrate usage
 		options := claudecode.NewClaudeCodeOptions()
 		options.MCPServers = map[string]types.McpServerConfig{
 			server.name: server.config,
 		}
 		options.MCPTools = []string{fmt.Sprintf("mcp_%s_*", server.name)}
-		
+
 		// Show how Claude would interact with this server
 		ctx := context.Background()
 		query := fmt.Sprintf("If the %s MCP server is available, describe what tools it might provide", server.name)
-		
+
 		msgChan := claudecode.Query(ctx, query, options)
-		
+
 		fmt.Printf("   Claude's assessment:\n")
 		for msg := range msgChan {
 			if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
@@ -434,13 +434,13 @@ func example5CustomMCPServers() {
 		}
 		fmt.Println()
 	}
-	
+
 	// Advanced MCP configuration example
 	fmt.Println("🚀 Advanced MCP Configuration Example:")
 	fmt.Println("-------------------------------------")
-	
+
 	advancedOptions := claudecode.NewClaudeCodeOptions()
-	
+
 	// Complex multi-server setup
 	advancedOptions.MCPServers = map[string]types.McpServerConfig{
 		"orchestrator": {
@@ -464,7 +464,7 @@ func example5CustomMCPServers() {
 			},
 		},
 	}
-	
+
 	// Selective tool enabling
 	advancedOptions.MCPTools = []string{
 		"mcp_orchestrator_dispatch",
@@ -473,21 +473,21 @@ func example5CustomMCPServers() {
 		"mcp_cache_set",
 		"mcp_security_audit",
 	}
-	
+
 	// Also combine with regular tools
 	advancedOptions.AllowedTools = []string{"Read", "Write"}
-	
+
 	fmt.Println("Configuration:")
 	fmt.Printf("  MCP Servers: %d configured\n", len(advancedOptions.MCPServers))
 	fmt.Printf("  MCP Tools: %d enabled\n", len(advancedOptions.MCPTools))
 	fmt.Printf("  Regular Tools: %v\n", advancedOptions.AllowedTools)
-	
+
 	// Demonstrate combined usage
 	ctx := context.Background()
-	msgChan := claudecode.Query(ctx, 
+	msgChan := claudecode.Query(ctx,
 		"Demonstrate how MCP orchestrator, cache, and security servers could work together",
 		advancedOptions)
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {

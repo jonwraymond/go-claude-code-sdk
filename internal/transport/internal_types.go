@@ -1,3 +1,4 @@
+// Package transport provides the internal transport layer for communicating with Claude CLI.
 package transport
 
 import (
@@ -22,22 +23,22 @@ type McpServerConfig map[string]interface{}
 
 // ClaudeCodeOptions represents query options for the Claude SDK.
 type ClaudeCodeOptions struct {
-	AllowedTools             []string                    `json:"allowed_tools,omitempty"`
-	MaxThinkingTokens        int                         `json:"max_thinking_tokens,omitempty"`
-	SystemPrompt             *string                     `json:"system_prompt,omitempty"`
-	AppendSystemPrompt       *string                     `json:"append_system_prompt,omitempty"`
-	MCPTools                 []string                    `json:"mcp_tools,omitempty"`
-	MCPServers               map[string]McpServerConfig  `json:"mcp_servers,omitempty"`
-	PermissionMode           *PermissionMode             `json:"permission_mode,omitempty"`
-	ContinueConversation     bool                        `json:"continue_conversation,omitempty"`
-	Resume                   *string                     `json:"resume,omitempty"`
-	MaxTurns                 *int                        `json:"max_turns,omitempty"`
-	DisallowedTools          []string                    `json:"disallowed_tools,omitempty"`
-	Model                    *string                     `json:"model,omitempty"`
-	PermissionPromptToolName *string                     `json:"permission_prompt_tool_name,omitempty"`
-	CWD                      *string                     `json:"cwd,omitempty"`
-	Settings                 *string                     `json:"settings,omitempty"`
-	AddDirs                  []string                    `json:"add_dirs,omitempty"`
+	AllowedTools             []string                   `json:"allowed_tools,omitempty"`
+	MaxThinkingTokens        int                        `json:"max_thinking_tokens,omitempty"`
+	SystemPrompt             *string                    `json:"system_prompt,omitempty"`
+	AppendSystemPrompt       *string                    `json:"append_system_prompt,omitempty"`
+	MCPTools                 []string                   `json:"mcp_tools,omitempty"`
+	MCPServers               map[string]McpServerConfig `json:"mcp_servers,omitempty"`
+	PermissionMode           *PermissionMode            `json:"permission_mode,omitempty"`
+	ContinueConversation     bool                       `json:"continue_conversation,omitempty"`
+	Resume                   *string                    `json:"resume,omitempty"`
+	MaxTurns                 *int                       `json:"max_turns,omitempty"`
+	DisallowedTools          []string                   `json:"disallowed_tools,omitempty"`
+	Model                    *string                    `json:"model,omitempty"`
+	PermissionPromptToolName *string                    `json:"permission_prompt_tool_name,omitempty"`
+	CWD                      *string                    `json:"cwd,omitempty"`
+	Settings                 *string                    `json:"settings,omitempty"`
+	AddDirs                  []string                   `json:"add_dirs,omitempty"`
 }
 
 // SetCWD sets the current working directory, accepting string or path.
@@ -130,4 +131,3 @@ func NewCLIJSONDecodeError(message string, rawData string, cause error) *CLIJSON
 		RawData:        rawData,
 	}
 }
-

@@ -8,9 +8,10 @@
 // bash commands, edit files, search the web, fetch web content) to accomplish.
 //
 // Usage:
-//   go run streaming_mode.go                    - List the examples
-//   go run streaming_mode.go all                - Run all examples
-//   go run streaming_mode.go basic_streaming    - Run a specific example
+//
+//	go run streaming_mode.go                    - List the examples
+//	go run streaming_mode.go all                - Run all examples
+//	go run streaming_mode.go basic_streaming    - Run a specific example
 package main
 
 import (
@@ -464,14 +465,14 @@ func exampleErrorHandling() {
 
 func main() {
 	examples := map[string]func(){
-		"basic_streaming":          exampleBasicStreaming,
-		"multi_turn_conversation":  exampleMultiTurnConversation,
-		"concurrent_responses":     exampleConcurrentResponses,
-		"with_interrupt":           exampleWithInterrupt,
-		"manual_message_handling":  exampleManualMessageHandling,
-		"with_options":             exampleWithOptions,
-		"bash_command":             exampleBashCommand,
-		"error_handling":           exampleErrorHandling,
+		"basic_streaming":         exampleBasicStreaming,
+		"multi_turn_conversation": exampleMultiTurnConversation,
+		"concurrent_responses":    exampleConcurrentResponses,
+		"with_interrupt":          exampleWithInterrupt,
+		"manual_message_handling": exampleManualMessageHandling,
+		"with_options":            exampleWithOptions,
+		"bash_command":            exampleBashCommand,
+		"error_handling":          exampleErrorHandling,
 	}
 
 	if len(os.Args) < 2 {

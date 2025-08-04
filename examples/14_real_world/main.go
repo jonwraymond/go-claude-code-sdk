@@ -5,12 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"sync"
-	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -88,12 +84,12 @@ func calculateTotal(prices []float64) float64 {
 
 	// Perform review
 	review := reviewer.ReviewCode(ctx, codeToReview)
-	
+
 	// Display results
 	fmt.Println("\n📊 Code Review Results:")
 	fmt.Printf("   Overall Score: %d/100\n", review.Score)
 	fmt.Printf("   Issues Found: %d\n", len(review.Issues))
-	
+
 	fmt.Println("\n🚨 Issues by Severity:")
 	for _, severity := range []string{"critical", "high", "medium", "low"} {
 		issues := filterIssuesBySeverity(review.Issues, severity)
@@ -120,7 +116,7 @@ func example2DocumentationGenerator() {
 	options.AllowedTools = []string{"Read", "Write"}
 
 	ctx := context.Background()
-	
+
 	// Create sample Go file for documentation
 	sampleCode := `package mathutils
 
@@ -160,11 +156,12 @@ func (c *Calculator) Factorial(n int) int {
 	// Write sample file
 	writeQuery := fmt.Sprintf("Create a file called mathutils.go with this content:\n%s", sampleCode)
 	msgChan := claudecode.Query(ctx, writeQuery, options)
-	for range msgChan {} // Drain channel
+	for range msgChan {
+	} // Drain channel
 
 	// Generate documentation
 	fmt.Println("\n📚 Generating documentation...")
-	
+
 	docQuery := `Read mathutils.go and generate comprehensive documentation:
 1. Create a README.md with package overview, installation, usage examples
 2. Create API.md with detailed function documentation
@@ -172,9 +169,9 @@ func (c *Calculator) Factorial(n int) int {
 4. Include proper markdown formatting, code blocks, and tables`
 
 	msgChan = claudecode.Query(ctx, docQuery, options)
-	
+
 	filesCreated := []string{}
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -191,7 +188,7 @@ func (c *Calculator) Factorial(n int) int {
 			}
 		}
 	}
-	
+
 	fmt.Printf("\n📄 Documentation generated: %d files\n", len(filesCreated))
 	fmt.Println()
 }
@@ -204,7 +201,7 @@ func example3TestGenerator() {
 	options.AllowedTools = []string{"Read", "Write", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Create a sample service to test
 	serviceCode := `package userservice
 
@@ -273,11 +270,12 @@ func generateID() string {
 	// Write the service file
 	writeQuery := fmt.Sprintf("Create userservice.go with this content:\n%s", serviceCode)
 	msgChan := claudecode.Query(ctx, writeQuery, options)
-	for range msgChan {} // Drain
+	for range msgChan {
+	} // Drain
 
 	// Generate comprehensive tests
 	fmt.Println("\n🧪 Generating comprehensive tests...")
-	
+
 	testQuery := `Read userservice.go and generate comprehensive tests:
 1. Create userservice_test.go with unit tests for all functions
 2. Include table-driven tests for different scenarios
@@ -287,9 +285,9 @@ func generateID() string {
 6. Run the tests and show the results`
 
 	msgChan = claudecode.Query(ctx, testQuery, options)
-	
+
 	testStats := TestGenerationStats{}
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -313,7 +311,7 @@ func generateID() string {
 			}
 		}
 	}
-	
+
 	fmt.Println("\n📊 Test Generation Results:")
 	fmt.Printf("   Test files created: %d\n", testStats.FilesCreated)
 	fmt.Printf("   Test functions: %d+\n", testStats.TestCount)
@@ -385,14 +383,14 @@ type DataStruct struct {
 }`
 
 	fmt.Println("🐛 Analyzing code for bugs...")
-	
+
 	// Analyze the code
 	report := analyzer.AnalyzeCode(ctx, buggyCode)
-	
+
 	fmt.Println("\n🔍 Bug Analysis Report:")
 	fmt.Printf("   Severity: %s\n", report.Severity)
 	fmt.Printf("   Bugs found: %d\n", len(report.Bugs))
-	
+
 	fmt.Println("\n🐞 Detected Bugs:")
 	for i, bug := range report.Bugs {
 		fmt.Printf("\n   Bug #%d: %s\n", i+1, bug.Type)
@@ -400,7 +398,7 @@ type DataStruct struct {
 		fmt.Printf("   Description: %s\n", bug.Description)
 		fmt.Printf("   Fix: %s\n", bug.SuggestedFix)
 	}
-	
+
 	fmt.Println("\n✅ Recommendations:")
 	for i, rec := range report.Recommendations {
 		fmt.Printf("   %d. %s\n", i+1, rec)
@@ -416,7 +414,7 @@ func example5APIClientGenerator() {
 	options.AllowedTools = []string{"Write", "Read"}
 
 	ctx := context.Background()
-	
+
 	// API specification
 	apiSpec := APISpecification{
 		Name:    "UserAPI",
@@ -457,7 +455,7 @@ func example5APIClientGenerator() {
 	}
 
 	fmt.Println("🔧 Generating API client...")
-	
+
 	// Generate the client
 	specJSON, _ := json.MarshalIndent(apiSpec, "", "  ")
 	query := fmt.Sprintf(`Generate a complete Go API client based on this specification:
@@ -472,9 +470,9 @@ Requirements:
 6. Create example usage in example_test.go`, string(specJSON))
 
 	msgChan := claudecode.Query(ctx, query, options)
-	
+
 	generatedFiles := []GeneratedFile{}
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -494,7 +492,7 @@ Requirements:
 			}
 		}
 	}
-	
+
 	fmt.Println("\n📦 Generated API Client:")
 	totalLines := 0
 	for _, file := range generatedFiles {
@@ -513,7 +511,7 @@ func example6PerformanceOptimizer() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Create sample slow code
 	slowCode := `package main
 
@@ -572,10 +570,11 @@ func ProcessLargeFile(filename string) error {
 	// Write the slow code
 	writeQuery := fmt.Sprintf("Create slow_code.go with this content:\n%s", slowCode)
 	msgChan := claudecode.Query(ctx, writeQuery, options)
-	for range msgChan {} // Drain
+	for range msgChan {
+	} // Drain
 
 	fmt.Println("\n⚡ Optimizing performance...")
-	
+
 	// Optimize the code
 	optimizeQuery := `Analyze slow_code.go and optimize it:
 1. Identify all performance issues
@@ -585,10 +584,10 @@ func ProcessLargeFile(filename string) error {
 5. Run benchmarks to show improvements`
 
 	msgChan = claudecode.Query(ctx, optimizeQuery, options)
-	
+
 	optimizations := []Optimization{}
 	benchmarkRun := false
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -609,24 +608,24 @@ func ProcessLargeFile(filename string) error {
 			}
 		}
 	}
-	
+
 	fmt.Println("\n📊 Optimization Results:")
 	fmt.Printf("   Issues identified: %d+\n", len(optimizations))
 	fmt.Printf("   Optimizations applied: ✅\n")
 	fmt.Printf("   Benchmarks run: %v\n", benchmarkRun)
-	
+
 	fmt.Println("\n🚀 Performance Improvements:")
 	improvements := []string{
 		"String concatenation → strings.Builder",
-		"Unnecessary allocations → Preallocated slices", 
+		"Unnecessary allocations → Preallocated slices",
 		"Linear search → Map lookup",
 		"Unbuffered I/O → Buffered reader",
 	}
-	
+
 	for i, imp := range improvements {
 		fmt.Printf("   %d. %s\n", i+1, imp)
 	}
-	
+
 	fmt.Println()
 }
 
@@ -670,9 +669,9 @@ Check for:
 Provide a score out of 100 and specific recommendations.`, code)
 
 	msgChan := claudecode.Query(ctx, query, nil)
-	
+
 	review := CodeReview{
-		Score:  75, // Default
+		Score: 75, // Default
 		Issues: []Issue{
 			{Line: 6, Severity: "critical", Description: "Hardcoded password comparison", Rule: "Security"},
 			{Line: 9, Severity: "medium", Description: "Missing input validation", Rule: "Error Handling"},
@@ -686,12 +685,12 @@ Provide a score out of 100 and specific recommendations.`, code)
 			"Consider adding unit tests",
 		},
 	}
-	
+
 	// Process actual review results
 	for range msgChan {
 		// In real implementation, parse Claude's response
 	}
-	
+
 	return review
 }
 
@@ -732,7 +731,7 @@ Look for:
 For each bug found, provide the line number, description, and suggested fix.`, code)
 
 	msgChan := claudecode.Query(ctx, query, nil)
-	
+
 	report := BugReport{
 		Severity: "High",
 		Bugs: []Bug{
@@ -748,12 +747,12 @@ For each bug found, provide the line number, description, and suggested fix.`, c
 			"Add unit tests with edge cases",
 		},
 	}
-	
+
 	// Process actual analysis results
 	for range msgChan {
 		// In real implementation, parse Claude's response
 	}
-	
+
 	return report
 }
 

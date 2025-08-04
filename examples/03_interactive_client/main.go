@@ -197,7 +197,7 @@ func example4ContextAware() {
 
 	for _, query := range demoQueries {
 		fmt.Printf("\nYou: %s\n", query)
-		
+
 		if query == "exit" {
 			break
 		}

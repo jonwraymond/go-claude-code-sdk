@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -77,11 +76,11 @@ func example1BasicInterrupt() {
 
 	// Wait 2 seconds then interrupt
 	time.Sleep(2 * time.Second)
-	
+
 	mu.Lock()
 	count := messageCount
 	mu.Unlock()
-	
+
 	fmt.Printf("\n🛑 Interrupting after %d messages...\n", count)
 	if err := client.Interrupt(); err != nil {
 		log.Printf("Failed to interrupt: %v\n", err)
@@ -196,7 +195,7 @@ func example3SignalInterrupt() {
 				mu.Lock()
 				processingTask = true
 				mu.Unlock()
-				
+
 				for _, block := range m.Content {
 					if textBlock, ok := block.(claudecode.TextBlock); ok {
 						// Show streaming output
@@ -223,7 +222,7 @@ func example3SignalInterrupt() {
 		mu.Lock()
 		processing := processingTask
 		mu.Unlock()
-		
+
 		if processing {
 			fmt.Println("\n\n🛑 Received interrupt signal!")
 			if err := client.Interrupt(); err != nil {
@@ -237,7 +236,7 @@ func example3SignalInterrupt() {
 	case <-time.After(30 * time.Second):
 		fmt.Println("Demo timeout")
 	}
-	
+
 	// Clean up signal handler
 	signal.Stop(sigChan)
 	fmt.Println()
@@ -274,7 +273,7 @@ func example4ConditionalInterrupt() {
 					case claudecode.ToolUseBlock:
 						toolUseCount++
 						fmt.Printf("🔧 Tool use #%d: %s\n", toolUseCount, b.Name)
-						
+
 						// Interrupt if too many tool uses
 						if toolUseCount >= 3 && !shouldInterrupt {
 							shouldInterrupt = true
@@ -312,7 +311,7 @@ func example4ConditionalInterrupt() {
 	select {
 	case <-interrupted:
 		fmt.Println("✅ Conditional interrupt executed")
-		
+
 		// Send simpler task
 		time.Sleep(1 * time.Second)
 		fmt.Println("\n📤 Sending simpler task...")

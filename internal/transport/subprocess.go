@@ -61,7 +61,7 @@ func (t *SubprocessCLITransport) Connect() error {
 
 	// Create the command with appropriate args
 	args := []string{"code", "start", "--streaming"}
-	
+
 	// Add options as CLI flags
 	if t.options != nil {
 		if t.options.SystemPrompt != nil && *t.options.SystemPrompt != "" {
@@ -92,7 +92,7 @@ func (t *SubprocessCLITransport) Connect() error {
 	}
 
 	// Create command with context
-	t.cmd = exec.CommandContext(t.ctx, claudeCmd, args...)
+	t.cmd = exec.CommandContext(t.ctx, claudeCmd, args...) // #nosec G204 - claudeCmd is validated above
 	t.cmd.Env = env
 
 	// Set working directory if specified
@@ -150,7 +150,7 @@ func (t *SubprocessCLITransport) readOutput() {
 			// Copy the bytes since scanner reuses the buffer
 			lineCopy := make([]byte, len(line))
 			copy(lineCopy, line)
-			
+
 			select {
 			case t.messageChan <- lineCopy:
 			case <-t.ctx.Done():
@@ -234,7 +234,7 @@ func (t *SubprocessCLITransport) Disconnect() error {
 
 	// Close stdin to signal end of input
 	if t.stdin != nil {
-		t.stdin.Close()
+		_ = t.stdin.Close()
 	}
 
 	// Wait for process to exit
@@ -252,10 +252,10 @@ func (t *SubprocessCLITransport) Disconnect() error {
 
 	// Close remaining pipes
 	if t.stdout != nil {
-		t.stdout.Close()
+		_ = t.stdout.Close()
 	}
 	if t.stderr != nil {
-		t.stderr.Close()
+		_ = t.stderr.Close()
 	}
 
 	return nil

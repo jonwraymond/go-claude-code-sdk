@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -62,7 +61,7 @@ func example1BasicMultiSession() {
 				}
 			case *claudecode.ResultMessage:
 				mu.Lock()
-				sessionMessages[m.SessionID] = append(sessionMessages[m.SessionID], 
+				sessionMessages[m.SessionID] = append(sessionMessages[m.SessionID],
 					fmt.Sprintf("Session %s complete (%d turns)", m.SessionID, m.NumTurns))
 				mu.Unlock()
 			}
@@ -71,8 +70,8 @@ func example1BasicMultiSession() {
 
 	// Create multiple sessions
 	sessions := []struct {
-		id    string
-		topic string
+		id       string
+		topic    string
 		messages []string
 	}{
 		{
@@ -94,7 +93,7 @@ func example1BasicMultiSession() {
 			},
 		},
 		{
-			id:    "general-session", 
+			id:    "general-session",
 			topic: "General Knowledge",
 			messages: []string{
 				"Tell me about the solar system",
@@ -107,7 +106,7 @@ func example1BasicMultiSession() {
 	// Run sessions sequentially
 	for _, session := range sessions {
 		fmt.Printf("\n📚 Starting %s session (ID: %s)\n", session.topic, session.id)
-		
+
 		for i, msg := range session.messages {
 			fmt.Printf("   [%d] You: %s\n", i+1, msg)
 			if err := client.Query(ctx, msg, session.id); err != nil {
@@ -115,7 +114,7 @@ func example1BasicMultiSession() {
 			}
 			time.Sleep(2 * time.Second)
 		}
-		
+
 		fmt.Printf("   ✅ %s session complete\n", session.topic)
 	}
 
@@ -137,7 +136,7 @@ func example2ParallelSessions() {
 	// Create multiple clients for true parallel sessions
 	numSessions := 3
 	clients := make([]*claudecode.ClaudeSDKClient, numSessions)
-	
+
 	for i := range clients {
 		clients[i] = claudecode.NewClaudeSDKClient(nil)
 		defer clients[i].Close()
@@ -148,9 +147,9 @@ func example2ParallelSessions() {
 
 	// Session definitions
 	sessions := []struct {
-		name     string
-		queries  []string
-		color    string
+		name    string
+		queries []string
+		color   string
 	}{
 		{
 			name: "Research",
@@ -188,9 +187,9 @@ func example2ParallelSessions() {
 	for i, session := range sessions {
 		wg.Add(1)
 		go func(idx int, sess struct {
-			name     string
-			queries  []string
-			color    string
+			name    string
+			queries []string
+			color   string
 		}) {
 			defer wg.Done()
 
@@ -213,12 +212,12 @@ func example2ParallelSessions() {
 								if len(preview) > 80 {
 									preview = preview[:80] + "..."
 								}
-								fmt.Printf("[%.1fs] %s %s: %s\n", 
+								fmt.Printf("[%.1fs] %s %s: %s\n",
 									elapsed, sess.color, sess.name, preview)
 							}
 						}
 					case *claudecode.ResultMessage:
-						fmt.Printf("[%.1fs] %s %s: Turn %d complete\n", 
+						fmt.Printf("[%.1fs] %s %s: Turn %d complete\n",
 							elapsed, sess.color, sess.name, m.NumTurns)
 					}
 				}
@@ -227,11 +226,11 @@ func example2ParallelSessions() {
 			// Send queries with slight delays
 			for i, query := range sess.queries {
 				time.Sleep(time.Duration(i*500) * time.Millisecond) // Stagger queries
-				
+
 				elapsed := time.Since(startTime).Seconds()
-				fmt.Printf("[%.1fs] %s %s: Sending query %d\n", 
+				fmt.Printf("[%.1fs] %s %s: Sending query %d\n",
 					elapsed, sess.color, sess.name, i+1)
-				
+
 				if err := client.Query(ctx, query, fmt.Sprintf("%s-%d", sess.name, idx)); err != nil {
 					log.Printf("Query failed: %v\n", err)
 				}
@@ -239,7 +238,7 @@ func example2ParallelSessions() {
 
 			// Keep session alive for responses
 			time.Sleep(5 * time.Second)
-			
+
 		}(i, session)
 	}
 
@@ -275,49 +274,49 @@ func example3SessionIsolation() {
 
 	// Test 1: Variable isolation
 	fmt.Println("\n📝 Test 1: Variable Isolation")
-	
+
 	// Session A sets a variable
 	client.Query(ctx, "Remember that x = 42", "session-A")
 	time.Sleep(2 * time.Second)
-	
+
 	// Session B sets a different value
 	client.Query(ctx, "Remember that x = 100", "session-B")
 	time.Sleep(2 * time.Second)
-	
+
 	// Check if sessions maintain separate values
 	client.Query(ctx, "What is the value of x?", "session-A")
 	time.Sleep(2 * time.Second)
-	
+
 	client.Query(ctx, "What is the value of x?", "session-B")
 	time.Sleep(2 * time.Second)
 
 	// Test 2: Context isolation
 	fmt.Println("\n📚 Test 2: Context Isolation")
-	
+
 	// Session C discusses Python
 	client.Query(ctx, "I want to learn Python. What should I start with?", "session-C")
 	time.Sleep(2 * time.Second)
-	
+
 	// Session D discusses JavaScript
 	client.Query(ctx, "I want to learn JavaScript. What should I start with?", "session-D")
 	time.Sleep(2 * time.Second)
-	
+
 	// Continue conversations
 	client.Query(ctx, "What about advanced features?", "session-C") // Should be Python context
 	time.Sleep(2 * time.Second)
-	
+
 	client.Query(ctx, "What about advanced features?", "session-D") // Should be JavaScript context
 	time.Sleep(2 * time.Second)
 
 	// Test 3: Tool usage isolation
 	fmt.Println("\n🔧 Test 3: Tool Usage Isolation")
-	
+
 	options := claudecode.NewClaudeCodeOptions()
 	options.AllowedTools = []string{"Write"}
-	
+
 	client2 := claudecode.NewClaudeSDKClient(options)
 	defer client2.Close()
-	
+
 	if err := client2.Connect(ctx); err != nil {
 		log.Printf("Failed to connect client2: %v\n", err)
 		return
@@ -333,7 +332,7 @@ func example3SessionIsolation() {
 	for session, filename := range sessionFiles {
 		query := fmt.Sprintf("Create a configuration file named %s with project settings", filename)
 		fmt.Printf("\n🗂️ %s: Creating %s\n", session, filename)
-		
+
 		client2.Query(ctx, query, session)
 		time.Sleep(3 * time.Second)
 	}
@@ -386,7 +385,7 @@ func example4SessionCoordination() {
 
 	// Coordination example: Distributed calculation
 	fmt.Println("\n🧮 Distributed Calculation Example")
-	
+
 	// Coordinator assigns tasks
 	coordinator.Query(ctx, "We need to calculate statistics for these number sets. Coordinate the work.", "coordinator")
 	time.Sleep(1 * time.Second)
@@ -469,7 +468,7 @@ func example5AdvancedSessionManagement() {
 
 	// Test 1: Priority-based execution
 	fmt.Println("\n🎯 Test 1: Priority-based Execution")
-	
+
 	// Queue tasks for different priority sessions
 	tasks := []struct {
 		sessionID string
@@ -487,7 +486,7 @@ func example5AdvancedSessionManagement() {
 
 	// Test 2: Session lifecycle management
 	fmt.Println("\n🔄 Test 2: Session Lifecycle")
-	
+
 	// Create ephemeral session
 	ephemeral := SessionConfig{
 		ID:          "ephemeral-task",
@@ -497,14 +496,14 @@ func example5AdvancedSessionManagement() {
 		AutoClose:   true,
 		Description: "Auto-closing session",
 	}
-	
+
 	session, _ := sessionMgr.CreateSession(ephemeral)
 	fmt.Printf("📝 Created ephemeral session: %s\n", session.ID)
-	
+
 	// Use ephemeral session
 	sessionMgr.Query(ctx, session.ID, "Quick calculation: 123 * 456")
 	time.Sleep(6 * time.Second)
-	
+
 	// Check if auto-closed
 	if sessionMgr.IsSessionActive(session.ID) {
 		fmt.Println("❌ Ephemeral session still active (unexpected)")
@@ -514,7 +513,7 @@ func example5AdvancedSessionManagement() {
 
 	// Test 3: Session metrics
 	fmt.Println("\n📊 Test 3: Session Metrics")
-	
+
 	metrics := sessionMgr.GetMetrics()
 	fmt.Printf("   Total sessions: %d\n", metrics.TotalSessions)
 	fmt.Printf("   Active sessions: %d\n", metrics.ActiveSessions)
@@ -523,14 +522,14 @@ func example5AdvancedSessionManagement() {
 
 	// Test 4: Session persistence
 	fmt.Println("\n💾 Test 4: Session Persistence")
-	
+
 	// Save session state
 	state := sessionMgr.SaveState()
 	fmt.Printf("   Saved state for %d sessions\n", len(state.Sessions))
-	
+
 	// Simulate restart by creating new manager
 	newSessionMgr := NewSessionManager()
-	
+
 	// Restore state
 	err := newSessionMgr.RestoreState(state)
 	if err != nil {
@@ -574,7 +573,7 @@ func processWorkerMessages(client *claudecode.ClaudeSDKClient, workerID int, sha
 					shared.mu.Lock()
 					shared.results[fmt.Sprintf("worker-%d", workerID)] = textBlock.Text
 					shared.mu.Unlock()
-					
+
 					// Show truncated output
 					preview := textBlock.Text
 					if len(preview) > 60 {
@@ -623,7 +622,7 @@ func (sm *SessionManager) CreateSession(config SessionConfig) (*Session, error) 
 	defer sm.mu.Unlock()
 
 	client := claudecode.NewClaudeSDKClient(nil)
-	
+
 	session := &Session{
 		SessionConfig: config,
 		Client:        client,
@@ -633,7 +632,7 @@ func (sm *SessionManager) CreateSession(config SessionConfig) (*Session, error) 
 	}
 
 	sm.sessions[config.ID] = session
-	
+
 	// Connect in background
 	go func() {
 		ctx := context.Background()
@@ -657,7 +656,7 @@ func (sm *SessionManager) ExecuteByPriority(ctx context.Context, tasks []struct 
 			sm.mu.RLock()
 			session, exists := sm.sessions[task.sessionID]
 			sm.mu.RUnlock()
-			
+
 			if exists && session.Priority == i {
 				fmt.Printf("⚡ Executing priority %d: %s\n", i, task.sessionID)
 				sm.Query(ctx, task.sessionID, task.query)
@@ -686,7 +685,7 @@ func (sm *SessionManager) Query(ctx context.Context, sessionID, query string) er
 func (sm *SessionManager) IsSessionActive(sessionID string) bool {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
-	
+
 	session, exists := sm.sessions[sessionID]
 	return exists && session.Active
 }

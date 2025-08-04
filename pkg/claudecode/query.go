@@ -100,7 +100,7 @@ func Query(ctx context.Context, prompt string, options *ClaudeCodeOptions) <-cha
 			return
 		}
 
-		defer t.Disconnect()
+		defer func() { _ = t.Disconnect() }()
 
 		// Send initial message
 		message := map[string]interface{}{

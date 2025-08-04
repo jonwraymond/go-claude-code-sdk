@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -43,31 +41,31 @@ func example1BasicToolUsage() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Test different tools
 	toolTests := []struct {
-		name  string
-		query string
+		name          string
+		query         string
 		expectedTools []string
 	}{
 		{
-			name:  "File creation",
-			query: "Create a file called hello.txt with 'Hello, World!' content",
+			name:          "File creation",
+			query:         "Create a file called hello.txt with 'Hello, World!' content",
 			expectedTools: []string{"Write"},
 		},
 		{
-			name:  "File reading",
-			query: "Read the contents of hello.txt",
+			name:          "File reading",
+			query:         "Read the contents of hello.txt",
 			expectedTools: []string{"Read"},
 		},
 		{
-			name:  "File editing",
-			query: "Edit hello.txt and change 'World' to 'Claude'",
+			name:          "File editing",
+			query:         "Edit hello.txt and change 'World' to 'Claude'",
 			expectedTools: []string{"Edit"},
 		},
 		{
-			name:  "Command execution",
-			query: "Run 'echo Test Complete' using bash",
+			name:          "Command execution",
+			query:         "Run 'echo Test Complete' using bash",
 			expectedTools: []string{"Bash"},
 		},
 	}
@@ -75,11 +73,11 @@ func example1BasicToolUsage() {
 	for _, test := range toolTests {
 		fmt.Printf("\n🔧 %s\n", test.name)
 		fmt.Printf("   Query: %s\n", test.query)
-		
+
 		msgChan := claudecode.Query(ctx, test.query, options)
-		
+
 		toolsUsed := make(map[string]int)
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -87,7 +85,7 @@ func example1BasicToolUsage() {
 					if toolUse, ok := block.(claudecode.ToolUseBlock); ok {
 						toolsUsed[toolUse.Name]++
 						fmt.Printf("   📌 Tool used: %s (ID: %s)\n", toolUse.Name, toolUse.ID)
-						
+
 						// Show tool input
 						if inputJSON, err := json.MarshalIndent(toolUse.Input, "      ", "  "); err == nil {
 							fmt.Printf("      Input: %s\n", string(inputJSON))
@@ -102,7 +100,7 @@ func example1BasicToolUsage() {
 				}
 			}
 		}
-		
+
 		fmt.Printf("   Summary: Used %d tools\n", len(toolsUsed))
 		for tool, count := range toolsUsed {
 			fmt.Printf("      %s: %d times\n", tool, count)
@@ -116,36 +114,36 @@ func example2ToolRestrictions() {
 	fmt.Println("----------------------------")
 
 	ctx := context.Background()
-	
+
 	// Test different tool restriction scenarios
 	scenarios := []struct {
-		name         string
-		allowedTools []string
-		query        string
+		name          string
+		allowedTools  []string
+		query         string
 		shouldSucceed bool
 	}{
 		{
-			name:         "Only Read allowed",
-			allowedTools: []string{"Read"},
-			query:        "Create a new file called test.txt",
+			name:          "Only Read allowed",
+			allowedTools:  []string{"Read"},
+			query:         "Create a new file called test.txt",
 			shouldSucceed: false,
 		},
 		{
-			name:         "Only Write allowed",
-			allowedTools: []string{"Write"},
-			query:        "Create a new file called allowed.txt with content 'This works'",
+			name:          "Only Write allowed",
+			allowedTools:  []string{"Write"},
+			query:         "Create a new file called allowed.txt with content 'This works'",
 			shouldSucceed: true,
 		},
 		{
-			name:         "No tools allowed",
-			allowedTools: []string{},
-			query:        "Tell me about Go programming",
+			name:          "No tools allowed",
+			allowedTools:  []string{},
+			query:         "Tell me about Go programming",
 			shouldSucceed: true,
 		},
 		{
-			name:         "Multiple tools allowed",
-			allowedTools: []string{"Read", "Write", "Edit"},
-			query:        "Create config.json, read it, then edit it to add a new field",
+			name:          "Multiple tools allowed",
+			allowedTools:  []string{"Read", "Write", "Edit"},
+			query:         "Create config.json, read it, then edit it to add a new field",
 			shouldSucceed: true,
 		},
 	}
@@ -154,15 +152,15 @@ func example2ToolRestrictions() {
 		fmt.Printf("\n🚦 Scenario: %s\n", scenario.name)
 		fmt.Printf("   Allowed tools: %v\n", scenario.allowedTools)
 		fmt.Printf("   Query: %s\n", scenario.query)
-		
+
 		options := claudecode.NewClaudeCodeOptions()
 		options.AllowedTools = scenario.allowedTools
-		
+
 		msgChan := claudecode.Query(ctx, scenario.query, options)
-		
+
 		toolAttempts := 0
 		toolSuccesses := 0
-		
+
 		for msg := range msgChan {
 			if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 				for _, block := range assistantMsg.Content {
@@ -176,7 +174,7 @@ func example2ToolRestrictions() {
 								break
 							}
 						}
-						
+
 						if allowed {
 							fmt.Printf("   ✅ Tool %s: Allowed\n", toolUse.Name)
 						} else {
@@ -186,7 +184,7 @@ func example2ToolRestrictions() {
 				}
 			}
 		}
-		
+
 		fmt.Printf("   Result: %d/%d tools allowed\n", toolSuccesses, toolAttempts)
 		if scenario.shouldSucceed && toolSuccesses > 0 || !scenario.shouldSucceed && toolSuccesses == 0 {
 			fmt.Println("   ✅ Behaved as expected")
@@ -205,7 +203,7 @@ func example3ToolResultHandling() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Track tool results
 	toolResults := []ToolResult{}
 	var resultsMu sync.Mutex
@@ -220,9 +218,9 @@ func example3ToolResultHandling() {
 	fmt.Printf("📝 Query: %s\n\n", query)
 
 	msgChan := claudecode.Query(ctx, query, options)
-	
+
 	currentToolUse := ""
-	
+
 	for msg := range msgChan {
 		switch m := msg.(type) {
 		case *claudecode.AssistantMessage:
@@ -231,22 +229,22 @@ func example3ToolResultHandling() {
 				case claudecode.ToolUseBlock:
 					currentToolUse = b.ID
 					fmt.Printf("🔧 Tool Use: %s (ID: %s)\n", b.Name, b.ID)
-					
+
 					result := ToolResult{
 						ToolName:  b.Name,
 						ToolID:    b.ID,
 						Input:     b.Input,
 						StartTime: time.Now(),
 					}
-					
+
 					resultsMu.Lock()
 					toolResults = append(toolResults, result)
 					resultsMu.Unlock()
-					
+
 				case claudecode.ToolResultBlock:
 					fmt.Printf("📊 Tool Result (ID: %s)\n", b.ToolUseID)
 					fmt.Printf("   Success: %v\n", b.IsError == nil || !*b.IsError)
-					
+
 					// Update result
 					resultsMu.Lock()
 					for i := range toolResults {
@@ -259,7 +257,7 @@ func example3ToolResultHandling() {
 						}
 					}
 					resultsMu.Unlock()
-					
+
 					// Show content preview
 					contentStr := fmt.Sprintf("%v", b.Content)
 					if len(contentStr) > 100 {
@@ -275,7 +273,7 @@ func example3ToolResultHandling() {
 	// Summary of tool results
 	fmt.Println("\n📊 Tool Results Summary:")
 	fmt.Printf("   Total tools used: %d\n", len(toolResults))
-	
+
 	for i, result := range toolResults {
 		fmt.Printf("\n   [%d] %s:\n", i+1, result.ToolName)
 		fmt.Printf("       Duration: %v\n", result.Duration.Round(time.Millisecond))
@@ -295,10 +293,10 @@ func example4ComplexToolWorkflows() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash", "MultiEdit"}
 
 	ctx := context.Background()
-	
+
 	// Workflow 1: Code generation and testing
 	fmt.Println("\n🔄 Workflow 1: Code Generation and Testing")
-	
+
 	workflow1 := `Create a complete Go program that:
 1. Defines a Calculator struct with Add, Subtract, Multiply, Divide methods
 2. Includes proper error handling for division by zero
@@ -309,7 +307,7 @@ func example4ComplexToolWorkflows() {
 
 	// Workflow 2: Data processing pipeline
 	fmt.Println("\n🔄 Workflow 2: Data Processing Pipeline")
-	
+
 	workflow2 := `Create a data processing pipeline:
 1. Create a CSV file with sample sales data (product, quantity, price)
 2. Write a Python script to read the CSV and calculate total revenue
@@ -320,7 +318,7 @@ func example4ComplexToolWorkflows() {
 
 	// Workflow 3: Configuration management
 	fmt.Println("\n🔄 Workflow 3: Configuration Management")
-	
+
 	workflow3 := `Set up a configuration system:
 1. Create a base config.yaml with application settings
 2. Create environment-specific configs (dev.yaml, prod.yaml)
@@ -339,31 +337,31 @@ func example5ToolErrorHandling() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Test error scenarios
 	errorScenarios := []struct {
-		name  string
-		query string
+		name          string
+		query         string
 		expectedError string
 	}{
 		{
-			name:  "Read non-existent file",
-			query: "Read the contents of /definitely/does/not/exist/file.txt",
+			name:          "Read non-existent file",
+			query:         "Read the contents of /definitely/does/not/exist/file.txt",
 			expectedError: "file not found",
 		},
 		{
-			name:  "Write to protected location",
-			query: "Create a file at /etc/protected.conf",
+			name:          "Write to protected location",
+			query:         "Create a file at /etc/protected.conf",
 			expectedError: "permission denied",
 		},
 		{
-			name:  "Edit with invalid old_string",
-			query: "Edit hello.txt and replace 'NonExistentString' with 'NewString'",
+			name:          "Edit with invalid old_string",
+			query:         "Edit hello.txt and replace 'NonExistentString' with 'NewString'",
 			expectedError: "string not found",
 		},
 		{
-			name:  "Bash command failure",
-			query: "Run the command 'exit 1' and check the exit code",
+			name:          "Bash command failure",
+			query:         "Run the command 'exit 1' and check the exit code",
 			expectedError: "non-zero exit",
 		},
 	}
@@ -371,12 +369,12 @@ func example5ToolErrorHandling() {
 	for _, scenario := range errorScenarios {
 		fmt.Printf("\n❌ Testing: %s\n", scenario.name)
 		fmt.Printf("   Query: %s\n", scenario.query)
-		
+
 		msgChan := claudecode.Query(ctx, scenario.query, options)
-		
+
 		errorCount := 0
 		var errors []string
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -400,7 +398,7 @@ func example5ToolErrorHandling() {
 				}
 			}
 		}
-		
+
 		fmt.Printf("   Total errors: %d\n", errorCount)
 		if errorCount > 0 {
 			fmt.Println("   ✅ Error handling working correctly")
@@ -416,13 +414,13 @@ func example6CustomToolPatterns() {
 	fmt.Println("-------------------------------")
 
 	ctx := context.Background()
-	
+
 	// Pattern 1: Tool chaining
 	fmt.Println("\n🔗 Pattern 1: Tool Chaining")
-	
+
 	options1 := claudecode.NewClaudeCodeOptions()
 	options1.AllowedTools = []string{"Write", "Read", "Edit", "Bash"}
-	
+
 	chainQuery := `Create a chain of operations:
 1. Write initial.txt with 'Step 1'
 2. Read initial.txt
@@ -431,9 +429,9 @@ func example6CustomToolPatterns() {
 5. Use bash to copy it to final.txt`
 
 	msgChan := claudecode.Query(ctx, chainQuery, options1)
-	
+
 	toolChain := []string{}
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -443,22 +441,22 @@ func example6CustomToolPatterns() {
 			}
 		}
 	}
-	
+
 	fmt.Printf("   Tool chain: %v\n", toolChain)
 	fmt.Printf("   Chain length: %d tools\n", len(toolChain))
 
 	// Pattern 2: Conditional tool usage
 	fmt.Println("\n🎯 Pattern 2: Conditional Tool Usage")
-	
+
 	conditionalQuery := `Check if config.json exists:
 - If it exists, read it and add a new field
 - If it doesn't exist, create it with default values`
 
 	msgChan2 := claudecode.Query(ctx, conditionalQuery, options1)
-	
+
 	conditionMet := false
 	toolsAfterCondition := []string{}
-	
+
 	for msg := range msgChan2 {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -473,13 +471,13 @@ func example6CustomToolPatterns() {
 			}
 		}
 	}
-	
+
 	fmt.Printf("   Conditional logic detected: %v\n", conditionMet)
 	fmt.Printf("   Tools used after condition: %v\n", toolsAfterCondition)
 
 	// Pattern 3: Batch operations
 	fmt.Println("\n📦 Pattern 3: Batch Operations")
-	
+
 	batchQuery := `Create multiple files in one operation:
 - file1.txt with 'Content 1'
 - file2.txt with 'Content 2'  
@@ -487,10 +485,10 @@ func example6CustomToolPatterns() {
 Then list all files using bash ls command`
 
 	msgChan3 := claudecode.Query(ctx, batchQuery, options1)
-	
+
 	writeCount := 0
 	bashCount := 0
-	
+
 	for msg := range msgChan3 {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -505,22 +503,22 @@ Then list all files using bash ls command`
 			}
 		}
 	}
-	
+
 	fmt.Printf("   Batch writes: %d\n", writeCount)
 	fmt.Printf("   Verification commands: %d\n", bashCount)
 
 	// Pattern 4: Tool retry pattern
 	fmt.Println("\n🔄 Pattern 4: Tool Retry Pattern")
-	
+
 	retryQuery := `Try to create a file in /tmp/test-retry.txt:
 - If it fails, try again with a different approach
 - Ensure the file is created successfully`
 
 	msgChan4 := claudecode.Query(ctx, retryQuery, options1)
-	
+
 	attempts := 0
 	successes := 0
-	
+
 	for msg := range msgChan4 {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for i, block := range assistantMsg.Content {
@@ -540,7 +538,7 @@ Then list all files using bash ls command`
 			}
 		}
 	}
-	
+
 	fmt.Printf("   Write attempts: %d\n", attempts)
 	fmt.Printf("   Successful writes: %d\n", successes)
 	if successes > 0 {
@@ -565,13 +563,13 @@ type ToolResult struct {
 
 func executeWorkflow(ctx context.Context, name string, query string, options *claudecode.ClaudeCodeOptions) {
 	fmt.Printf("\n📋 Executing: %s\n", name)
-	
+
 	start := time.Now()
 	msgChan := claudecode.Query(ctx, query, options)
-	
+
 	toolSequence := []string{}
 	stepCount := 0
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -592,7 +590,7 @@ func executeWorkflow(ctx context.Context, name string, query string, options *cl
 			}
 		}
 	}
-	
+
 	elapsed := time.Since(start)
 	fmt.Printf("   ✅ Workflow complete\n")
 	fmt.Printf("      Steps detected: %d\n", stepCount)

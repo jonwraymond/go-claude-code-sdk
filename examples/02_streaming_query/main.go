@@ -3,11 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 func main() {
@@ -150,7 +148,7 @@ func example4StreamingTools() {
 					toolUseCount++
 					lastToolUse = b.Name
 					fmt.Printf("\n🔧 Tool Use #%d: %s\n", toolUseCount, b.Name)
-					
+
 					// Show tool parameters
 					if params, ok := b.Input.(map[string]interface{}); ok {
 						for key, value := range params {
@@ -180,7 +178,7 @@ func extractCode(text string) string {
 	lines := strings.Split(text, "\n")
 	var code strings.Builder
 	inCode := false
-	
+
 	for _, line := range lines {
 		if strings.HasPrefix(line, "```") {
 			inCode = !inCode
@@ -190,6 +188,6 @@ func extractCode(text string) string {
 			code.WriteString(line + "\n")
 		}
 	}
-	
+
 	return code.String()
 }

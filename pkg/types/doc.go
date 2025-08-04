@@ -6,16 +6,16 @@
 //
 // Message Types:
 //
-//	- UserMessage: Represents a message from the user
-//	- AssistantMessage: Represents a message from Claude
-//	- SystemMessage: Represents system-level messages
-//	- ResultMessage: Represents the final result of a conversation
+//   - UserMessage: Represents a message from the user
+//   - AssistantMessage: Represents a message from Claude
+//   - SystemMessage: Represents system-level messages
+//   - ResultMessage: Represents the final result of a conversation
 //
 // Content Blocks:
 //
-//	- TextBlock: Plain text content
-//	- ToolUseBlock: Tool invocation by Claude
-//	- ToolResultBlock: Results from tool execution
+//   - TextBlock: Plain text content
+//   - ToolUseBlock: Tool invocation by Claude
+//   - ToolResultBlock: Results from tool execution
 //
 // The types in this package mirror the structure of the official Python SDK,
 // providing type-safe representations of Claude Code's communication protocol.

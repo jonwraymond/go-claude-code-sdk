@@ -42,8 +42,8 @@ func example1ConnectionErrors() {
 
 	// Test 1: Connection with invalid CLI path
 	fmt.Println("\n📍 Test 1: Invalid CLI path")
-	os.Setenv("CLAUDE_CLI_PATH", "/invalid/path/to/claude")
-	
+	_ = os.Setenv("CLAUDE_CLI_PATH", "/invalid/path/to/claude")
+
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer func() {
 		os.Unsetenv("CLAUDE_CLI_PATH")
@@ -57,17 +57,17 @@ func example1ConnectionErrors() {
 	// Test 2: Multiple connection attempts
 	fmt.Println("\n📍 Test 2: Multiple connections")
 	os.Unsetenv("CLAUDE_CLI_PATH") // Reset to default
-	
+
 	client2 := claudecode.NewClaudeSDKClient(nil)
 	defer client2.Close()
-	
+
 	// First connection should succeed
 	err = client2.Connect(ctx)
 	if err != nil {
 		handleError("First connection", err)
 	} else {
 		fmt.Println("✅ First connection succeeded")
-		
+
 		// Second connection should be no-op
 		err = client2.Connect(ctx)
 		if err != nil {
@@ -81,7 +81,7 @@ func example1ConnectionErrors() {
 	fmt.Println("\n📍 Test 3: Query without connection")
 	client3 := claudecode.NewClaudeSDKClient(nil)
 	defer client3.Close()
-	
+
 	err = client3.Query(ctx, "Hello", "test")
 	handleError("Query without connection", err)
 	fmt.Println()
@@ -95,7 +95,7 @@ func example2QueryErrors() {
 	fmt.Println("\n📍 Test 1: Empty query")
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "", nil)
-	
+
 	errorFound := false
 	for msg := range msgChan {
 		if sysMsg, ok := msg.(*claudecode.SystemMessage); ok && sysMsg.Subtype == "error" {
@@ -112,9 +112,9 @@ func example2QueryErrors() {
 	options := claudecode.NewClaudeCodeOptions()
 	options.MaxTurns = claudecode.IntPtr(-1) // Invalid value
 	options.AllowedTools = []string{"InvalidTool", "AnotherInvalidTool"}
-	
+
 	msgChan = claudecode.Query(ctx, "Test query", options)
-	
+
 	for msg := range msgChan {
 		switch m := msg.(type) {
 		case *claudecode.SystemMessage:
@@ -126,7 +126,7 @@ func example2QueryErrors() {
 			for _, block := range m.Content {
 				if textBlock, ok := block.(claudecode.TextBlock); ok {
 					if strings.Contains(strings.ToLower(textBlock.Text), "invalid") ||
-					   strings.Contains(strings.ToLower(textBlock.Text), "tool") {
+						strings.Contains(strings.ToLower(textBlock.Text), "tool") {
 						fmt.Println("⚠️ Claude detected invalid tools")
 					}
 				}
@@ -137,7 +137,7 @@ func example2QueryErrors() {
 	// Test 3: QuerySync with errors
 	fmt.Println("\n📍 Test 3: QuerySync error handling")
 	messages, err := claudecode.QuerySync(ctx, "Cause an error by using a non-existent tool called 'MagicTool'", options)
-	
+
 	if err != nil {
 		fmt.Printf("✅ QuerySync returned error: %v\n", err)
 	} else {
@@ -159,10 +159,10 @@ func example3ToolErrors() {
 	// Create a client for tool error testing
 	options := claudecode.NewClaudeCodeOptions()
 	options.AllowedTools = []string{"Read", "Write", "Bash"}
-	
+
 	client := claudecode.NewClaudeSDKClient(options)
 	defer client.Close()
-	
+
 	ctx := context.Background()
 	if err := client.Connect(ctx); err != nil {
 		log.Printf("Failed to connect: %v\n", err)
@@ -171,7 +171,7 @@ func example3ToolErrors() {
 
 	// Track errors
 	toolErrors := make(map[string][]string)
-	
+
 	go func() {
 		for msg := range client.ReceiveMessages() {
 			switch m := msg.(type) {
@@ -231,12 +231,12 @@ func example4ContextErrors() {
 	// Test 1: Cancelled context
 	fmt.Println("\n📍 Test 1: Cancelled context")
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	// Cancel immediately
 	cancel()
-	
+
 	msgChan := claudecode.Query(ctx, "This should fail due to cancelled context", nil)
-	
+
 	messageCount := 0
 	for msg := range msgChan {
 		messageCount++
@@ -250,9 +250,9 @@ func example4ContextErrors() {
 	fmt.Println("\n📍 Test 2: Timeout context")
 	ctx2, cancel2 := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel2()
-	
+
 	msgChan2 := claudecode.Query(ctx2, "Count to 1000 slowly, pausing between each number", nil)
-	
+
 	timedOut := false
 	for msg := range msgChan2 {
 		select {
@@ -265,7 +265,7 @@ func example4ContextErrors() {
 			}
 		}
 	}
-	
+
 	if timedOut {
 		fmt.Println("\n✅ Query stopped due to timeout")
 	}
@@ -275,10 +275,10 @@ func example4ContextErrors() {
 	deadline := time.Now().Add(2 * time.Second)
 	ctx3, cancel3 := context.WithDeadline(context.Background(), deadline)
 	defer cancel3()
-	
+
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()
-	
+
 	if err := client.Connect(ctx3); err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			fmt.Println("✅ Deadline exceeded during connection")
@@ -300,7 +300,7 @@ func example5CustomErrorHandling() {
 
 	client := claudecode.NewClaudeSDKClient(nil)
 	defer client.Close()
-	
+
 	ctx := context.Background()
 	if err := client.Connect(ctx); err != nil {
 		errorHandler.Handle("connection", err)
@@ -364,10 +364,10 @@ func example6ErrorRecovery() {
 
 	// Test 2: Query with fallback
 	fmt.Println("\n📍 Test 2: Query with fallback")
-	response, err := resilientClient.QueryWithFallback(ctx, 
+	response, err := resilientClient.QueryWithFallback(ctx,
 		"Perform a complex analysis of quantum computing",
 		"Just tell me what quantum computing is in one sentence")
-	
+
 	if err != nil {
 		fmt.Printf("❌ Both queries failed: %v\n", err)
 	} else {
@@ -378,7 +378,7 @@ func example6ErrorRecovery() {
 	fmt.Println("\n📍 Test 3: Graceful degradation")
 	options := claudecode.NewClaudeCodeOptions()
 	options.AllowedTools = []string{"Read", "Write", "Bash", "Edit"}
-	
+
 	// Simulate tool failures and degrade gracefully
 	degradedOptions := resilientClient.DegradeOptions(options, []string{"Bash", "Edit"})
 	fmt.Printf("Original tools: %v\n", options.AllowedTools)
@@ -386,7 +386,7 @@ func example6ErrorRecovery() {
 
 	// Test with degraded options
 	msgChan := claudecode.Query(ctx, "Try to use various tools", degradedOptions)
-	
+
 	toolsAttempted := make(map[string]bool)
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
@@ -397,7 +397,7 @@ func example6ErrorRecovery() {
 			}
 		}
 	}
-	
+
 	fmt.Printf("Tools actually used: %v\n", toolsAttempted)
 }
 
@@ -413,7 +413,7 @@ func (h *CustomErrorHandler) Handle(category string, err error) {
 	}
 
 	h.errors[category]++
-	
+
 	// Type-specific handling
 	switch e := err.(type) {
 	case *pkgerrors.CLIConnectionError:
@@ -459,7 +459,7 @@ type ResilientClient struct {
 
 func (r *ResilientClient) ConnectWithRetry(ctx context.Context) error {
 	r.client = claudecode.NewClaudeSDKClient(nil)
-	
+
 	var lastErr error
 	for i := 0; i < r.maxRetries; i++ {
 		if i > 0 {
@@ -467,7 +467,7 @@ func (r *ResilientClient) ConnectWithRetry(ctx context.Context) error {
 			fmt.Printf("⏳ Retrying in %v... (attempt %d/%d)\n", delay, i+1, r.maxRetries)
 			time.Sleep(delay)
 		}
-		
+
 		err := r.client.Connect(ctx)
 		if err == nil {
 			return nil
@@ -475,7 +475,7 @@ func (r *ResilientClient) ConnectWithRetry(ctx context.Context) error {
 		lastErr = err
 		fmt.Printf("❌ Connection attempt %d failed: %v\n", i+1, err)
 	}
-	
+
 	return fmt.Errorf("failed after %d retries: %w", r.maxRetries, lastErr)
 }
 
@@ -493,15 +493,15 @@ func (r *ResilientClient) QueryWithFallback(ctx context.Context, primaryQuery, f
 			}
 		}
 	}
-	
+
 	fmt.Println("⚠️ Primary query failed, trying fallback...")
-	
+
 	// Try fallback query
 	messages, err = claudecode.QuerySync(ctx, fallbackQuery, nil)
 	if err != nil {
 		return "", fmt.Errorf("fallback query also failed: %w", err)
 	}
-	
+
 	for _, msg := range messages {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -511,14 +511,14 @@ func (r *ResilientClient) QueryWithFallback(ctx context.Context, primaryQuery, f
 			}
 		}
 	}
-	
+
 	return "", fmt.Errorf("no response in fallback query")
 }
 
 func (r *ResilientClient) DegradeOptions(options *claudecode.ClaudeCodeOptions, failedTools []string) *claudecode.ClaudeCodeOptions {
 	degraded := claudecode.NewClaudeCodeOptions()
 	*degraded = *options
-	
+
 	// Remove failed tools
 	newTools := []string{}
 	for _, tool := range options.AllowedTools {
@@ -533,7 +533,7 @@ func (r *ResilientClient) DegradeOptions(options *claudecode.ClaudeCodeOptions, 
 			newTools = append(newTools, tool)
 		}
 	}
-	
+
 	degraded.AllowedTools = newTools
 	return degraded
 }
@@ -541,13 +541,13 @@ func (r *ResilientClient) DegradeOptions(options *claudecode.ClaudeCodeOptions, 
 func handleError(context string, err error) {
 	if err != nil {
 		fmt.Printf("❌ %s: %v\n", context, err)
-		
+
 		// Check error type
 		var cliConnErr *pkgerrors.CLIConnectionError
 		var cliNotFoundErr *pkgerrors.CLINotFoundError
 		var processErr *pkgerrors.ProcessError
 		var jsonErr *pkgerrors.CLIJSONDecodeError
-		
+
 		switch {
 		case errors.As(err, &cliConnErr):
 			fmt.Println("   Type: CLI Connection Error")

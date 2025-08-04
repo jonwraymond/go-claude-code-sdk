@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
 	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
@@ -62,15 +63,15 @@ func example1ToolRestrictions() {
 
 	for _, ts := range toolSets {
 		fmt.Printf("\n🔧 Testing with %s tools: %v\n", ts.name, ts.tools)
-		
+
 		options := claudecode.NewClaudeCodeOptions()
 		options.AllowedTools = ts.tools
-		
+
 		ctx := context.Background()
 		msgChan := claudecode.Query(ctx, ts.query, options)
-		
+
 		toolsUsed := make(map[string]int)
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -123,21 +124,21 @@ func example2PermissionModes() {
 
 	for _, pm := range modes {
 		fmt.Printf("\n🔐 Testing %s mode: %s\n", pm.name, pm.desc)
-		
+
 		options := claudecode.NewClaudeCodeOptions()
 		options.PermissionMode = &pm.mode
 		options.CWD = &tempDir
 		options.AllowedTools = []string{"Write", "Edit"}
-		
+
 		// Use WithPermissionMode helper
 		alternativeOptions := claudecode.NewClaudeCodeOptions()
 		claudecode.WithPermissionMode(pm.mode)(alternativeOptions)
 		claudecode.WithCWD(tempDir)(alternativeOptions)
 		claudecode.WithAllowedTools([]string{"Write", "Edit"})(alternativeOptions)
-		
+
 		ctx := context.Background()
 		msgChan := claudecode.Query(ctx, fmt.Sprintf("Create a file called %s.txt", pm.name), options)
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -183,16 +184,16 @@ func example3WorkingDirectory() {
 	// Test CWD setting
 	options := claudecode.NewClaudeCodeOptions()
 	options.SetCWD(testDir)
-	
+
 	// Alternative using helper function
 	options2 := claudecode.NewClaudeCodeOptions()
 	claudecode.WithCWD(testDir)(options2)
-	
+
 	ctx := context.Background()
 	fmt.Printf("Working directory set to: %s\n", testDir)
-	
+
 	msgChan := claudecode.Query(ctx, "List all directories in the current working directory", options)
-	
+
 	for msg := range msgChan {
 		switch m := msg.(type) {
 		case *claudecode.AssistantMessage:
@@ -248,17 +249,17 @@ func example4SystemPrompts() {
 
 	for _, p := range prompts {
 		fmt.Printf("\n🎭 %s:\n", p.name)
-		
+
 		options := claudecode.NewClaudeCodeOptions()
 		options.SystemPrompt = claudecode.StringPtr(p.prompt)
-		
+
 		// Also test WithSystemPrompt helper
 		options2 := claudecode.NewClaudeCodeOptions()
 		claudecode.WithSystemPrompt(p.prompt)(options2)
-		
+
 		ctx := context.Background()
 		msgChan := claudecode.Query(ctx, p.query, options)
-		
+
 		for msg := range msgChan {
 			switch m := msg.(type) {
 			case *claudecode.AssistantMessage:
@@ -283,7 +284,7 @@ func example5MCPServers() {
 	fmt.Println("-----------------------------------")
 
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Configure MCP servers
 	options.MCPServers = map[string]types.McpServerConfig{
 		"filesystem": {
@@ -301,19 +302,19 @@ func example5MCPServers() {
 			},
 		},
 	}
-	
+
 	// Specify which MCP tools to use
 	options.MCPTools = []string{"mcp_filesystem_read", "mcp_github_search"}
-	
+
 	fmt.Println("Configured MCP servers:")
 	for name, config := range options.MCPServers {
 		fmt.Printf("  - %s: %s %v\n", name, config.Command, config.Args)
 	}
 	fmt.Printf("Enabled MCP tools: %v\n\n", options.MCPTools)
-	
+
 	ctx := context.Background()
 	msgChan := claudecode.Query(ctx, "Use MCP tools to explore the filesystem", options)
-	
+
 	mcpToolsUsed := 0
 	for msg := range msgChan {
 		switch m := msg.(type) {
@@ -338,7 +339,7 @@ func example6AdvancedOptions() {
 	fmt.Println("---------------------------")
 
 	options := claudecode.NewClaudeCodeOptions()
-	
+
 	// Set multiple advanced options
 	options.MaxTurns = claudecode.IntPtr(5)
 	options.MaxThinkingTokens = 16000
@@ -346,11 +347,11 @@ func example6AdvancedOptions() {
 	options.Model = claudecode.StringPtr("claude-3-opus-20240229")
 	options.AddDirs = []string{"/tmp/test1", "/tmp/test2"}
 	options.ContinueConversation = false
-	
+
 	// Using helper functions
 	options2 := claudecode.NewClaudeCodeOptions()
 	claudecode.WithMaxTurns(5)(options2)
-	
+
 	fmt.Println("Advanced configuration:")
 	fmt.Printf("  Max turns: %d\n", *options.MaxTurns)
 	fmt.Printf("  Max thinking tokens: %d\n", options.MaxThinkingTokens)
@@ -358,17 +359,17 @@ func example6AdvancedOptions() {
 	fmt.Printf("  Model: %s\n", *options.Model)
 	fmt.Printf("  Additional directories: %v\n", options.AddDirs)
 	fmt.Printf("  Continue conversation: %v\n\n", options.ContinueConversation)
-	
+
 	// Create a client to test turn limits
 	client := claudecode.NewClaudeSDKClient(options)
 	defer client.Close()
-	
+
 	ctx := context.Background()
 	if err := client.Connect(ctx); err != nil {
 		log.Printf("Failed to connect: %v\n", err)
 		return
 	}
-	
+
 	turnCount := 0
 	go func() {
 		for msg := range client.ReceiveMessages() {
@@ -384,7 +385,7 @@ func example6AdvancedOptions() {
 			}
 		}
 	}()
-	
+
 	// Send multiple queries to test turn limit
 	queries := []string{
 		"What is 1+1?",
@@ -394,7 +395,7 @@ func example6AdvancedOptions() {
 		"What is 5+5?",
 		"What is 6+6?", // This should exceed turn limit
 	}
-	
+
 	for i, query := range queries {
 		if err := client.Query(ctx, query, "turn-test"); err != nil {
 			fmt.Printf("❌ Query %d failed: %v\n", i+1, err)
@@ -402,7 +403,7 @@ func example6AdvancedOptions() {
 		}
 		time.Sleep(2 * time.Second)
 	}
-	
+
 	time.Sleep(3 * time.Second)
 }
 

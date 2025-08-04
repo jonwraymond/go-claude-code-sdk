@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
-	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/claudecode"
+	"github.com/jonwraymond/go-claude-code-sdk/pkg/types"
 )
 
 // TestBasicQuery tests basic query functionality
@@ -29,7 +30,7 @@ func TestBasicQuery(t *testing.T) {
 		case *claudecode.AssistantMessage:
 			gotResponse = true
 			assert.NotEmpty(t, m.Content, "Assistant message should have content")
-			
+
 			// Check for text block
 			for _, block := range m.Content {
 				if textBlock, ok := block.(claudecode.TextBlock); ok {
@@ -123,7 +124,7 @@ func TestMultipleSessions(t *testing.T) {
 
 	// Track messages by session
 	sessionMessages := make(map[string]int)
-	
+
 	// Message processor
 	go func() {
 		for msg := range client.ReceiveMessages() {
@@ -146,7 +147,7 @@ func TestMultipleSessions(t *testing.T) {
 
 	// Verify each session got a response
 	for _, sessionID := range sessions {
-		assert.Greater(t, sessionMessages[sessionID], 0, 
+		assert.Greater(t, sessionMessages[sessionID], 0,
 			"Session %s should have received messages", sessionID)
 	}
 }
@@ -199,7 +200,7 @@ func TestErrorHandling(t *testing.T) {
 			setupFunc: func() (*claudecode.ClaudeSDKClient, error) {
 				os.Setenv("CLAUDE_CLI_PATH", "/invalid/path/to/claude")
 				defer os.Unsetenv("CLAUDE_CLI_PATH")
-				
+
 				client := claudecode.NewClaudeSDKClient(nil)
 				ctx := context.Background()
 				err := client.Connect(ctx)
@@ -238,11 +239,11 @@ func TestToolUsage(t *testing.T) {
 	options.AllowedTools = []string{"Read", "Write"}
 
 	ctx := context.Background()
-	msgChan := claudecode.Query(ctx, 
+	msgChan := claudecode.Query(ctx,
 		"Create a file called test.txt with 'Hello, World!' content", options)
 
 	toolsUsed := make(map[string]int)
-	
+
 	for msg := range msgChan {
 		if assistantMsg, ok := msg.(*claudecode.AssistantMessage); ok {
 			for _, block := range assistantMsg.Content {
@@ -279,7 +280,7 @@ func TestPermissionModes(t *testing.T) {
 			options.AllowedTools = []string{"Write"}
 
 			ctx := context.Background()
-			msgChan := claudecode.Query(ctx, 
+			msgChan := claudecode.Query(ctx,
 				"Create a file called "+string(mode)+".txt", options)
 
 			// Consume all messages
@@ -306,14 +307,14 @@ func TestQuerySync(t *testing.T) {
 
 	ctx := context.Background()
 	messages, err := claudecode.QuerySync(ctx, "What is the capital of Japan?", nil)
-	
+
 	require.NoError(t, err, "QuerySync should not error")
 	assert.NotEmpty(t, messages, "Should receive messages")
 
 	// Check message types
 	hasAssistant := false
 	hasResult := false
-	
+
 	for _, msg := range messages {
 		switch msg.(type) {
 		case *claudecode.AssistantMessage:
@@ -342,7 +343,7 @@ func TestInterrupt(t *testing.T) {
 
 	// Track if we got interrupted
 	interrupted := false
-	
+
 	go func() {
 		for msg := range client.ReceiveMessages() {
 			if _, ok := msg.(*claudecode.AssistantMessage); ok {
@@ -385,10 +386,10 @@ func TestReceiveResponse(t *testing.T) {
 
 	// Use ReceiveResponse
 	responseChan := client.ReceiveResponse(ctx)
-	
+
 	messageCount := 0
 	gotResult := false
-	
+
 	for msg := range responseChan {
 		messageCount++
 		if _, ok := msg.(*claudecode.ResultMessage); ok {
@@ -403,7 +404,7 @@ func TestReceiveResponse(t *testing.T) {
 // BenchmarkQuery benchmarks basic query performance
 func BenchmarkQuery(b *testing.B) {
 	ctx := context.Background()
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		msgChan := claudecode.Query(ctx, "What is 2+2?", nil)
@@ -430,7 +431,7 @@ func BenchmarkMessageProcessing(b *testing.B) {
 			claudecode.TextBlock{Text: "This is a test message for benchmarking"},
 		},
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Process message

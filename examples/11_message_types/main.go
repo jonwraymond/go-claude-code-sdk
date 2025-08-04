@@ -93,7 +93,7 @@ func example2AssistantMessages() {
 	options.AllowedTools = []string{"Read", "Write", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Different types of assistant responses
 	queries := []struct {
 		query       string
@@ -120,14 +120,14 @@ func example2AssistantMessages() {
 	for _, test := range queries {
 		fmt.Printf("\n🔹 Test: %s\n", test.desc)
 		fmt.Printf("   Query: %s\n", test.query)
-		
+
 		msgChan := claudecode.Query(ctx, test.query, options)
-		
+
 		assistantStats := struct {
-			textBlocks      int
-			toolUseBlocks   int
+			textBlocks       int
+			toolUseBlocks    int
 			toolResultBlocks int
-			totalContent    int
+			totalContent     int
 		}{}
 
 		for msg := range msgChan {
@@ -135,10 +135,10 @@ func example2AssistantMessages() {
 			case *claudecode.AssistantMessage:
 				fmt.Printf("\n   🤖 Assistant Message:\n")
 				fmt.Printf("      Content blocks: %d\n", len(m.Content))
-				
+
 				for i, block := range m.Content {
 					assistantStats.totalContent++
-					
+
 					switch b := block.(type) {
 					case claudecode.TextBlock:
 						assistantStats.textBlocks++
@@ -147,7 +147,7 @@ func example2AssistantMessages() {
 							preview = preview[:100] + "..."
 						}
 						fmt.Printf("      [%d] Text: %s\n", i+1, preview)
-						
+
 					case claudecode.ToolUseBlock:
 						assistantStats.toolUseBlocks++
 						fmt.Printf("      [%d] Tool Use: %s\n", i+1, b.Name)
@@ -156,7 +156,7 @@ func example2AssistantMessages() {
 							inputJSON, _ := json.MarshalIndent(b.Input, "          ", "  ")
 							fmt.Printf("          Input: %s\n", string(inputJSON))
 						}
-						
+
 					case claudecode.ToolResultBlock:
 						assistantStats.toolResultBlocks++
 						fmt.Printf("      [%d] Tool Result:\n", i+1)
@@ -169,7 +169,7 @@ func example2AssistantMessages() {
 				}
 			}
 		}
-		
+
 		fmt.Printf("\n   📊 Content Summary:\n")
 		fmt.Printf("      Text blocks: %d\n", assistantStats.textBlocks)
 		fmt.Printf("      Tool use blocks: %d\n", assistantStats.toolUseBlocks)
@@ -203,9 +203,9 @@ func example3SystemMessages() {
 					subtype = "unknown"
 				}
 				systemMessages[subtype] = append(systemMessages[subtype], *m)
-				
+
 				fmt.Printf("\n📋 System Message (subtype: %s)\n", subtype)
-				
+
 				// Pretty print data
 				if m.Data != nil {
 					for key, value := range m.Data {
@@ -222,10 +222,10 @@ func example3SystemMessages() {
 	// 1. Tool usage (generates tool_result system messages)
 	options := claudecode.NewClaudeCodeOptions()
 	options.AllowedTools = []string{"Bash"}
-	
+
 	client2 := claudecode.NewClaudeSDKClient(options)
 	defer client2.Close()
-	
+
 	if err := client2.Connect(ctx); err == nil {
 		client2.Query(ctx, "Run 'echo Hello System Messages'", "system-msg-1")
 		time.Sleep(3 * time.Second)
@@ -243,7 +243,7 @@ func example3SystemMessages() {
 	fmt.Printf("\n📊 System Message Summary:\n")
 	for subtype, messages := range systemMessages {
 		fmt.Printf("   %s: %d messages\n", subtype, len(messages))
-		
+
 		// Show sample data keys
 		if len(messages) > 0 && messages[0].Data != nil {
 			keys := []string{}
@@ -267,8 +267,8 @@ func example4ResultMessages() {
 		options *claudecode.ClaudeCodeOptions
 	}{
 		{
-			name:  "Simple query",
-			query: "What is 2+2?",
+			name:    "Simple query",
+			query:   "What is 2+2?",
 			options: nil,
 		},
 		{
@@ -290,45 +290,45 @@ func example4ResultMessages() {
 			}(),
 		},
 		{
-			name:  "Error case",
-			query: "",
+			name:    "Error case",
+			query:   "",
 			options: nil,
 		},
 	}
 
 	for _, scenario := range scenarios {
 		fmt.Printf("\n🔹 Scenario: %s\n", scenario.name)
-		
+
 		ctx := context.Background()
 		msgChan := claudecode.Query(ctx, scenario.query, scenario.options)
-		
+
 		var resultMsg *claudecode.ResultMessage
-		
+
 		for msg := range msgChan {
 			if result, ok := msg.(*claudecode.ResultMessage); ok {
 				resultMsg = result
 			}
 		}
-		
+
 		if resultMsg != nil {
 			fmt.Printf("   📊 Result Message:\n")
 			fmt.Printf("      Subtype: %s\n", resultMsg.Subtype)
-			fmt.Printf("      Duration: %dms (API: %dms)\n", 
+			fmt.Printf("      Duration: %dms (API: %dms)\n",
 				resultMsg.DurationMs, resultMsg.DurationAPIMs)
 			fmt.Printf("      Is Error: %v\n", resultMsg.IsError)
 			fmt.Printf("      Num Turns: %d\n", resultMsg.NumTurns)
 			fmt.Printf("      Session ID: %s\n", resultMsg.SessionID)
-			
+
 			if resultMsg.TotalCostUSD != nil {
 				fmt.Printf("      Cost: $%.6f\n", *resultMsg.TotalCostUSD)
 			}
-			
+
 			if resultMsg.Usage != nil {
 				fmt.Printf("      Usage:\n")
 				usageJSON, _ := json.MarshalIndent(resultMsg.Usage, "        ", "  ")
 				fmt.Printf("        %s\n", string(usageJSON))
 			}
-			
+
 			if resultMsg.Result != nil {
 				fmt.Printf("      Result: %s\n", *resultMsg.Result)
 			}
@@ -348,7 +348,7 @@ func example5ContentBlocks() {
 	options.AllowedTools = []string{"Read", "Write", "Edit", "Bash"}
 
 	ctx := context.Background()
-	
+
 	// Complex query that should generate various content blocks
 	query := `Please do the following:
 1. Explain what a linked list is
@@ -359,7 +359,7 @@ func example5ContentBlocks() {
 	fmt.Printf("📝 Query: %s\n\n", query)
 
 	msgChan := claudecode.Query(ctx, query, options)
-	
+
 	// Track all content blocks
 	blockStats := map[string]int{
 		"TextBlock":       0,
@@ -367,7 +367,7 @@ func example5ContentBlocks() {
 		"ToolResultBlock": 0,
 		"Unknown":         0,
 	}
-	
+
 	blockDetails := []struct {
 		Type    string
 		Content interface{}
@@ -380,11 +380,11 @@ func example5ContentBlocks() {
 		case *claudecode.AssistantMessage:
 			messageIndex++
 			fmt.Printf("📨 Assistant Message #%d\n", messageIndex)
-			
+
 			for i, block := range m.Content {
 				blockType := reflect.TypeOf(block).Name()
 				blockStats[blockType]++
-				
+
 				blockDetail := struct {
 					Type    string
 					Content interface{}
@@ -395,7 +395,7 @@ func example5ContentBlocks() {
 					Index:   i,
 				}
 				blockDetails = append(blockDetails, blockDetail)
-				
+
 				switch b := block.(type) {
 				case claudecode.TextBlock:
 					fmt.Printf("   [%d] 📝 Text Block:\n", i)
@@ -407,12 +407,12 @@ func example5ContentBlocks() {
 							fmt.Printf("       ... (%d lines omitted) ...\n", len(lines)-6)
 						}
 					}
-					
+
 				case claudecode.ToolUseBlock:
 					fmt.Printf("   [%d] 🔧 Tool Use Block:\n", i)
 					fmt.Printf("       Tool: %s\n", b.Name)
 					fmt.Printf("       ID: %s\n", b.ID)
-					
+
 					// Show input parameters
 					if inputMap, ok := b.Input.(map[string]interface{}); ok {
 						fmt.Printf("       Parameters:\n")
@@ -424,21 +424,21 @@ func example5ContentBlocks() {
 							fmt.Printf("         %s: %s\n", key, valueStr)
 						}
 					}
-					
+
 				case claudecode.ToolResultBlock:
 					fmt.Printf("   [%d] ✅ Tool Result Block:\n", i)
 					fmt.Printf("       Tool Use ID: %s\n", b.ToolUseID)
 					if b.IsError != nil && *b.IsError {
 						fmt.Printf("       ❌ Error: true\n")
 					}
-					
+
 					// Show content preview
 					contentStr := fmt.Sprintf("%v", b.Content)
 					if len(contentStr) > 100 {
 						contentStr = contentStr[:100] + "..."
 					}
 					fmt.Printf("       Content: %s\n", contentStr)
-					
+
 				default:
 					fmt.Printf("   [%d] ❓ Unknown Block Type: %T\n", i, block)
 				}
@@ -457,7 +457,7 @@ func example5ContentBlocks() {
 		}
 	}
 	fmt.Printf("   Total blocks: %d\n", totalBlocks)
-	
+
 	// Analyze block patterns
 	fmt.Printf("\n🔍 Block Pattern Analysis:\n")
 	if len(blockDetails) > 0 {
@@ -475,7 +475,7 @@ func example5ContentBlocks() {
 			}
 		}
 		fmt.Printf("   Tool Use → Result patterns: %d\n", toolPatterns)
-		
+
 		// Text block positioning
 		firstBlock := blockDetails[0].Type
 		lastBlock := blockDetails[len(blockDetails)-1].Type
@@ -510,41 +510,41 @@ func example6MessageFlowAnalysis() {
 				Type:      reflect.TypeOf(msg).String(),
 				Message:   msg,
 			}
-			
+
 			// Extract key information
 			switch m := msg.(type) {
 			case *claudecode.UserMessage:
 				entry.Summary = fmt.Sprintf("User: %v", m.Content)
-				
+
 			case *claudecode.AssistantMessage:
 				contentTypes := []string{}
 				for _, block := range m.Content {
 					contentTypes = append(contentTypes, reflect.TypeOf(block).Name())
 				}
-				entry.Summary = fmt.Sprintf("Assistant: %d blocks (%v)", 
+				entry.Summary = fmt.Sprintf("Assistant: %d blocks (%v)",
 					len(m.Content), strings.Join(contentTypes, ", "))
-				
+
 			case *claudecode.SystemMessage:
 				entry.Summary = fmt.Sprintf("System (%s): %v", m.Subtype, m.Data)
-				
+
 			case *claudecode.ResultMessage:
-				entry.Summary = fmt.Sprintf("Result: %dms, %d turns, error=%v", 
+				entry.Summary = fmt.Sprintf("Result: %dms, %d turns, error=%v",
 					m.DurationMs, m.NumTurns, m.IsError)
 			}
-			
+
 			messageFlow = append(messageFlow, entry)
-			
+
 			// Real-time display
-			fmt.Printf("[%s] %s\n", 
-				entry.Elapsed.Round(time.Millisecond), 
+			fmt.Printf("[%s] %s\n",
+				entry.Elapsed.Round(time.Millisecond),
 				entry.Summary)
 		}
 	}()
 
 	// Execute a multi-step conversation
 	conversation := []struct {
-		query  string
-		delay  time.Duration
+		query string
+		delay time.Duration
 	}{
 		{"Hello! I need help with a coding project.", 1 * time.Second},
 		{"I want to build a REST API in Go.", 2 * time.Second},
@@ -569,43 +569,43 @@ func example6MessageFlowAnalysis() {
 	fmt.Println("\n📊 Message Flow Analysis:")
 	fmt.Printf("   Total messages: %d\n", len(messageFlow))
 	fmt.Printf("   Total duration: %s\n", messageFlow[len(messageFlow)-1].Elapsed.Round(time.Millisecond))
-	
+
 	// Message type distribution
 	typeCount := make(map[string]int)
 	for _, entry := range messageFlow {
 		typeCount[entry.Type]++
 	}
-	
+
 	fmt.Println("\n   Message Type Distribution:")
 	for msgType, count := range typeCount {
 		percentage := float64(count) * 100 / float64(len(messageFlow))
 		fmt.Printf("     %s: %d (%.1f%%)\n", msgType, count, percentage)
 	}
-	
+
 	// Timing analysis
 	fmt.Println("\n   Timing Analysis:")
 	var totalResponseTime time.Duration
 	responseCount := 0
-	
+
 	for i := 0; i < len(messageFlow)-1; i++ {
 		curr := messageFlow[i]
 		next := messageFlow[i+1]
-		
+
 		// If user message followed by assistant message
-		if strings.Contains(curr.Type, "UserMessage") && 
-		   strings.Contains(next.Type, "AssistantMessage") {
+		if strings.Contains(curr.Type, "UserMessage") &&
+			strings.Contains(next.Type, "AssistantMessage") {
 			responseTime := next.Timestamp.Sub(curr.Timestamp)
 			totalResponseTime += responseTime
 			responseCount++
 			fmt.Printf("     Response %d: %s\n", responseCount, responseTime.Round(time.Millisecond))
 		}
 	}
-	
+
 	if responseCount > 0 {
 		avgResponseTime := totalResponseTime / time.Duration(responseCount)
 		fmt.Printf("     Average response time: %s\n", avgResponseTime.Round(time.Millisecond))
 	}
-	
+
 	// Message sequence pattern
 	fmt.Println("\n   Message Sequence Pattern:")
 	for i, entry := range messageFlow {
@@ -617,7 +617,7 @@ func example6MessageFlowAnalysis() {
 		} else if strings.Contains(entry.Type, "Result") {
 			indent = "      "
 		}
-		
+
 		fmt.Printf("   %s[%d] %s\n", indent, i+1, entry.Type)
 	}
 }

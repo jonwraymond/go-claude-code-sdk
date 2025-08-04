@@ -1,3 +1,4 @@
+// Package adapter provides type conversion utilities between public and internal types.
 package adapter
 
 import (
