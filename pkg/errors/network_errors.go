@@ -236,9 +236,10 @@ func ClassifyNetworkError(err error) SDKError {
 			timeoutErr.WithCause(err)
 			return timeoutErr
 		}
-		if netErr.Temporary() {
-			return NewNetworkError("network operation", "", err)
-		}
+		// Note: netErr.Temporary() is deprecated in Go 1.18+
+		// Most temporary errors are timeouts (handled above) or connection issues
+		// We'll treat most network errors as potentially retryable
+		return NewNetworkError("network operation", "", err)
 	}
 
 	// Check for specific error types
