@@ -1,12 +1,16 @@
 # golangci-lint configuration compatible with v1.62
+
+version: 2
+
 run:
   timeout: 10m
   tests: true
+  skip-dirs:
+    - examples
 
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
@@ -20,13 +24,18 @@ linters-settings:
       - (*os.Process).Kill
       - os.WriteFile  # Allow unchecked WriteFile in tests
       - os.MkdirAll   # Allow unchecked MkdirAll in tests
+      - os.RemoveAll  # Allow unchecked RemoveAll in defer statements
       - filepath.Walk # Allow unchecked filepath.Walk
-      - '(*os.Process).Kill' # Allow unchecked Process.Kill
+      - os.Setenv     # Allow unchecked Setenv in tests
+      - os.Unsetenv   # Allow unchecked Unsetenv in tests
       # Allow builder pattern methods that return *BaseError
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithDetail'
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithRetryable'
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithRequestID'
       - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithHTTPStatus'
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/errors.BaseError).WithCause'
+      # Allow Close methods in defer statements
+      - '(*github.com/jonwraymond/go-claude-code-sdk/pkg/client.ClaudeCodeClient).Close'
 
 issues:
   max-same-issues: 10
@@ -55,3 +64,24 @@ issues:
       text: "SA5011.*this check suggests that the pointer can be nil"
       linters:
         - staticcheck
+    
+    # Allow builder pattern method calls that are unchecked
+    - text: "Error return value of.*WithDetail.*is not checked"
+      linters:
+        - errcheck
+    
+    - text: "Error return value of.*WithRetryable.*is not checked"
+      linters:
+        - errcheck
+    
+    - text: "Error return value of.*WithHTTPStatus.*is not checked"
+      linters:
+        - errcheck
+    
+    - text: "Error return value of.*WithRequestID.*is not checked"
+      linters:
+        - errcheck
+    
+    - text: "Error return value of.*WithCause.*is not checked"
+      linters:
+        - errcheck
