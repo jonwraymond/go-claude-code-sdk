@@ -21,7 +21,7 @@ const (
 	PermissionModeBypassPermissions PermissionMode = "bypassPermissions"
 )
 
-// McpServerConfig represents MCP server configuration.
+// McpServerConfig represents an MCP server configuration.
 type McpServerConfig map[string]interface{}
 
 // TextBlock represents a text content block.
@@ -43,7 +43,7 @@ type ToolResultBlock struct {
 	IsError   *bool       `json:"is_error,omitempty"`
 }
 
-// ContentBlock represents any content block type.
+// ContentBlock is an interface that represents any content block type.
 type ContentBlock interface {
 	contentBlock()
 }
@@ -81,7 +81,7 @@ type ResultMessage struct {
 	Result        *string                `json:"result,omitempty"`
 }
 
-// Message represents any message type.
+// Message is an interface that represents any message type.
 type Message interface {
 	message()
 }
