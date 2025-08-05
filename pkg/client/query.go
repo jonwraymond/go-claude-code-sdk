@@ -218,106 +218,140 @@ func (c *ClaudeCodeClient) parseStreamingOutput(
 ) {
 	scanner := bufio.NewScanner(stdout.(interface{ Read([]byte) (int, error) }))
 
-	var currentMessage *types.Message
-	var contentBuffer strings.Builder
-	inAssistantMessage := false
-	turnCount := 0
+	parser := &streamingParser{
+		client:      c,
+		messageChan: messageChan,
+		options:     options,
+		turnCount:   0,
+	}
 
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		// Parse different output patterns
-		if strings.HasPrefix(line, "Claude:") || strings.HasPrefix(line, "Assistant:") {
-			// Start of assistant message
-			if currentMessage != nil && contentBuffer.Len() > 0 {
-				currentMessage.Content = strings.TrimSpace(contentBuffer.String())
-				messageChan <- currentMessage
-				contentBuffer.Reset()
-			}
-
-			currentMessage = &types.Message{
-				Role: types.RoleAssistant,
-			}
-			inAssistantMessage = true
-
-			// Extract content after prefix
-			content := strings.TrimPrefix(line, "Claude:")
-			content = strings.TrimPrefix(content, "Assistant:")
-			contentBuffer.WriteString(strings.TrimSpace(content))
-
-		} else if strings.HasPrefix(line, "Tool:") {
-			// Tool usage detected
-			if currentMessage != nil && contentBuffer.Len() > 0 {
-				currentMessage.Content = strings.TrimSpace(contentBuffer.String())
-				messageChan <- currentMessage
-				contentBuffer.Reset()
-			}
-
-			// Parse tool information
-			toolInfo := c.parseToolUsage(line)
-			if toolInfo != nil {
-				currentMessage = &types.Message{
-					Role: types.RoleAssistant,
-					ToolCalls: []types.ToolCall{
-						{
-							ID:   toolInfo.ID,
-							Type: "function",
-							Function: types.FunctionCall{
-								Name:      toolInfo.Name,
-								Arguments: toolInfo.Arguments,
-							},
-						},
-					},
-				}
-				messageChan <- currentMessage
-			}
-
-		} else if strings.HasPrefix(line, "Result:") {
-			// Tool result
-			result := strings.TrimPrefix(line, "Result:")
-			resultMsg := &types.Message{
-				Role:    types.RoleTool,
-				Content: strings.TrimSpace(result),
-			}
-			messageChan <- resultMsg
-
-		} else if inAssistantMessage && line != "" {
-			// Continue building assistant message
-			if contentBuffer.Len() > 0 {
-				contentBuffer.WriteString("\n")
-			}
-			contentBuffer.WriteString(line)
-
-		} else if strings.Contains(line, "Turn limit reached") ||
-			strings.Contains(line, "Max turns reached") {
-			// Turn limit reached
-			if currentMessage != nil && contentBuffer.Len() > 0 {
-				currentMessage.Content = strings.TrimSpace(contentBuffer.String())
-				messageChan <- currentMessage
-			}
-
-			// Send system message about turn limit
-			messageChan <- &types.Message{
-				Role:    types.RoleSystem,
-				Content: fmt.Sprintf("Turn limit reached (%d turns)", options.MaxTurns),
-			}
+		if shouldBreak := parser.parseLine(line); shouldBreak {
 			break
 		}
+	}
 
-		// Check turn count
-		if strings.HasPrefix(line, "User:") || strings.HasPrefix(line, "Human:") {
-			turnCount++
-			if options.MaxTurns > 0 && turnCount >= options.MaxTurns {
-				break
-			}
+	parser.sendFinalMessage()
+}
+
+// streamingParser handles parsing state for streaming output
+type streamingParser struct {
+	client             *ClaudeCodeClient
+	messageChan        chan<- *types.Message
+	options            *QueryOptions
+	currentMessage     *types.Message
+	contentBuffer      strings.Builder
+	inAssistantMessage bool
+	turnCount          int
+}
+
+// parseLine processes a single line of output
+func (p *streamingParser) parseLine(line string) bool {
+	switch {
+	case strings.HasPrefix(line, "Claude:") || strings.HasPrefix(line, "Assistant:"):
+		p.handleAssistantMessage(line)
+	case strings.HasPrefix(line, "Tool:"):
+		p.handleToolMessage(line)
+	case strings.HasPrefix(line, "Result:"):
+		p.handleToolResult(line)
+	case p.inAssistantMessage && line != "":
+		p.continueAssistantMessage(line)
+	case strings.Contains(line, "Turn limit reached") || strings.Contains(line, "Max turns reached"):
+		p.handleTurnLimitReached()
+		return true
+	case strings.HasPrefix(line, "User:") || strings.HasPrefix(line, "Human:"):
+		return p.checkTurnCount()
+	}
+	return false
+}
+
+// handleAssistantMessage processes assistant message lines
+func (p *streamingParser) handleAssistantMessage(line string) {
+	p.sendCurrentMessage()
+
+	p.currentMessage = &types.Message{
+		Role: types.RoleAssistant,
+	}
+	p.inAssistantMessage = true
+
+	// Extract content after prefix
+	content := strings.TrimPrefix(line, "Claude:")
+	content = strings.TrimPrefix(content, "Assistant:")
+	p.contentBuffer.WriteString(strings.TrimSpace(content))
+}
+
+// handleToolMessage processes tool usage lines
+func (p *streamingParser) handleToolMessage(line string) {
+	p.sendCurrentMessage()
+
+	toolInfo := p.client.parseToolUsage(line)
+	if toolInfo != nil {
+		p.currentMessage = &types.Message{
+			Role: types.RoleAssistant,
+			ToolCalls: []types.ToolCall{
+				{
+					ID:   toolInfo.ID,
+					Type: "function",
+					Function: types.FunctionCall{
+						Name:      toolInfo.Name,
+						Arguments: toolInfo.Arguments,
+					},
+				},
+			},
 		}
+		p.messageChan <- p.currentMessage
+		p.currentMessage = nil
 	}
+}
 
-	// Send final message if exists
-	if currentMessage != nil && contentBuffer.Len() > 0 {
-		currentMessage.Content = strings.TrimSpace(contentBuffer.String())
-		messageChan <- currentMessage
+// handleToolResult processes tool result lines
+func (p *streamingParser) handleToolResult(line string) {
+	result := strings.TrimPrefix(line, "Result:")
+	resultMsg := &types.Message{
+		Role:    types.RoleTool,
+		Content: strings.TrimSpace(result),
 	}
+	p.messageChan <- resultMsg
+}
+
+// continueAssistantMessage adds content to the current assistant message
+func (p *streamingParser) continueAssistantMessage(line string) {
+	if p.contentBuffer.Len() > 0 {
+		p.contentBuffer.WriteString("\n")
+	}
+	p.contentBuffer.WriteString(line)
+}
+
+// handleTurnLimitReached processes turn limit messages
+func (p *streamingParser) handleTurnLimitReached() {
+	p.sendCurrentMessage()
+
+	p.messageChan <- &types.Message{
+		Role:    types.RoleSystem,
+		Content: fmt.Sprintf("Turn limit reached (%d turns)", p.options.MaxTurns),
+	}
+}
+
+// checkTurnCount checks if turn limit is reached
+func (p *streamingParser) checkTurnCount() bool {
+	p.turnCount++
+	return p.options.MaxTurns > 0 && p.turnCount >= p.options.MaxTurns
+}
+
+// sendCurrentMessage sends the current message if it has content
+func (p *streamingParser) sendCurrentMessage() {
+	if p.currentMessage != nil && p.contentBuffer.Len() > 0 {
+		p.currentMessage.Content = strings.TrimSpace(p.contentBuffer.String())
+		p.messageChan <- p.currentMessage
+		p.contentBuffer.Reset()
+		p.currentMessage = nil
+	}
+}
+
+// sendFinalMessage sends any remaining message
+func (p *streamingParser) sendFinalMessage() {
+	p.sendCurrentMessage()
 }
 
 // parseToolUsage extracts tool information from a tool usage line
@@ -366,7 +400,8 @@ func (c *ClaudeCodeClient) buildQueryCommand(
 	cmd *types.Command,
 	options *QueryOptions,
 ) []string {
-	args := []string{c.claudeCodeCmd}
+	// Start with base command args for streaming output
+	args := []string{"--print", "--verbose", "--output-format", "stream-json"}
 
 	// Add session ID
 	if session.ID != "" {

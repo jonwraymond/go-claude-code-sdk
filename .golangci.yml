@@ -1,8 +1,4 @@
-# golangci-lint configuration
-run:
-  timeout: 10m
-  tests: false
-
+# golangci-lint configuration for v2
 linters:
   enable:
     - govet
@@ -11,6 +7,10 @@ linters:
     - unused
   disable:
     - errcheck
+
+run:
+  timeout: 10m
+  tests: false
 
 issues:
   max-same-issues: 5

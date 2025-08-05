@@ -1,5 +1,3 @@
-# This workflow performs CodeQL analysis on the Go codebase to find security vulnerabilities.
-# It is triggered on pushes to main and develop, pull requests to main, and on a weekly schedule.
 name: "CodeQL"
 
 on:
@@ -28,24 +26,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Setup Go for building
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
-
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        config-file: ./.github/codeql/codeql-config.yml
 
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, replace it with your own build steps.
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+      uses: github/codeql-action/autobuild@v2
 
-    # Runs CodeQL analysis
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v2
