@@ -187,13 +187,17 @@ func (s *ToolsIntegrationSuite) TestToolInConversation() {
 		AllowedTools: []string{"read_file"},
 	}
 
-	result, err := s.client.QueryMessagesSync(ctx, 
-		"Read the data.json file in the current directory and tell me what language it uses", 
-		options)
+    result, err := s.client.QueryMessagesSync(ctx,
+        "Read the data.json file in the current directory and tell me what language it uses",
+        options)
 	require.NoError(s.T(), err)
 
 	// Should have read the file and understood the content
-	assert.Contains(s.T(), result.Content, "Go")
+    combined := ""
+    for _, m := range result.Messages {
+        combined += m.GetText() + "\n"
+    }
+    assert.Contains(s.T(), combined, "Go")
 }
 
 func (s *ToolsIntegrationSuite) TestToolPermissions() {
