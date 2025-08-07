@@ -56,7 +56,7 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 	}
 
 	// Create client
-    // ctx := context.Background()
+    // context is created per-call below
 	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
 	require.NoError(s.T(), err)
 
@@ -74,7 +74,7 @@ func (s *ToolsIntegrationSuite) TearDownSuite() {
 }
 
 func (s *ToolsIntegrationSuite) TestListTools() {
-	ctx := context.Background()
+    // no-op
 
 	tools := s.toolManager.ListTools()
 
@@ -92,7 +92,7 @@ func (s *ToolsIntegrationSuite) TestListTools() {
 }
 
 func (s *ToolsIntegrationSuite) TestReadWriteFile() {
-	ctx := context.Background()
+    // no-op
 
 	// Create a test file
 	testFile := filepath.Join(s.testDir, "test.txt")
@@ -121,7 +121,7 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 }
 
 func (s *ToolsIntegrationSuite) TestSearchCode() {
-	ctx := context.Background()
+    // no-op
 
 	// Create test files with code
 	goFile := filepath.Join(s.testDir, "main.go")
@@ -156,7 +156,7 @@ func helper() {
 }
 
 func (s *ToolsIntegrationSuite) TestRunCommand() {
-	ctx := context.Background()
+    // no-op
 
 	// Run a simple command
     result, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
@@ -170,7 +170,7 @@ func (s *ToolsIntegrationSuite) TestRunCommand() {
 }
 
 func (s *ToolsIntegrationSuite) TestToolInConversation() {
-	ctx := context.Background()
+    // no-op
 
 	// Create a test file
 	testFile := filepath.Join(s.testDir, "data.json")
@@ -201,7 +201,7 @@ func (s *ToolsIntegrationSuite) TestToolInConversation() {
 }
 
 func (s *ToolsIntegrationSuite) TestToolPermissions() {
-	ctx := context.Background()
+    // no-op
 
 	// Test with different permission modes
 	testCases := []struct {
