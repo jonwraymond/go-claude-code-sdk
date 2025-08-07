@@ -115,8 +115,8 @@ func (s *SessionIntegrationSuite) TestListSessions() {
 
 	// Should contain our session
 	found := false
-	for _, s := range sessions {
-		if s.ID == sessionID {
+    for _, id := range sessions {
+        if id == sessionID {
 			found = true
 			break
 		}
@@ -144,7 +144,7 @@ func (s *SessionIntegrationSuite) TestDeleteSession() {
 	sessionID := fmt.Sprintf("test-delete-%d", time.Now().Unix())
 
 	// Create session
-	session, err := s.sessionManager.CreateSession(ctx, sessionID)
+    _, err := s.sessionManager.CreateSession(ctx, sessionID)
 	require.NoError(s.T(), err)
 
 	// Delete session
@@ -177,7 +177,7 @@ func (s *SessionIntegrationSuite) TestSessionWithProjectContext() {
 		},
 	}
 	
-	resp, err := session.Query(ctx, req)
+    resp, err := sess.Query(ctx, req)
 	require.NoError(s.T(), err)
 	
 	// Should understand it's a Go SDK project
