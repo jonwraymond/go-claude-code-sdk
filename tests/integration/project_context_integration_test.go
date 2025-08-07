@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -338,24 +339,28 @@ func main() {
 	require.NoError(s.T(), err)
 
 	// Get project context
-	projectCtx, err := s.projectContextManager.GetEnhancedProjectContext(ctx)
-	require.NoError(s.T(), err)
+    _, err = s.projectContextManager.GetEnhancedProjectContext(ctx)
+    require.NoError(s.T(), err)
 
 	// Use project context in a query
-	options := &client.QueryOptions{
-		SystemPrompt: "You are helping with a Go project",
-		MaxTokens:    500,
-	}
+    options := &client.QueryOptions{
+        SystemPrompt: "You are helping with a Go project",
+    }
 
 	// Query about the project
-	result, err := s.client.QueryMessagesSync(ctx, 
-		"What does the calculateSum function do in this project?", 
-		options)
+    result, err := s.client.QueryMessagesSync(ctx,
+        "What does the calculateSum function do in this project?",
+        options)
 	require.NoError(s.T(), err)
 
 	// Should understand the project context
-	assert.Contains(s.T(), result.Content, "calculateSum")
-	assert.Contains(s.T(), result.Content, "add")
+    // Aggregate messages to a single text for simple contains checks
+    combined := ""
+    for _, m := range result.Messages {
+        combined += m.GetText() + "\n"
+    }
+    assert.Contains(s.T(), combined, "calculateSum")
+    assert.Contains(s.T(), combined, "add")
 }
 
 func TestProjectContextIntegrationSuite(t *testing.T) {

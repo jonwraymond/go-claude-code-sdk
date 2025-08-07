@@ -18,16 +18,16 @@ import (
 
 // Dangerous command patterns that should be blocked for security
 var dangerousCommandPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`rm\s+-rf\s+/`),           // Dangerous rm operations
-	regexp.MustCompile(`;\s*rm\s+-rf`),           // Command chaining with rm
-	regexp.MustCompile(`\|\s*rm\s+-rf`),          // Piped rm operations
-	regexp.MustCompile(`&&\s*rm\s+-rf`),          // Chained rm operations  
-	regexp.MustCompile(`curl.*\|\s*sh`),          // Download and execute
-	regexp.MustCompile(`wget.*\|\s*sh`),          // Download and execute
-	regexp.MustCompile(`eval\s*\$\(`),            // Code injection via eval
-	regexp.MustCompile(`\$\(.*curl`),             // Command substitution with curl
-	regexp.MustCompile(`nc\s+-l`),                // Netcat listeners
-	regexp.MustCompile(`/dev/tcp/`),              // TCP connections
+	regexp.MustCompile(`rm\s+-rf\s+/`),  // Dangerous rm operations
+	regexp.MustCompile(`;\s*rm\s+-rf`),  // Command chaining with rm
+	regexp.MustCompile(`\|\s*rm\s+-rf`), // Piped rm operations
+	regexp.MustCompile(`&&\s*rm\s+-rf`), // Chained rm operations
+	regexp.MustCompile(`curl.*\|\s*sh`), // Download and execute
+	regexp.MustCompile(`wget.*\|\s*sh`), // Download and execute
+	regexp.MustCompile(`eval\s*\$\(`),   // Code injection via eval
+	regexp.MustCompile(`\$\(.*curl`),    // Command substitution with curl
+	regexp.MustCompile(`nc\s+-l`),       // Netcat listeners
+	regexp.MustCompile(`/dev/tcp/`),     // TCP connections
 }
 
 // validateCommand checks if a command contains dangerous patterns
@@ -51,7 +51,7 @@ func validateCommand(command string) error {
 func validateFilePath(path, workingDir string) error {
 	// Clean the path to normalize it
 	cleanPath := filepath.Clean(path)
-	
+
 	// Convert to absolute path
 	var absPath string
 	if filepath.IsAbs(cleanPath) {
@@ -59,23 +59,23 @@ func validateFilePath(path, workingDir string) error {
 	} else {
 		absPath = filepath.Join(workingDir, cleanPath)
 	}
-	
+
 	// Check if the resolved path is within the working directory
 	absWorkingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return fmt.Errorf("invalid working directory: %v", err)
 	}
-	
+
 	relPath, err := filepath.Rel(absWorkingDir, absPath)
 	if err != nil {
 		return fmt.Errorf("invalid file path: %v", err)
 	}
-	
+
 	// Check for directory traversal attempts
 	if strings.HasPrefix(relPath, "..") || strings.Contains(relPath, "/../") {
 		return fmt.Errorf("path traversal detected: %s", path)
 	}
-	
+
 	return nil
 }
 
@@ -745,11 +745,63 @@ func (tm *ClaudeCodeToolManager) executeWriteFile(ctx context.Context, params ma
 }
 
 func (tm *ClaudeCodeToolManager) executeEditFile(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
-	// This would be implemented using Claude Code's edit functionality
-	// For now, return a placeholder
+	path, ok := params["path"].(string)
+	if !ok || path == "" {
+		return nil, sdkerrors.NewValidationError("path", "", "string", "path must be a non-empty string")
+	}
+	edits, ok := params["edits"].([]any)
+	if !ok || len(edits) == 0 {
+		return nil, sdkerrors.NewValidationError("edits", "", "array", "edits must be a non-empty array")
+	}
+
+	// Validate and resolve path
+	if err := validateFilePath(path, tm.client.workingDir); err != nil {
+		return &ClaudeCodeToolResult{Success: false, Error: fmt.Sprintf("file path validation failed: %v", err)}, nil
+	}
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(tm.client.workingDir, path)
+	}
+
+	// Read file
+	original, err := os.ReadFile(path) // #nosec G304 - validated
+	if err != nil {
+		return &ClaudeCodeToolResult{Success: false, Error: fmt.Sprintf("failed to read file: %v", err)}, nil
+	}
+
+	// Apply simple line-oriented edits: each edit is {"find": string, "replace": string}
+	updated := string(original)
+	applied := 0
+	for _, e := range edits {
+		m, ok := e.(map[string]any)
+		if !ok {
+			continue
+		}
+		find, _ := m["find"].(string)
+		replace, _ := m["replace"].(string)
+		if find == "" {
+			continue
+		}
+		if strings.Contains(updated, find) {
+			updated = strings.ReplaceAll(updated, find, replace)
+			applied++
+		}
+	}
+
+	if applied == 0 {
+		return &ClaudeCodeToolResult{Success: false, Error: "no edits applied"}, nil
+	}
+
+	if err := os.WriteFile(path, []byte(updated), 0o600); err != nil {
+		return &ClaudeCodeToolResult{Success: false, Error: fmt.Sprintf("failed to write file: %v", err)}, nil
+	}
+
 	return &ClaudeCodeToolResult{
-		Success: false,
-		Error:   "edit_file tool not yet implemented",
+		Success: true,
+		Output:  fmt.Sprintf("Applied %d edits", applied),
+		Metadata: map[string]any{
+			"path":          path,
+			"edits_applied": applied,
+		},
 	}, nil
 }
 
@@ -922,12 +974,53 @@ func (tm *ClaudeCodeToolManager) executeSearchCode(ctx context.Context, params m
 }
 
 func (tm *ClaudeCodeToolManager) executeAnalyzeCode(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {
-	// This would integrate with code analysis tools
-	// For now, return a placeholder
-	return &ClaudeCodeToolResult{
-		Success: false,
-		Error:   "analyze_code tool not yet implemented",
-	}, nil
+	path, ok := params["path"].(string)
+	if !ok || path == "" {
+		return nil, sdkerrors.NewValidationError("path", "", "string", "path must be a non-empty string")
+	}
+	analysisType, ok := params["analysis_type"].(string)
+	if !ok || analysisType == "" {
+		return nil, sdkerrors.NewValidationError("analysis_type", "", "string", "analysis_type is required")
+	}
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(tm.client.workingDir, path)
+	}
+
+	// Minimal heuristics as a baseline. TODO: integrate richer analyzers.
+	stats := map[string]any{
+		"files": 0,
+		"lines": 0,
+	}
+	exts := map[string]int{}
+
+	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+		if err != nil || info == nil || info.IsDir() {
+			return nil
+		}
+		stats["files"] = stats["files"].(int) + 1
+		b, rerr := os.ReadFile(p)
+		if rerr == nil {
+			stats["lines"] = stats["lines"].(int) + len(strings.Split(string(b), "\n"))
+		}
+		ext := filepath.Ext(p)
+		if ext == "" {
+			ext = "(none)"
+		}
+		exts[ext] = exts[ext] + 1
+		return nil
+	})
+	if err != nil {
+		return &ClaudeCodeToolResult{Success: false, Error: fmt.Sprintf("failed to analyze: %v", err)}, nil
+	}
+
+	result := map[string]any{
+		"path":          path,
+		"analysis_type": analysisType,
+		"stats":         stats,
+		"by_extension":  exts,
+	}
+
+	return &ClaudeCodeToolResult{Success: true, Output: result}, nil
 }
 
 func (tm *ClaudeCodeToolManager) executeRunCommand(ctx context.Context, params map[string]any) (*ClaudeCodeToolResult, error) {

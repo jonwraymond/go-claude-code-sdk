@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -69,12 +70,13 @@ func (s *SessionIntegrationSuite) TestCreateAndUseSession() {
 	sessionID := fmt.Sprintf("test-session-%d", time.Now().Unix())
 
 	// Create session
-	session, err := s.sessionManager.CreateSession(ctx, sessionID)
-	require.NoError(s.T(), err)
-	defer session.Close()
+    session, err := s.sessionManager.CreateSession(ctx, sessionID)
+    require.NoError(s.T(), err)
+    defer session.Close()
 
-	assert.Equal(s.T(), sessionID, session.ID())
-	assert.True(s.T(), session.IsActive())
+    info, err := session.GetInfo()
+    require.NoError(s.T(), err)
+    assert.Equal(s.T(), sessionID, info.ID)
 
 	// First query in session
 	req1 := &types.QueryRequest{
@@ -109,13 +111,12 @@ func (s *SessionIntegrationSuite) TestListSessions() {
 	defer session.Close()
 
 	// List sessions
-	sessions, err := s.sessionManager.ListSessions(ctx)
-	require.NoError(s.T(), err)
+    sessions := s.sessionManager.ListSessions()
 
 	// Should contain our session
 	found := false
-	for _, s := range sessions {
-		if s.ID == sessionID {
+    for _, id := range sessions {
+        if id == sessionID {
 			found = true
 			break
 		}
@@ -133,11 +134,9 @@ func (s *SessionIntegrationSuite) TestGetSession() {
 	defer session1.Close()
 
 	// Get the same session
-	session2, err := s.sessionManager.GetSession(ctx, sessionID)
-	require.NoError(s.T(), err)
-
-	assert.Equal(s.T(), session1.ID(), session2.ID())
-	assert.True(s.T(), session2.IsActive())
+    session2, err := s.sessionManager.GetSession(sessionID)
+    require.NoError(s.T(), err)
+    assert.Equal(s.T(), session1.ID, session2.ID)
 }
 
 func (s *SessionIntegrationSuite) TestDeleteSession() {
@@ -145,29 +144,31 @@ func (s *SessionIntegrationSuite) TestDeleteSession() {
 	sessionID := fmt.Sprintf("test-delete-%d", time.Now().Unix())
 
 	// Create session
-	session, err := s.sessionManager.CreateSession(ctx, sessionID)
+    _, err := s.sessionManager.CreateSession(ctx, sessionID)
 	require.NoError(s.T(), err)
 
 	// Delete session
-	err = s.sessionManager.DeleteSession(ctx, sessionID)
+    err = s.sessionManager.CloseSession(sessionID)
 	require.NoError(s.T(), err)
 
 	// Session should no longer be active
-	assert.False(s.T(), session.IsActive())
+    // After closing, GetSession should fail
+    _, err = s.sessionManager.GetSession(sessionID)
+    assert.Error(s.T(), err)
 
 	// Getting deleted session should fail
-	_, err = s.sessionManager.GetSession(ctx, sessionID)
-	assert.Error(s.T(), err)
+    _, err = s.sessionManager.GetSession(sessionID)
+    assert.Error(s.T(), err)
 }
 
 func (s *SessionIntegrationSuite) TestSessionWithProjectContext() {
 	ctx := context.Background()
 	sessionID := fmt.Sprintf("test-project-%d", time.Now().Unix())
 
-	// Create session with project context
-	session, err := s.sessionManager.CreateSessionWithProject(ctx, sessionID, ".")
-	require.NoError(s.T(), err)
-	defer session.Close()
+    // Create session (project context handled via metadata in manager)
+    sess, err := s.sessionManager.CreateSession(ctx, sessionID)
+    require.NoError(s.T(), err)
+    defer sess.Close()
 
 	// Query about the project
 	req := &types.QueryRequest{
@@ -176,7 +177,7 @@ func (s *SessionIntegrationSuite) TestSessionWithProjectContext() {
 		},
 	}
 	
-	resp, err := session.Query(ctx, req)
+    resp, err := sess.Query(ctx, req)
 	require.NoError(s.T(), err)
 	
 	// Should understand it's a Go SDK project

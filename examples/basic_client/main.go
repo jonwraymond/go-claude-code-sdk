@@ -68,17 +68,12 @@ func apiKeyClientExample() {
 
 	// Create configuration with API key
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Try to get API key from environment
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
 		fmt.Printf("✓ Using API key from environment\n")
-	} else {
-		// Use a placeholder for demonstration
-		config.APIKey = "test-api-key-not-real-..." // Your actual API key
-		config.AuthMethod = types.AuthTypeAPIKey
-		fmt.Printf("⚠ Using placeholder API key (set ANTHROPIC_API_KEY environment variable)\n")
 	}
 
 	// Create the client
@@ -126,10 +121,10 @@ func customConfigurationExample() {
 
 	// Create a custom configuration
 	config := &types.ClaudeCodeConfig{
-		Model:           "claude-3-opus-20240229",
-		SessionID:       "my-custom-session-" + fmt.Sprintf("%d", time.Now().Unix()),
-		AuthMethod:      types.AuthTypeAPIKey,
-		APIKey:          os.Getenv("ANTHROPIC_API_KEY"),
+		Model:            "claude-3-opus-20240229",
+		SessionID:        "my-custom-session-" + fmt.Sprintf("%d", time.Now().Unix()),
+		AuthMethod:       types.AuthTypeAPIKey,
+		APIKey:           os.Getenv("ANTHROPIC_API_KEY"),
 		WorkingDirectory: "/tmp", // Custom working directory
 		Environment: map[string]string{
 			"CUSTOM_VAR": "custom_value",
@@ -213,13 +208,13 @@ func environmentVariablesExample() {
 
 	// Create configuration with custom environment
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Add custom environment variables
 	config.Environment = map[string]string{
-		"CLAUDE_DEBUG":      "true",
-		"CLAUDE_LOG_LEVEL":  "info",
-		"PROJECT_NAME":      "go-claude-sdk-examples",
-		"CUSTOM_TOOL_PATH":  "/usr/local/bin/custom-tools",
+		"CLAUDE_DEBUG":     "true",
+		"CLAUDE_LOG_LEVEL": "info",
+		"PROJECT_NAME":     "go-claude-sdk-examples",
+		"CUSTOM_TOOL_PATH": "/usr/local/bin/custom-tools",
 	}
 
 	// Also demonstrate reading from actual environment

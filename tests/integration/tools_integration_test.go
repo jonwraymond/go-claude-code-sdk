@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -54,9 +55,9 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 		s.config.TestMode = true
 	}
 
-	// Create client
-	ctx := context.Background()
-	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
+    // Create client
+    cctx := context.Background()
+    s.client, err = client.NewClaudeCodeClient(cctx, s.config)
 	require.NoError(s.T(), err)
 
 	// Get tool manager
@@ -73,7 +74,7 @@ func (s *ToolsIntegrationSuite) TearDownSuite() {
 }
 
 func (s *ToolsIntegrationSuite) TestListTools() {
-	ctx := context.Background()
+    // no-op
 
 	tools := s.toolManager.ListTools()
 
@@ -91,16 +92,16 @@ func (s *ToolsIntegrationSuite) TestListTools() {
 }
 
 func (s *ToolsIntegrationSuite) TestReadWriteFile() {
-	ctx := context.Background()
+    // no-op
 
 	// Create a test file
 	testFile := filepath.Join(s.testDir, "test.txt")
 	testContent := "Hello from Claude Code SDK!"
 
 	// Write file using tool
-	writeResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    writeResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "write_file",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"path":    testFile,
 			"content": testContent,
 		},
@@ -109,9 +110,9 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 	assert.Contains(s.T(), writeResult, "success")
 
 	// Read file using tool
-	readResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    readResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "read_file",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"path": testFile,
 		},
 	})
@@ -120,7 +121,7 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 }
 
 func (s *ToolsIntegrationSuite) TestSearchCode() {
-	ctx := context.Background()
+    // no-op
 
 	// Create test files with code
 	goFile := filepath.Join(s.testDir, "main.go")
@@ -140,9 +141,9 @@ func helper() {
 	require.NoError(s.T(), err)
 
 	// Search for code pattern
-	searchResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    searchResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "search_code",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"pattern": "func.*\\(",
 			"path":    s.testDir,
 		},
@@ -155,12 +156,12 @@ func helper() {
 }
 
 func (s *ToolsIntegrationSuite) TestRunCommand() {
-	ctx := context.Background()
+    // no-op
 
 	// Run a simple command
-	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    result, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "run_command",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"command": "echo 'Hello from command'",
 		},
 	})
@@ -169,7 +170,7 @@ func (s *ToolsIntegrationSuite) TestRunCommand() {
 }
 
 func (s *ToolsIntegrationSuite) TestToolInConversation() {
-	ctx := context.Background()
+    // no-op
 
 	// Create a test file
 	testFile := filepath.Join(s.testDir, "data.json")
@@ -186,17 +187,21 @@ func (s *ToolsIntegrationSuite) TestToolInConversation() {
 		AllowedTools: []string{"read_file"},
 	}
 
-	result, err := s.client.QueryMessagesSync(ctx, 
-		"Read the data.json file in the current directory and tell me what language it uses", 
-		options)
+    result, err := s.client.QueryMessagesSync(context.Background(),
+        "Read the data.json file in the current directory and tell me what language it uses",
+        options)
 	require.NoError(s.T(), err)
 
 	// Should have read the file and understood the content
-	assert.Contains(s.T(), result.Content, "Go")
+    combined := ""
+    for _, m := range result.Messages {
+        combined += m.GetText() + "\n"
+    }
+    assert.Contains(s.T(), combined, "Go")
 }
 
 func (s *ToolsIntegrationSuite) TestToolPermissions() {
-	ctx := context.Background()
+    // no-op
 
 	// Test with different permission modes
 	testCases := []struct {
@@ -227,7 +232,7 @@ func (s *ToolsIntegrationSuite) TestToolPermissions() {
 
 			// Try to write a file
 			query := "Create a file called perm-test.txt with the content 'Permission test'"
-			result, err := s.client.QueryMessagesSync(ctx, query, options)
+            result, err := s.client.QueryMessagesSync(context.Background(), query, options)
 
 			if tc.expectSuccess {
 				require.NoError(t, err)
@@ -247,7 +252,6 @@ func (s *ToolsIntegrationSuite) TestToolPermissions() {
 }
 
 func (s *ToolsIntegrationSuite) TestCustomTool() {
-	ctx := context.Background()
 
 	// Register a custom tool (this would typically be done via MCP)
 	// For this test, we'll simulate by using the existing tool system
@@ -261,9 +265,9 @@ echo "Custom tool output: $1"`
 	require.NoError(s.T(), err)
 
 	// Execute the custom tool via run_command
-	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    result, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "run_command",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"command": scriptPath + " 'test argument'",
 		},
 	})

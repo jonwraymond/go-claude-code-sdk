@@ -63,9 +63,9 @@ The Go Claude Code SDK provides a production-ready Go wrapper for the Claude Cod
 - **Strong typing** with compile-time validation
 - **Idiomatic error handling** following Go conventions
 
-## 📊 Feature Parity with Official Claude Code SDKs
+## 📊 Feature Parity
 
-### Claude Code CLI Features
+### Claude Code CLI Features (this SDK)
 
 | Feature | Python SDK | TypeScript SDK | Go SDK | Notes |
 |---------|------------|----------------|---------|--------|
@@ -87,7 +87,31 @@ The Go Claude Code SDK provides a production-ready Go wrapper for the Claude Cod
 | Tool Management | ✅ Built-in | ✅ Built-in | ✅ Extended | Additional helpers |
 | Command System | ✅ Basic | ✅ Basic | ✅ Extended | Slash commands |
 
-### Go SDK Advantages
+### REST API Parity (New Minimal REST Client)
+
+This repository now includes an opt-in minimal REST client in `pkg/api` to close key parity gaps with the official Python REST SDK while keeping the CLI wrapper intact.
+
+Implemented in `pkg/api`:
+- `messages.create` and `messages.count_tokens`
+- `messages.batches.create`, `messages.batches.list`, and `.../results` (pull streaming)
+- `beta.files.upload` (basic raw upload)
+- Retries, timeouts, and default headers including `anthropic-version`
+
+Not yet implemented (roadmap):
+- Streaming helpers matching Python’s `messages.stream(...)`
+- Beta namespace ergonomics, pagination iterators, and typed models at parity with Python
+- Bedrock/Vertex variants
+
+Usage example (REST client):
+
+```go
+apiClient, _ := api.NewClient(&api.Config{ APIKey: os.Getenv("ANTHROPIC_API_KEY") })
+resp, _ := apiClient.CreateMessage(ctx, &api.CreateRequest{
+  Model: "claude-sonnet-4-20250514",
+  MaxTokens: 256,
+  Messages: []api.MessageParam{{Role: "user", Content: "Hello"}},
+})
+```
 
 - **Strong Type Safety**: Compile-time type checking for all operations
 - **Concurrency Control**: Native goroutine support with proper synchronization

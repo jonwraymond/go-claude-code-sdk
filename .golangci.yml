@@ -1,10 +1,13 @@
 # golangci-lint configuration for v2
+version: 2
 linters:
   enable:
     - govet
     - ineffassign
     - staticcheck
     - unused
+    - gofmt
+    - goimports
   disable:
     - errcheck
 

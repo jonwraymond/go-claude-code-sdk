@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -157,7 +158,6 @@ func (s *MCPIntegrationSuite) TestMCPServerConfiguration() {
 }
 
 func (s *MCPIntegrationSuite) TestMultipleMCPServers() {
-	ctx := context.Background()
 
 	// Register multiple servers
 	servers := []struct {
