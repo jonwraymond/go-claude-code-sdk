@@ -55,9 +55,9 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 		s.config.TestMode = true
 	}
 
-	// Create client
-    // context is created per-call below
-	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
+    // Create client
+    cctx := context.Background()
+    s.client, err = client.NewClaudeCodeClient(cctx, s.config)
 	require.NoError(s.T(), err)
 
 	// Get tool manager
@@ -187,7 +187,7 @@ func (s *ToolsIntegrationSuite) TestToolInConversation() {
 		AllowedTools: []string{"read_file"},
 	}
 
-    result, err := s.client.QueryMessagesSync(ctx,
+    result, err := s.client.QueryMessagesSync(context.Background(),
         "Read the data.json file in the current directory and tell me what language it uses",
         options)
 	require.NoError(s.T(), err)
@@ -232,7 +232,7 @@ func (s *ToolsIntegrationSuite) TestToolPermissions() {
 
 			// Try to write a file
 			query := "Create a file called perm-test.txt with the content 'Permission test'"
-			result, err := s.client.QueryMessagesSync(ctx, query, options)
+            result, err := s.client.QueryMessagesSync(context.Background(), query, options)
 
 			if tc.expectSuccess {
 				require.NoError(t, err)
