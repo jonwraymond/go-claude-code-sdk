@@ -56,7 +56,7 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 	}
 
 	// Create client
-	ctx := context.Background()
+    // ctx := context.Background()
 	s.client, err = client.NewClaudeCodeClient(ctx, s.config)
 	require.NoError(s.T(), err)
 
@@ -99,9 +99,9 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 	testContent := "Hello from Claude Code SDK!"
 
 	// Write file using tool
-	writeResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    writeResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "write_file",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"path":    testFile,
 			"content": testContent,
 		},
@@ -110,9 +110,9 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 	assert.Contains(s.T(), writeResult, "success")
 
 	// Read file using tool
-	readResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    readResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "read_file",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"path": testFile,
 		},
 	})
@@ -141,9 +141,9 @@ func helper() {
 	require.NoError(s.T(), err)
 
 	// Search for code pattern
-	searchResult, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    searchResult, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "search_code",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"pattern": "func.*\\(",
 			"path":    s.testDir,
 		},
@@ -159,9 +159,9 @@ func (s *ToolsIntegrationSuite) TestRunCommand() {
 	ctx := context.Background()
 
 	// Run a simple command
-	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    result, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "run_command",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"command": "echo 'Hello from command'",
 		},
 	})
@@ -266,9 +266,9 @@ echo "Custom tool output: $1"`
 	require.NoError(s.T(), err)
 
 	// Execute the custom tool via run_command
-	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+    result, err := s.toolManager.ExecuteTool(context.Background(), &client.ClaudeCodeTool{
 		Name: "run_command",
-		Arguments: map[string]interface{}{
+        Parameters: map[string]any{
 			"command": scriptPath + " 'test argument'",
 		},
 	})
