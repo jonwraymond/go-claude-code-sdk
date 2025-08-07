@@ -166,9 +166,9 @@ func (s *SessionIntegrationSuite) TestSessionWithProjectContext() {
 	sessionID := fmt.Sprintf("test-project-%d", time.Now().Unix())
 
     // Create session (project context handled via metadata in manager)
-    session, err := s.sessionManager.CreateSession(ctx, sessionID)
-	require.NoError(s.T(), err)
-	defer session.Close()
+    sess, err := s.sessionManager.CreateSession(ctx, sessionID)
+    require.NoError(s.T(), err)
+    defer sess.Close()
 
 	// Query about the project
 	req := &types.QueryRequest{

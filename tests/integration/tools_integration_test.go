@@ -252,7 +252,6 @@ func (s *ToolsIntegrationSuite) TestToolPermissions() {
 }
 
 func (s *ToolsIntegrationSuite) TestCustomTool() {
-	ctx := context.Background()
 
 	// Register a custom tool (this would typically be done via MCP)
 	// For this test, we'll simulate by using the existing tool system

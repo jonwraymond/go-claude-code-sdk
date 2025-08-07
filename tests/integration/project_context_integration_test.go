@@ -339,7 +339,7 @@ func main() {
 	require.NoError(s.T(), err)
 
 	// Get project context
-    _, err := s.projectContextManager.GetEnhancedProjectContext(ctx)
+    _, err = s.projectContextManager.GetEnhancedProjectContext(ctx)
     require.NoError(s.T(), err)
 
 	// Use project context in a query
