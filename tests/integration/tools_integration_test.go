@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -48,7 +49,7 @@ func (s *ToolsIntegrationSuite) SetupSuite() {
 	s.config.ClaudeExecutable = "claude"
 	s.config.WorkingDirectory = s.testDir
 	s.config.Timeout = 30 * time.Second
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -119,6 +120,27 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 	assert.Contains(s.T(), readResult, testContent)
 }
 
+func (s *ToolsIntegrationSuite) TestListFilesTool() {
+	ctx := context.Background()
+
+	// Create test files
+	file1 := filepath.Join(s.testDir, "file1.txt")
+	file2 := filepath.Join(s.testDir, "file2.txt")
+	require.NoError(s.T(), os.WriteFile(file1, []byte("one"), 0644))
+	require.NoError(s.T(), os.WriteFile(file2, []byte("two"), 0644))
+
+	// List files using tool
+	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+		Name: "list_files",
+		Parameters: map[string]any{
+			"path": s.testDir,
+		},
+	})
+	require.NoError(s.T(), err)
+	assert.Contains(s.T(), result, "file1.txt")
+	assert.Contains(s.T(), result, "file2.txt")
+}
+
 func (s *ToolsIntegrationSuite) TestSearchCode() {
 	ctx := context.Background()
 
@@ -186,8 +208,8 @@ func (s *ToolsIntegrationSuite) TestToolInConversation() {
 		AllowedTools: []string{"read_file"},
 	}
 
-	result, err := s.client.QueryMessagesSync(ctx, 
-		"Read the data.json file in the current directory and tell me what language it uses", 
+	result, err := s.client.QueryMessagesSync(ctx,
+		"Read the data.json file in the current directory and tell me what language it uses",
 		options)
 	require.NoError(s.T(), err)
 
@@ -219,7 +241,7 @@ func (s *ToolsIntegrationSuite) TestToolPermissions() {
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
 			testFile := filepath.Join(s.testDir, "perm-test.txt")
-			
+
 			options := &client.QueryOptions{
 				AllowedTools:   []string{"write_file"},
 				PermissionMode: tc.permissionMode,
@@ -251,12 +273,12 @@ func (s *ToolsIntegrationSuite) TestCustomTool() {
 
 	// Register a custom tool (this would typically be done via MCP)
 	// For this test, we'll simulate by using the existing tool system
-	
+
 	// Create a script that acts as a custom tool
 	scriptPath := filepath.Join(s.testDir, "custom-tool.sh")
 	scriptContent := `#!/bin/bash
 echo "Custom tool output: $1"`
-	
+
 	err := os.WriteFile(scriptPath, []byte(scriptContent), 0755)
 	require.NoError(s.T(), err)
 
