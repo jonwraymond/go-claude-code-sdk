@@ -30,7 +30,7 @@ jobs:
           go-version: '1.22'
       # Run the golangci-lint linter.
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           version: latest
 
