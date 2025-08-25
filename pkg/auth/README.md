@@ -28,14 +28,14 @@ The `auth` package provides secure authentication mechanisms for the Claude SDK 
 import "github.com/jonwraymond/go-claude-code-sdk/pkg/auth"
 
 // Create API key authenticator
-apiAuth, err := auth.NewAPIKeyAuthenticator("test-api-key-not-real-your-key-here")
+apiAuth, err := auth.NewAPIKeyAuthenticator("sk-ant-test-api-key-not-real-your-key-here")
 if err != nil {
     log.Fatal(err)
 }
 
 // Get authentication headers
 headers := apiAuth.GetHeaders()
-// headers["X-API-Key"] = "test-api-key-not-real-your-key-here"
+// headers["X-API-Key"] = "sk-ant-test-api-key-not-real-your-key-here"
 ```
 
 ### Session Authentication
@@ -75,7 +75,7 @@ if err != nil {
 manager := auth.NewManager(store)
 
 // Store API key
-err = manager.StoreAPIKey(ctx, "my-api-key", "test-api-key-not-real-your-key")
+err = manager.StoreAPIKey(ctx, "my-api-key", "sk-ant-test-api-key-not-real-your-key")
 if err != nil {
     log.Fatal(err)
 }
