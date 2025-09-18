@@ -348,7 +348,7 @@ echo '%s'
 			return exec.CommandContext(ctx, "echo", `{"error": "mock creation failed"}`)
 		}
 		if _, err := tmpFile.WriteString(mockScript); err != nil {
-			_ = tmpFile.Close() // Ignore error, cleanup attempt
+			_ = tmpFile.Close()           // Ignore error, cleanup attempt
 			_ = os.Remove(tmpFile.Name()) // Ignore error, cleanup attempt
 			return exec.CommandContext(ctx, "echo", `{"error": "mock script write failed"}`)
 		}

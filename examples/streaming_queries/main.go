@@ -36,7 +36,7 @@ func basicStreamingExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Use API key if available
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
@@ -65,7 +65,7 @@ func basicStreamingExample() {
 	}
 
 	fmt.Printf("Starting streaming query...\n")
-	
+
 	// Execute streaming query
 	stream, err := claudeClient.QueryStream(ctx, request)
 	if err != nil {
@@ -104,7 +104,7 @@ func streamingWithCancellationExample() {
 	fmt.Println("--- Example 2: Streaming with Cancellation ---")
 
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -134,7 +134,7 @@ func streamingWithCancellationExample() {
 	}
 
 	fmt.Printf("Starting streaming query with 5-second timeout...\n")
-	
+
 	stream, err := claudeClient.QueryStream(ctx, request)
 	if err != nil {
 		log.Printf("Failed to start streaming query: %v", err)
@@ -143,7 +143,7 @@ func streamingWithCancellationExample() {
 	defer stream.Close()
 
 	fmt.Printf("Response (will timeout after 5 seconds):\n")
-	
+
 	// Process chunks until timeout or completion
 	for {
 		chunk, err := stream.Recv()
@@ -173,7 +173,7 @@ func streamingChunkProcessingExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -198,7 +198,7 @@ func streamingChunkProcessingExample() {
 	}
 
 	fmt.Printf("Starting streaming query with chunk analysis...\n")
-	
+
 	stream, err := claudeClient.QueryStream(ctx, request)
 	if err != nil {
 		log.Printf("Failed to start streaming query: %v", err)
@@ -208,10 +208,10 @@ func streamingChunkProcessingExample() {
 
 	// Track streaming statistics
 	var (
-		chunkCount    int
-		totalBytes    int
-		wordCount     int
-		startTime     = time.Now()
+		chunkCount int
+		totalBytes int
+		wordCount  int
+		startTime  = time.Now()
 	)
 
 	fmt.Printf("Response:\n")
@@ -238,7 +238,7 @@ func streamingChunkProcessingExample() {
 	}
 
 	elapsed := time.Since(startTime)
-	
+
 	fmt.Println("\n---")
 	fmt.Printf("✓ Streaming completed\n")
 	fmt.Printf("Statistics:\n")
@@ -258,7 +258,7 @@ func queryMessagesStreamingExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -295,7 +295,7 @@ func queryMessagesStreamingExample() {
 	fmt.Println("---")
 
 	var messageCount int
-	
+
 	// Process messages from the stream
 	for message := range messageChan {
 		if message == nil {
@@ -303,7 +303,7 @@ func queryMessagesStreamingExample() {
 		}
 
 		messageCount++
-		
+
 		switch message.Role {
 		case types.RoleUser:
 			fmt.Printf("👤 User: %s\n\n", formatContent(message.Content))

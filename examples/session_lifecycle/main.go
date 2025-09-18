@@ -39,7 +39,7 @@ func basicSessionExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -116,7 +116,7 @@ func sessionPersistenceExample() {
 	fmt.Println("--- Example 2: Session Persistence ---")
 
 	ctx := context.Background()
-	
+
 	// Create first client instance
 	config1 := types.NewClaudeCodeConfig()
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
@@ -215,7 +215,7 @@ func multipleConcurrentSessionsExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -248,7 +248,7 @@ func multipleConcurrentSessionsExample() {
 	// Have conversations in each session
 	for topic, session := range sessions {
 		fmt.Printf("\nConversation in %s session:\n", topic)
-		
+
 		options := &client.QueryOptions{
 			SessionID:      session.ID,
 			PermissionMode: client.PermissionModeAsk,
@@ -280,7 +280,7 @@ func multipleConcurrentSessionsExample() {
 
 	// Show session isolation - ask about topics in different sessions
 	fmt.Printf("\nTesting session isolation:\n")
-	
+
 	// Ask about Go in the databases session
 	dbSession := sessions["databases"]
 	options := &client.QueryOptions{
@@ -307,12 +307,12 @@ func customSessionConfigurationExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Customize session configuration
 	config.Model = "claude-3-5-sonnet-20241022"
 	config.SessionID = fmt.Sprintf("custom-session-%d", time.Now().Unix())
 	config.Debug = true
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -353,7 +353,7 @@ func customSessionConfigurationExample() {
 	}
 
 	fmt.Printf("\nUsing custom session configuration...\n")
-	
+
 	result, err := claudeClient.QueryMessagesSync(ctx, "Write a simple Go function to calculate factorial", options)
 	if err != nil {
 		log.Printf("Failed to execute query: %v", err)
@@ -376,7 +376,7 @@ func sessionCleanupExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -393,7 +393,7 @@ func sessionCleanupExample() {
 
 	// Create several temporary sessions
 	var tempSessions []*client.ClaudeCodeSession
-	
+
 	for i := 0; i < 3; i++ {
 		sessionID := claudeClient.GenerateSessionID()
 		session, err := claudeClient.CreateSession(ctx, sessionID)
@@ -403,13 +403,13 @@ func sessionCleanupExample() {
 		}
 		tempSessions = append(tempSessions, session)
 		fmt.Printf("✓ Created temporary session %d: %s\n", i+1, session.ID[:8]+"...")
-		
+
 		// Use each session briefly
 		options := &client.QueryOptions{
 			SessionID:      session.ID,
 			PermissionMode: client.PermissionModeAsk,
 		}
-		
+
 		_, err = claudeClient.QueryMessagesSync(ctx, fmt.Sprintf("Hello from session %d", i+1), options)
 		if err != nil {
 			log.Printf("Failed to use temporary session %d: %v", i+1, err)
@@ -438,11 +438,11 @@ func sessionCleanupExample() {
 	// Demonstrate session resource monitoring
 	fmt.Printf("\nSession resource information:\n")
 	fmt.Printf("  Active sessions: %d\n", len(remainingSessions))
-	
+
 	// Client cleanup happens automatically when defer claudeClient.Close() is called
 	fmt.Printf("✓ Session cleanup example completed\n")
 	fmt.Printf("  (Client will be cleaned up automatically)\n")
-	
+
 	fmt.Println()
 }
 

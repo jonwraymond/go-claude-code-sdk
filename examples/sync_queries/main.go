@@ -39,7 +39,7 @@ func basicSyncQueryExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Use API key if available
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
@@ -69,7 +69,7 @@ func basicSyncQueryExample() {
 
 	fmt.Printf("Sending synchronous query...\n")
 	start := time.Now()
-	
+
 	// Execute synchronous query
 	response, err := claudeClient.Query(ctx, request)
 	if err != nil {
@@ -81,7 +81,7 @@ func basicSyncQueryExample() {
 
 	fmt.Printf("✓ Query completed in %v\n", elapsed)
 	fmt.Printf("Stop reason: %s\n", response.StopReason)
-	
+
 	// Print response content
 	if len(response.Content) > 0 {
 		content := extractTextContent(response.Content)
@@ -97,7 +97,7 @@ func multiTurnConversationExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -170,7 +170,7 @@ func systemPromptExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -219,7 +219,7 @@ func queryMessagesSyncExample() {
 
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 		config.AuthMethod = types.AuthTypeAPIKey
@@ -264,9 +264,9 @@ func queryMessagesSyncExample() {
 	for i, message := range result.Messages {
 		role := string(message.Role)
 		content := formatContent(message.Content)
-		
+
 		fmt.Printf("  %d. %s: %s\n", i+1, role, truncateText(content, 150))
-		
+
 		// Show tool calls if any
 		if len(message.ToolCalls) > 0 {
 			for _, toolCall := range message.ToolCalls {
@@ -291,7 +291,7 @@ func errorHandlingExample() {
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
 	config.TestMode = true // Use test mode to simulate errors safely
-	
+
 	claudeClient, err := client.NewClaudeCodeClient(ctx, config)
 	if err != nil {
 		log.Printf("Failed to create client: %v", err)
@@ -302,24 +302,24 @@ func errorHandlingExample() {
 	// Function to attempt a query with retries
 	executeWithRetries := func(request *types.QueryRequest, maxRetries int) (*types.QueryResponse, error) {
 		var lastErr error
-		
+
 		for attempt := 1; attempt <= maxRetries; attempt++ {
 			fmt.Printf("  Attempt %d/%d...\n", attempt, maxRetries)
-			
+
 			// Create context with timeout for each attempt
 			queryCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-			
+
 			response, err := claudeClient.Query(queryCtx, request)
 			cancel()
-			
+
 			if err == nil {
 				fmt.Printf("  ✓ Success on attempt %d\n", attempt)
 				return response, nil
 			}
-			
+
 			lastErr = err
 			fmt.Printf("  ✗ Failed on attempt %d: %v\n", attempt, err)
-			
+
 			// Wait before retrying (exponential backoff)
 			if attempt < maxRetries {
 				waitTime := time.Duration(attempt*attempt) * time.Second
@@ -327,7 +327,7 @@ func errorHandlingExample() {
 				time.Sleep(waitTime)
 			}
 		}
-		
+
 		return nil, fmt.Errorf("all %d attempts failed, last error: %w", maxRetries, lastErr)
 	}
 
@@ -342,7 +342,7 @@ func errorHandlingExample() {
 	}
 
 	fmt.Printf("Testing query with retry logic...\n")
-	
+
 	response, err := executeWithRetries(request, 3)
 	if err != nil {
 		fmt.Printf("✗ Query failed after retries: %v\n", err)
@@ -356,10 +356,10 @@ func errorHandlingExample() {
 
 	// Demonstrate timeout handling
 	fmt.Printf("\nTesting timeout handling...\n")
-	
+
 	timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Millisecond) // Very short timeout
 	defer cancel()
-	
+
 	_, err = claudeClient.Query(timeoutCtx, request)
 	if err != nil {
 		if timeoutCtx.Err() == context.DeadlineExceeded {

@@ -449,7 +449,7 @@ func GetTestFile(name string) []byte {
 		"code.go":       []byte("package main\n\nfunc main() {\n\tprintln(\"Hello\")\n}"),
 		"data.json":     []byte(`{"name": "test", "value": 42}`),
 		"empty.txt":     []byte(""),
-		"binary.bin":    []byte{0x00, 0x01, 0x02, 0x03, 0xFF},
+		"binary.bin":    {0x00, 0x01, 0x02, 0x03, 0xFF},
 		"large.txt":     []byte(generateLoremIpsum(1000)),
 		"unicode.txt":   []byte("Hello 世界 🌍 émojis"),
 		"multiline.txt": []byte("Line 1\nLine 2\nLine 3\n"),

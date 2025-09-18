@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -40,7 +41,7 @@ func (s *ClaudeCodeIntegrationSuite) SetupSuite() {
 	s.config.APIKey = apiKey
 	s.config.ClaudeExecutable = "claude" // Assume it's in PATH
 	s.config.Timeout = 30 * time.Second
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -88,7 +89,7 @@ func (s *ClaudeCodeIntegrationSuite) TestStreamingQuery() {
 	for msg := range messages {
 		assert.NotNil(s.T(), msg)
 		messageCount++
-		
+
 		// Should have role and content
 		assert.NotEmpty(s.T(), msg.Role)
 		assert.NotEmpty(s.T(), msg.GetText())
@@ -107,7 +108,7 @@ func (s *ClaudeCodeIntegrationSuite) TestQueryWithOptions() {
 	result, err := s.client.QueryMessagesSync(ctx, "Explain recursion in one sentence", options)
 	require.NoError(s.T(), err)
 	assert.NotEmpty(s.T(), result.Messages)
-	
+
 	// Check that we got a response
 	hasAssistantResponse := false
 	for _, msg := range result.Messages {
@@ -126,7 +127,7 @@ func (s *ClaudeCodeIntegrationSuite) TestContextCancellation() {
 
 	// Start a query that would normally take longer
 	messages, err := s.client.QueryMessages(ctx, "Write a detailed essay about software architecture", nil)
-	
+
 	if err != nil {
 		// Should get context error
 		assert.ErrorIs(s.T(), err, context.DeadlineExceeded)
@@ -138,7 +139,7 @@ func (s *ClaudeCodeIntegrationSuite) TestContextCancellation() {
 	for range messages {
 		messageCount++
 	}
-	
+
 	// Should have received partial response before cancellation
 	assert.Greater(s.T(), messageCount, 0)
 }

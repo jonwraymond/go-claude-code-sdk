@@ -273,7 +273,7 @@ func (m *MCPManager) LoadFromFile(filePath string) error {
 
 	// Clean the file path to prevent directory traversal
 	filePath = filepath.Clean(filePath)
-	
+
 	data, err := os.ReadFile(filePath) // #nosec G304 - file path is cleaned and this is expected to load config files
 	if err != nil {
 		return sdkerrors.WrapError(err, sdkerrors.CategoryInternal, "FILE_READ", "failed to read MCP configuration file")

@@ -16,7 +16,7 @@ func main() {
 	fmt.Println("=== MCP Server Integration Example ===")
 
 	ctx := context.Background()
-	
+
 	// Create configuration
 	config := types.NewClaudeCodeConfig()
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
@@ -53,7 +53,7 @@ func main() {
 // listMCPServers demonstrates how to list configured MCP servers
 func listMCPServers(claudeClient *client.ClaudeCodeClient) {
 	servers := claudeClient.ListMCPServers()
-	
+
 	if len(servers) == 0 {
 		fmt.Println("No MCP servers configured")
 		return
@@ -93,7 +93,7 @@ func addFilesystemMCPServer(ctx context.Context, claudeClient *client.ClaudeCode
 		fmt.Println("Install with: npm install -g @modelcontextprotocol/server-filesystem")
 	} else {
 		fmt.Println("Successfully added filesystem MCP server")
-		
+
 		// List servers again to confirm
 		servers := claudeClient.ListMCPServers()
 		if config, exists := servers["filesystem"]; exists {
@@ -105,14 +105,14 @@ func addFilesystemMCPServer(ctx context.Context, claudeClient *client.ClaudeCode
 // setupCommonMCPServers demonstrates setting up common MCP servers
 func setupCommonMCPServers(ctx context.Context, claudeClient *client.ClaudeCodeClient) {
 	fmt.Println("Setting up common MCP servers...")
-	
+
 	err := claudeClient.SetupCommonMCPServers(ctx)
 	if err != nil {
 		fmt.Printf("Failed to setup common MCP servers: %v\n", err)
 		fmt.Println("Note: This may require MCP servers to be installed first")
 	} else {
 		fmt.Println("Successfully setup common MCP servers")
-		
+
 		// List all servers
 		servers := claudeClient.ListMCPServers()
 		fmt.Printf("Total MCP servers configured: %d\n", len(servers))

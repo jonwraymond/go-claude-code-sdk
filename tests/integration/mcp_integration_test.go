@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -45,7 +46,7 @@ func (s *MCPIntegrationSuite) SetupSuite() {
 	s.config.APIKey = apiKey
 	s.config.ClaudeExecutable = "claude"
 	s.config.Timeout = 30 * time.Second
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -98,7 +99,7 @@ func (s *MCPIntegrationSuite) TestEnableDisableMCPServer() {
 	serverConfig := &types.MCPServerConfig{
 		Command: "sleep",
 		Args:    []string{"30"}, // Sleep for 30 seconds
-		Enabled: false, // Start disabled
+		Enabled: false,          // Start disabled
 	}
 
 	err := s.mcpManager.AddServer("test-sleep", serverConfig)

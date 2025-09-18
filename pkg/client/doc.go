@@ -93,7 +93,7 @@ Sessions provide conversation persistence with UUID validation:
 
 	// Generate a proper UUID for session ID
 	sessionID := client.GenerateSessionID()
-	
+
 	// Create a new session
 	session, err := client.CreateSession(ctx, sessionID)
 	if err != nil {
@@ -112,7 +112,7 @@ Sessions provide conversation persistence with UUID validation:
 
 	// Get existing session
 	existingSession, err := client.GetSession(sessionID)
-	
+
 	// List all active sessions
 	sessionIDs := client.ListSessions()
 
