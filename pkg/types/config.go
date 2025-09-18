@@ -81,7 +81,7 @@ type Config struct {
 //	config := &types.ClaudeCodeConfig{
 //		WorkingDirectory: "/path/to/project",
 //		SessionID:        "my-session",
-//		Model:           "claude-3-5-sonnet-20241022",
+//		Model:           ModelClaude35SonnetV2,
 //		APIKey:          "your-api-key",
 //	}
 //	client, err := NewClaudeCodeClient(ctx, config)
@@ -92,7 +92,7 @@ type ClaudeCodeConfig struct {
 	// SessionID is the session identifier for conversation persistence
 	SessionID string `json:"session_id,omitempty"`
 
-	// Model is the Claude model to use (defaults to claude-3-5-sonnet-20241022)
+	// Model is the Claude model to use (defaults to claude-3-5-sonnet-20241022-v2)
 	Model string `json:"model,omitempty"`
 
 	// APIKey is the Anthropic API key for authentication
@@ -113,6 +113,9 @@ type ClaudeCodeConfig struct {
 
 	// MaxTokens is the default maximum tokens for responses
 	MaxTokens int `json:"max_tokens,omitempty"`
+
+	// MaxThinkingTokens is the default maximum tokens for thinking/reasoning (Claude 3.5 Sonnet and later)
+	MaxThinkingTokens int `json:"max_thinking_tokens,omitempty"`
 
 	// Temperature is the default temperature for responses (0.0 to 1.0)
 	Temperature float64 `json:"temperature,omitempty"`
@@ -525,8 +528,8 @@ const (
 	// DefaultBaseURL is the default Claude Code API base URL
 	DefaultBaseURL = "https://example.com"
 
-	// DefaultModel is the default Claude model to use
-	DefaultModel = ModelClaude35Sonnet
+	// DefaultModel is the default Claude model to use (updated to latest stable version)
+	DefaultModel = ModelClaude35SonnetV2
 
 	// DefaultMaxTokens is the default maximum tokens for responses
 	DefaultMaxTokens = 4000
@@ -546,9 +549,25 @@ const (
 
 // Model constants for available Claude models
 const (
+	// Latest Claude 4 Models
+	// ModelClaude4Opus is the Claude 4 Opus model (latest and most capable)
+	ModelClaude4Opus = "claude-4-opus-20250514"
+
+	// Latest Claude 3.7 Models 
+	// ModelClaude37Sonnet is the Claude 3.7 Sonnet model
+	ModelClaude37Sonnet = "claude-3-7-sonnet-20250219"
+
+	// Latest Claude 3.5 Models
+	// ModelClaude35SonnetV2 is the Claude 3.5 Sonnet v2 model (improved version)
+	ModelClaude35SonnetV2 = "claude-3-5-sonnet-20241022-v2"
+
 	// ModelClaude35Sonnet is the Claude 3.5 Sonnet model
 	ModelClaude35Sonnet = "claude-3-5-sonnet-20241022"
 
+	// ModelClaude35Haiku is the Claude 3.5 Haiku model (fast and efficient)
+	ModelClaude35Haiku = "claude-3-5-haiku-20241022"
+
+	// Legacy Claude 3 Models (maintained for backwards compatibility)
 	// ModelClaude3Opus is the Claude 3 Opus model
 	ModelClaude3Opus = "claude-3-opus-20240229"
 

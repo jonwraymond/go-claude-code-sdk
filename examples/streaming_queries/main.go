@@ -61,7 +61,7 @@ func basicStreamingExample() {
 				Content: "Write a short poem about Go programming language.",
 			},
 		},
-		Model: "claude-3-5-sonnet-20241022",
+		Model: types.ModelClaude35SonnetV2,
 	}
 
 	fmt.Printf("Starting streaming query...\n")
@@ -275,7 +275,7 @@ func queryMessagesStreamingExample() {
 
 	// Configure query options
 	options := &client.QueryOptions{
-		Model:          "claude-3-5-sonnet-20241022",
+		Model:          types.ModelClaude35SonnetV2,
 		MaxTurns:       5,
 		Stream:         true,
 		PermissionMode: client.PermissionModeAsk,

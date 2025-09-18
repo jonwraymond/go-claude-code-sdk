@@ -64,7 +64,7 @@ func basicSyncQueryExample() {
 				Content: "What are the key features of the Go programming language?",
 			},
 		},
-		Model: "claude-3-5-sonnet-20241022",
+		Model: types.ModelClaude35SonnetV2,
 	}
 
 	fmt.Printf("Sending synchronous query...\n")
@@ -236,7 +236,7 @@ func queryMessagesSyncExample() {
 
 	// Configure query options
 	options := &client.QueryOptions{
-		Model:          "claude-3-5-sonnet-20241022",
+		Model:          types.ModelClaude35SonnetV2,
 		MaxTurns:       3,
 		Stream:         false, // Synchronous mode
 		PermissionMode: client.PermissionModeAcceptEdits,

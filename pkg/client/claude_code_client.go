@@ -38,7 +38,7 @@ import (
 //	config := &types.ClaudeCodeConfig{
 //		WorkingDirectory: "/path/to/project",
 //		SessionID:        "my-session",
-//		Model:           "claude-3-5-sonnet-20241022",
+//		Model:           types.ModelClaude35SonnetV2,
 //	}
 //	client, err := NewClaudeCodeClient(ctx, config)
 //	if err != nil {
@@ -82,7 +82,7 @@ type ClaudeCodeClient struct {
 // Configuration options:
 // - WorkingDirectory: Project directory for context (defaults to current directory)
 // - SessionID: Session identifier for conversation persistence
-// - Model: Claude model to use (defaults to claude-3-5-sonnet-20241022)
+// - Model: Claude model to use (defaults to claude-3-5-sonnet-20241022-v2)
 // - ClaudeCodePath: Path to claude executable (auto-detected if not provided)
 // - MCPServers: MCP server configurations for tool extensions
 // - Environment: Environment variables for subprocess execution
@@ -106,7 +106,7 @@ func NewClaudeCodeClient(ctx context.Context, config *types.ClaudeCodeConfig) (*
 	}
 
 	if config.Model == "" {
-		config.Model = "claude-3-5-sonnet-20241022"
+		config.Model = types.DefaultModel
 	}
 
 	// Apply defaults including authentication method detection
