@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -48,7 +49,7 @@ func (s *ProjectContextIntegrationSuite) SetupSuite() {
 	s.config.ClaudeExecutable = "claude"
 	s.config.WorkingDirectory = s.testDir
 	s.config.Timeout = 30 * time.Second
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -103,7 +104,7 @@ func main() {
 	// Create files
 	err := os.WriteFile(filepath.Join(s.testDir, "go.mod"), []byte(goMod), 0644)
 	require.NoError(s.T(), err)
-	
+
 	err = os.WriteFile(filepath.Join(s.testDir, "main.go"), []byte(mainGo), 0644)
 	require.NoError(s.T(), err)
 
@@ -138,7 +139,7 @@ if __name__ == '__main__':
 	// Create files
 	err := os.WriteFile(filepath.Join(s.testDir, "requirements.txt"), []byte(requirementsTxt), 0644)
 	require.NoError(s.T(), err)
-	
+
 	err = os.WriteFile(filepath.Join(s.testDir, "app.py"), []byte(appPy), 0644)
 	require.NoError(s.T(), err)
 
@@ -189,7 +190,7 @@ app.listen(port, () => {
 	// Create files
 	err := os.WriteFile(filepath.Join(s.testDir, "package.json"), []byte(packageJSON), 0644)
 	require.NoError(s.T(), err)
-	
+
 	err = os.WriteFile(filepath.Join(s.testDir, "index.js"), []byte(indexJS), 0644)
 	require.NoError(s.T(), err)
 
@@ -318,7 +319,7 @@ func (s *ProjectContextIntegrationSuite) TestProjectContextWithQuery() {
 	goMod := `module github.com/test/context-query
 
 go 1.21`
-	
+
 	mainGo := `package main
 
 import "fmt"
@@ -348,8 +349,8 @@ func main() {
 	}
 
 	// Query about the project
-	result, err := s.client.QueryMessagesSync(ctx, 
-		"What does the calculateSum function do in this project?", 
+	result, err := s.client.QueryMessagesSync(ctx,
+		"What does the calculateSum function do in this project?",
 		options)
 	require.NoError(s.T(), err)
 

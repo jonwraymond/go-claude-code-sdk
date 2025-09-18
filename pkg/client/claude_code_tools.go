@@ -18,16 +18,16 @@ import (
 
 // Dangerous command patterns that should be blocked for security
 var dangerousCommandPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`rm\s+-rf\s+/`),           // Dangerous rm operations
-	regexp.MustCompile(`;\s*rm\s+-rf`),           // Command chaining with rm
-	regexp.MustCompile(`\|\s*rm\s+-rf`),          // Piped rm operations
-	regexp.MustCompile(`&&\s*rm\s+-rf`),          // Chained rm operations  
-	regexp.MustCompile(`curl.*\|\s*sh`),          // Download and execute
-	regexp.MustCompile(`wget.*\|\s*sh`),          // Download and execute
-	regexp.MustCompile(`eval\s*\$\(`),            // Code injection via eval
-	regexp.MustCompile(`\$\(.*curl`),             // Command substitution with curl
-	regexp.MustCompile(`nc\s+-l`),                // Netcat listeners
-	regexp.MustCompile(`/dev/tcp/`),              // TCP connections
+	regexp.MustCompile(`rm\s+-rf\s+/`),  // Dangerous rm operations
+	regexp.MustCompile(`;\s*rm\s+-rf`),  // Command chaining with rm
+	regexp.MustCompile(`\|\s*rm\s+-rf`), // Piped rm operations
+	regexp.MustCompile(`&&\s*rm\s+-rf`), // Chained rm operations
+	regexp.MustCompile(`curl.*\|\s*sh`), // Download and execute
+	regexp.MustCompile(`wget.*\|\s*sh`), // Download and execute
+	regexp.MustCompile(`eval\s*\$\(`),   // Code injection via eval
+	regexp.MustCompile(`\$\(.*curl`),    // Command substitution with curl
+	regexp.MustCompile(`nc\s+-l`),       // Netcat listeners
+	regexp.MustCompile(`/dev/tcp/`),     // TCP connections
 }
 
 // validateCommand checks if a command contains dangerous patterns
@@ -51,7 +51,7 @@ func validateCommand(command string) error {
 func validateFilePath(path, workingDir string) error {
 	// Clean the path to normalize it
 	cleanPath := filepath.Clean(path)
-	
+
 	// Convert to absolute path
 	var absPath string
 	if filepath.IsAbs(cleanPath) {
@@ -59,23 +59,23 @@ func validateFilePath(path, workingDir string) error {
 	} else {
 		absPath = filepath.Join(workingDir, cleanPath)
 	}
-	
+
 	// Check if the resolved path is within the working directory
 	absWorkingDir, err := filepath.Abs(workingDir)
 	if err != nil {
 		return fmt.Errorf("invalid working directory: %v", err)
 	}
-	
+
 	relPath, err := filepath.Rel(absWorkingDir, absPath)
 	if err != nil {
 		return fmt.Errorf("invalid file path: %v", err)
 	}
-	
+
 	// Check for directory traversal attempts
 	if strings.HasPrefix(relPath, "..") || strings.Contains(relPath, "/../") {
 		return fmt.Errorf("path traversal detected: %s", path)
 	}
-	
+
 	return nil
 }
 

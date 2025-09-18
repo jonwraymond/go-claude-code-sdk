@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -33,7 +34,7 @@ func (s *ErrorHandlingIntegrationSuite) SetupSuite() {
 	s.config = types.NewClaudeCodeConfig()
 	s.config.ClaudeExecutable = "claude"
 	s.config.Timeout = 5 * time.Second // Short timeout for error tests
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -95,9 +96,9 @@ func (s *ErrorHandlingIntegrationSuite) TestInvalidExecutablePath() {
 	require.Error(s.T(), err)
 
 	// Should be a configuration or internal error
-	assert.True(s.T(), 
+	assert.True(s.T(),
 		sdkerrors.GetCategory(err) == sdkerrors.CategoryConfiguration ||
-		sdkerrors.GetCategory(err) == sdkerrors.CategoryInternal,
+			sdkerrors.GetCategory(err) == sdkerrors.CategoryInternal,
 		"Expected configuration or internal error")
 }
 
@@ -123,9 +124,9 @@ func (s *ErrorHandlingIntegrationSuite) TestTimeoutError() {
 	require.Error(s.T(), err4)
 
 	// Should be a timeout or context error
-	assert.True(s.T(), 
-		errors.Is(err4, context.DeadlineExceeded) || 
-		sdkerrors.GetCategory(err4) == sdkerrors.CategoryNetwork,
+	assert.True(s.T(),
+		errors.Is(err4, context.DeadlineExceeded) ||
+			sdkerrors.GetCategory(err4) == sdkerrors.CategoryNetwork,
 		"Expected timeout or network error")
 }
 
@@ -146,7 +147,7 @@ func (s *ErrorHandlingIntegrationSuite) TestValidationErrors() {
 
 	// Test basic query without options
 	_, err5 := client.QueryMessagesSync(ctx, "Hello", nil)
-	
+
 	// Should get some kind of error or response
 	// For validation tests, we'll just check that the client is working
 	if err5 != nil {
@@ -176,7 +177,7 @@ func (s *ErrorHandlingIntegrationSuite) TestRetryableErrors() {
 
 	// Create a mock error that should be retryable
 	mockErr := sdkerrors.NewAPIError(429, "RATE_LIMIT", "error", "Too many requests")
-	
+
 	// Check if error is correctly identified as retryable
 	assert.True(s.T(), sdkerrors.IsRetryable(mockErr))
 	assert.Equal(s.T(), sdkerrors.CategoryAPI, sdkerrors.GetCategory(mockErr))

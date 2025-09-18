@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package integration
@@ -41,7 +42,7 @@ func (s *SessionIntegrationSuite) SetupSuite() {
 	s.config.APIKey = apiKey
 	s.config.ClaudeExecutable = "claude"
 	s.config.Timeout = 30 * time.Second
-	
+
 	// Enable TestMode in CI environment to skip Claude Code CLI requirement
 	if os.Getenv("CI") == "true" || os.Getenv("GITHUB_ACTIONS") == "true" {
 		s.config.TestMode = true
@@ -82,7 +83,7 @@ func (s *SessionIntegrationSuite) TestCreateAndUseSession() {
 			{Role: types.MessageRoleUser, Content: "My name is TestBot. Remember this."},
 		},
 	}
-	
+
 	resp1, err := session.Query(ctx, req1)
 	require.NoError(s.T(), err)
 	assert.NotEmpty(s.T(), resp1.Content)
@@ -93,7 +94,7 @@ func (s *SessionIntegrationSuite) TestCreateAndUseSession() {
 			{Role: types.MessageRoleUser, Content: "What is my name?"},
 		},
 	}
-	
+
 	resp2, err := session.Query(ctx, req2)
 	require.NoError(s.T(), err)
 	assert.Contains(s.T(), resp2.Content, "TestBot")
@@ -175,10 +176,10 @@ func (s *SessionIntegrationSuite) TestSessionWithProjectContext() {
 			{Role: types.MessageRoleUser, Content: "What kind of project is this?"},
 		},
 	}
-	
+
 	resp, err := session.Query(ctx, req)
 	require.NoError(s.T(), err)
-	
+
 	// Should understand it's a Go SDK project
 	assert.Contains(s.T(), resp.Content, "Go")
 }
