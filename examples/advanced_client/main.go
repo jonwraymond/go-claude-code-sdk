@@ -137,7 +137,7 @@ func mcpServerExample() {
 	// List servers again
 	servers = claudeClient.ListMCPServers()
 	fmt.Printf("MCP servers after setup: %d configured\n", len(servers))
-	
+
 	fmt.Println()
 }
 
@@ -151,7 +151,7 @@ func lifecycleManagementExample() {
 	useClientSession := func(sessionName string) error {
 		config := types.NewClaudeCodeConfig()
 		config.SessionID = fmt.Sprintf("lifecycle-session-%s-%d", sessionName, time.Now().Unix())
-		
+
 		if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 			config.APIKey = apiKey
 		}
@@ -201,7 +201,7 @@ func resourceMonitoringExample() {
 	ctx := context.Background()
 	config := types.NewClaudeCodeConfig()
 	config.Debug = true // Enable debug logging
-	
+
 	if apiKey := os.Getenv("ANTHROPIC_API_KEY"); apiKey != "" {
 		config.APIKey = apiKey
 	}
@@ -218,7 +218,7 @@ func resourceMonitoringExample() {
 
 	// Demonstrate project context caching
 	fmt.Printf("Testing project context cache...\n")
-	
+
 	start := time.Now()
 	ctx1, err := claudeClient.GetProjectContext(ctx)
 	if err != nil {
@@ -265,7 +265,7 @@ func customClaudePathExample() {
 
 	// Create configuration with custom Claude Code path
 	config := types.NewClaudeCodeConfig()
-	
+
 	// Try to find claude in common locations
 	possiblePaths := []string{
 		"/usr/local/bin/claude",
