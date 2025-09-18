@@ -17,7 +17,7 @@ func TestNewAPIKeyAuthenticator(t *testing.T) {
 	}{
 		{
 			name:    "valid api key",
-			apiKey:  "test-api-key-not-real-valid-test-key-123456789",
+			apiKey:  "sk-ant-api03j9h8f7d6s5a4l3k2m1n0",
 			wantErr: false,
 		},
 		{
@@ -60,7 +60,7 @@ func TestNewAPIKeyAuthenticator(t *testing.T) {
 }
 
 func TestAPIKeyAuthenticator_Authenticate(t *testing.T) {
-	auth, err := NewAPIKeyAuthenticator("test-api-key-not-real-valid-test-key-123456789")
+	auth, err := NewAPIKeyAuthenticator("sk-ant-api03j9h8f7d6s5a4l3k2m1n0")
 	if err != nil {
 		t.Fatalf("Failed to create authenticator: %v", err)
 	}
@@ -83,13 +83,13 @@ func TestAPIKeyAuthenticator_Authenticate(t *testing.T) {
 		t.Fatal("AuthInfo.Headers is nil")
 	}
 
-	if apiKey, ok := authInfo.Headers["X-API-Key"]; !ok || apiKey != "test-api-key-not-real-valid-test-key-123456789" {
-		t.Errorf("AuthInfo.Headers[X-API-Key] = %v, want %v", apiKey, "test-api-key-not-real-valid-test-key-123456789")
+	if apiKey, ok := authInfo.Headers["X-API-Key"]; !ok || apiKey != "sk-ant-api03j9h8f7d6s5a4l3k2m1n0" {
+		t.Errorf("AuthInfo.Headers[X-API-Key] = %v, want %v", apiKey, "sk-ant-api03j9h8f7d6s5a4l3k2m1n0")
 	}
 }
 
 func TestAPIKeyAuthenticator_IsValid(t *testing.T) {
-	auth, err := NewAPIKeyAuthenticator("test-api-key-not-real-valid-test-key-123456789")
+	auth, err := NewAPIKeyAuthenticator("sk-ant-api03j9h8f7d6s5a4l3k2m1n0")
 	if err != nil {
 		t.Fatalf("Failed to create authenticator: %v", err)
 	}
@@ -275,7 +275,7 @@ func TestAuthOption_WithRefreshBefore(t *testing.T) {
 }
 
 func TestBaseAuthenticator_ThreadSafety(t *testing.T) {
-	auth, err := NewAPIKeyAuthenticator("test-api-key-not-real-valid-test-key-123456789")
+	auth, err := NewAPIKeyAuthenticator("sk-ant-api03j9h8f7d6s5a4l3k2m1n0")
 	if err != nil {
 		t.Fatalf("Failed to create authenticator: %v", err)
 	}
