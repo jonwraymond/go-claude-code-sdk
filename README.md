@@ -439,6 +439,50 @@ documentation, _ := creativeClient.Query(ctx, &types.QueryRequest{
 })
 ```
 
+#### Model Comparison and Selection Guide
+
+The Go Claude SDK supports the latest Claude models from Anthropic. Choose the right model for your use case:
+
+| Model | Constant | Use Cases | Performance | Features |
+|-------|----------|-----------|-------------|----------|
+| **Claude 4 Opus** | `types.ModelClaude4Opus` | Most demanding tasks, complex reasoning | Highest capability, slower | Latest features, best reasoning |
+| **Claude 3.7 Sonnet** | `types.ModelClaude37Sonnet` | Complex analysis, sophisticated coding | High capability, good speed | Advanced reasoning, balanced performance |
+| **Claude 3.5 Sonnet v2** | `types.ModelClaude35SonnetV2` | General purpose, balanced tasks | Good capability, good speed | **Default model**, well-tested |
+| **Claude 3.5 Haiku** | `types.ModelClaude35Haiku` | Simple tasks, quick responses | Lower capability, fastest | Efficient, cost-effective |
+| **Legacy Models** | `types.ModelClaude3Opus`, etc. | Backwards compatibility | Varies | Maintained for compatibility |
+
+**Model Selection Tips:**
+
+```go
+// For maximum capability (research, complex analysis)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude4Opus,
+    MaxTokens: 8000,
+    MaxThinkingTokens: 2000, // Enable reasoning tokens
+    Temperature: 0.1,
+}
+
+// For production applications (balanced performance)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude35SonnetV2, // Default - well tested
+    MaxTokens: 4000,
+    Temperature: 0.3,
+}
+
+// For high-volume, simple tasks (cost optimization)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude35Haiku,
+    MaxTokens: 2000,
+    Temperature: 0.5,
+}
+```
+
+**New Features in Latest Models:**
+- **Thinking Tokens**: Set `MaxThinkingTokens` for reasoning-heavy tasks (Claude 3.5+)
+- **Enhanced Caching**: Automatic caching for repeated context (tracked in `TokenUsage`)
+- **Web Search**: Some models support web search capabilities
+- **Cost Tracking**: Enhanced usage metrics with cost estimation
+
 ## 🛠️ Design Philosophy
 
 ### Subprocess Architecture

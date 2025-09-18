@@ -140,7 +140,7 @@ type ClaudeCodeConfig struct {
 // NewClaudeCodeConfig creates a new ClaudeCodeConfig with sensible defaults.
 func NewClaudeCodeConfig() *ClaudeCodeConfig {
 	return &ClaudeCodeConfig{
-		Model:       ModelClaude35Sonnet,
+		Model:       DefaultModel, // Use the latest default model
 		MaxTokens:   4096,
 		Temperature: 0.0,
 		Timeout:     30 * time.Second,
@@ -541,7 +541,7 @@ const (
 	DefaultTimeout = 60 * time.Second
 
 	// DefaultUserAgent is the default user agent string
-	DefaultUserAgent = "claude-code-go-sdk/1.0.0"
+	DefaultUserAgent = "claude-code-go-sdk/0.3.0"
 
 	// APIVersion is the current API version
 	APIVersion = "2023-06-01"
