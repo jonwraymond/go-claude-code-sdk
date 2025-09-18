@@ -120,6 +120,27 @@ func (s *ToolsIntegrationSuite) TestReadWriteFile() {
 	assert.Contains(s.T(), readResult, testContent)
 }
 
+func (s *ToolsIntegrationSuite) TestListFilesTool() {
+	ctx := context.Background()
+
+	// Create test files
+	file1 := filepath.Join(s.testDir, "file1.txt")
+	file2 := filepath.Join(s.testDir, "file2.txt")
+	require.NoError(s.T(), os.WriteFile(file1, []byte("one"), 0644))
+	require.NoError(s.T(), os.WriteFile(file2, []byte("two"), 0644))
+
+	// List files using tool
+	result, err := s.toolManager.ExecuteTool(ctx, &client.ClaudeCodeTool{
+		Name: "list_files",
+		Parameters: map[string]any{
+			"path": s.testDir,
+		},
+	})
+	require.NoError(s.T(), err)
+	assert.Contains(s.T(), result, "file1.txt")
+	assert.Contains(s.T(), result, "file2.txt")
+}
+
 func (s *ToolsIntegrationSuite) TestSearchCode() {
 	ctx := context.Background()
 
