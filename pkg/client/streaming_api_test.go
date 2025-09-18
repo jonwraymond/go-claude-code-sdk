@@ -73,7 +73,7 @@ func TestParseStreamEvent(t *testing.T) {
 					ID:    "msg_123",
 					Type:  "message",
 					Role:  types.RoleAssistant,
-					Model: "claude-3-5-sonnet-20241022",
+					Model: types.ModelClaude35Sonnet,
 				},
 			},
 		},
@@ -491,7 +491,7 @@ func TestStreamingResponse_Collect(t *testing.T) {
 	// Verify collected response
 	assert.Equal(t, "msg_123", response.ID)
 	assert.Equal(t, types.RoleAssistant, response.Role)
-	assert.Equal(t, "claude-3-5-sonnet-20241022", response.Model)
+	assert.Equal(t, types.ModelClaude35Sonnet, response.Model)
 	assert.Equal(t, "Test response", response.GetTextContent())
 	if response.Usage != nil {
 		assert.Equal(t, 7, response.Usage.TotalTokens)
@@ -804,7 +804,7 @@ func BenchmarkStreamingResponse_Collect(b *testing.B) {
 		Type: types.StreamEventMessageStart,
 		Message: &types.StreamMessage{
 			ID:    "msg_bench",
-			Model: "claude-3-5-sonnet-20241022",
+			Model: types.ModelClaude35Sonnet,
 		},
 	})
 

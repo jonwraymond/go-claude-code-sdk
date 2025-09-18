@@ -29,7 +29,7 @@ Create a client and execute a simple query:
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: "/path/to/project",
 		SessionID:        "my-session",
-		Model:           "claude-3-5-sonnet-20241022",
+		Model:           types.ModelClaude35SonnetV2,
 		AuthMethod:      types.AuthTypeAPIKey,
 		APIKey:          os.Getenv("ANTHROPIC_API_KEY"),
 	}

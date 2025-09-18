@@ -44,7 +44,7 @@ func TestClaudeCodeSessionManager_CreateSession(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 	}
 
 	ctx := context.Background()
