@@ -81,7 +81,7 @@ type Config struct {
 //	config := &types.ClaudeCodeConfig{
 //		WorkingDirectory: "/path/to/project",
 //		SessionID:        "my-session",
-//		Model:           "claude-3-5-sonnet-20241022",
+//		Model:           ModelClaude35Sonnet,
 //		APIKey:          "your-api-key",
 //	}
 //	client, err := NewClaudeCodeClient(ctx, config)
@@ -92,7 +92,7 @@ type ClaudeCodeConfig struct {
 	// SessionID is the session identifier for conversation persistence
 	SessionID string `json:"session_id,omitempty"`
 
-	// Model is the Claude model to use (defaults to claude-3-5-sonnet-20241022)
+	// Model is the Claude model to use (defaults to claude-3-5-sonnet-20241022-v2)
 	Model string `json:"model,omitempty"`
 
 	// APIKey is the Anthropic API key for authentication
@@ -113,6 +113,9 @@ type ClaudeCodeConfig struct {
 
 	// MaxTokens is the default maximum tokens for responses
 	MaxTokens int `json:"max_tokens,omitempty"`
+
+	// MaxThinkingTokens is the default maximum tokens for thinking/reasoning (Claude 3.5 Sonnet and later)
+	MaxThinkingTokens int `json:"max_thinking_tokens,omitempty"`
 
 	// Temperature is the default temperature for responses (0.0 to 1.0)
 	Temperature float64 `json:"temperature,omitempty"`
@@ -137,7 +140,7 @@ type ClaudeCodeConfig struct {
 // NewClaudeCodeConfig creates a new ClaudeCodeConfig with sensible defaults.
 func NewClaudeCodeConfig() *ClaudeCodeConfig {
 	return &ClaudeCodeConfig{
-		Model:       ModelClaude35Sonnet,
+		Model:       DefaultModel, // Use the latest default model
 		MaxTokens:   4096,
 		Temperature: 0.0,
 		Timeout:     30 * time.Second,
@@ -525,7 +528,7 @@ const (
 	// DefaultBaseURL is the default Claude Code API base URL
 	DefaultBaseURL = "https://example.com"
 
-	// DefaultModel is the default Claude model to use
+	// DefaultModel is the default Claude model to use (latest stable Claude 3.5 Sonnet)
 	DefaultModel = ModelClaude35Sonnet
 
 	// DefaultMaxTokens is the default maximum tokens for responses
@@ -538,7 +541,7 @@ const (
 	DefaultTimeout = 60 * time.Second
 
 	// DefaultUserAgent is the default user agent string
-	DefaultUserAgent = "claude-code-go-sdk/1.0.0"
+	DefaultUserAgent = "claude-code-go-sdk/0.3.0"
 
 	// APIVersion is the current API version
 	APIVersion = "2023-06-01"
@@ -546,17 +549,33 @@ const (
 
 // Model constants for available Claude models
 const (
-	// ModelClaude35Sonnet is the Claude 3.5 Sonnet model
-	ModelClaude35Sonnet = "claude-3-5-sonnet-20241022"
+	// Latest Claude 3.5 Models (Current Generation)
+	// ModelClaude35Sonnet20241022 is the latest Claude 3.5 Sonnet model (most capable current model)
+	ModelClaude35Sonnet20241022 = "claude-3-5-sonnet-20241022"
 
-	// ModelClaude3Opus is the Claude 3 Opus model
+	// ModelClaude35Haiku20241022 is the latest Claude 3.5 Haiku model (fast and efficient)
+	ModelClaude35Haiku20241022 = "claude-3-5-haiku-20241022"
+
+	// Legacy Claude 3.5 Models
+	// ModelClaude35Sonnet20240620 is the earlier Claude 3.5 Sonnet model
+	ModelClaude35Sonnet20240620 = "claude-3-5-sonnet-20240620"
+
+	// Claude 3 Models (Previous Generation)
+	// ModelClaude3Opus is the Claude 3 Opus model (most capable of Claude 3 family)
 	ModelClaude3Opus = "claude-3-opus-20240229"
 
-	// ModelClaude3Sonnet is the Claude 3 Sonnet model
+	// ModelClaude3Sonnet is the Claude 3 Sonnet model (balanced performance)
 	ModelClaude3Sonnet = "claude-3-sonnet-20240229"
 
-	// ModelClaude3Haiku is the Claude 3 Haiku model
+	// ModelClaude3Haiku is the Claude 3 Haiku model (fastest and most cost-effective)
 	ModelClaude3Haiku = "claude-3-haiku-20240307"
+
+	// Compatibility aliases for common usage
+	// ModelClaude35Sonnet is an alias for the latest Claude 3.5 Sonnet
+	ModelClaude35Sonnet = ModelClaude35Sonnet20241022
+
+	// ModelClaude35Haiku is an alias for the latest Claude 3.5 Haiku
+	ModelClaude35Haiku = ModelClaude35Haiku20241022
 )
 
 // OptionFunc is a function type for configuring clients using the functional options pattern.

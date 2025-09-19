@@ -224,7 +224,7 @@ Sessions allow for persistent conversations with Claude:
 // Create a session for persistent conversations
 session, err := claudeClient.CreateSession(ctx, &types.SessionConfig{
     SessionID: "my-project-session",
-    Model:     "claude-3-5-sonnet-20241022",
+    Model:     types.ModelClaude35Sonnet,
 })
 if err != nil {
     log.Fatal("Failed to create session:", err)
@@ -256,7 +256,7 @@ request := &types.QueryRequest{
     Messages: []types.Message{
         {Role: types.RoleUser, Content: "Explain goroutines with examples"},
     },
-    Model: "claude-3-5-sonnet-20241022",
+    Model: types.ModelClaude35Sonnet,
 }
 
 // Start streaming
@@ -291,7 +291,7 @@ Customize the client with various options:
 ```go
 // Create advanced configuration
 config := &types.ClaudeCodeConfig{
-    Model:            "claude-3-5-sonnet-20241022",
+    Model:            types.ModelClaude35Sonnet,
     WorkingDirectory: "/path/to/your/project",
     MaxTokens:        8000,
     Temperature:      0.7,
@@ -385,13 +385,28 @@ Switch between different Claude models for different tasks:
 ```go
 // Use different models for different purposes
 configs := map[string]*types.ClaudeCodeConfig{
-    "analysis": {
-        Model: "claude-3-5-sonnet-20241022", // Best for complex analysis
+    "latest": {
+        Model: types.ModelClaude35Sonnet, // Latest and most capable model
         MaxTokens: 8000,
         Temperature: 0.1, // Lower temperature for precise analysis
     },
-    "creative": {
-        Model: "claude-3-opus-20240229", // Best for creative tasks
+    "analysis": {
+        Model: types.ModelClaude3Opus, // Most capable for complex analysis
+        MaxTokens: 8000,
+        Temperature: 0.1, // Lower temperature for precise analysis
+    },
+    "balanced": {
+        Model: types.ModelClaude35Sonnet, // Latest stable model (good balance)
+        MaxTokens: 4000,
+        Temperature: 0.3, // Balanced temperature
+    },
+    "fast": {
+        Model: types.ModelClaude35Haiku, // Fast and efficient for simple tasks
+        MaxTokens: 4000,
+        Temperature: 0.7, // Higher temperature for creativity
+    },
+    "legacy": {
+        Model: types.ModelClaude3Opus, // Legacy model for backwards compatibility
         MaxTokens: 4000,
         Temperature: 0.7, // Higher temperature for creativity
     },
@@ -423,6 +438,50 @@ documentation, _ := creativeClient.Query(ctx, &types.QueryRequest{
     },
 })
 ```
+
+#### Model Comparison and Selection Guide
+
+The Go Claude SDK supports the latest Claude models from Anthropic. Choose the right model for your use case:
+
+| Model | Constant | Use Cases | Performance | Features |
+|-------|----------|-----------|-------------|----------|
+| **Claude 3.5 Sonnet** | `types.ModelClaude35Sonnet` | General purpose, balanced tasks | Excellent capability, good speed | **Default model**, latest and most capable |
+| **Claude 3.5 Haiku** | `types.ModelClaude35Haiku` | Simple tasks, quick responses | Good capability, fastest | Efficient, cost-effective |
+| **Claude 3 Opus** | `types.ModelClaude3Opus` | Complex reasoning, creative tasks | Highest capability of Claude 3 family | Most capable legacy model |
+| **Claude 3 Sonnet** | `types.ModelClaude3Sonnet` | Balanced performance tasks | Good capability, balanced | Stable legacy option |
+| **Claude 3 Haiku** | `types.ModelClaude3Haiku` | High-volume, simple tasks | Lower capability, fastest | Most cost-effective |
+
+**Model Selection Tips:**
+
+```go
+// For maximum capability (complex reasoning, creative tasks)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude3Opus, // Most capable model
+    MaxTokens: 8000,
+    MaxThinkingTokens: 2000, // Enable reasoning tokens
+    Temperature: 0.1,
+}
+
+// For production applications (balanced performance) - RECOMMENDED
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude35Sonnet, // Latest and default model
+    MaxTokens: 4000,
+    Temperature: 0.3,
+}
+
+// For high-volume, simple tasks (cost optimization)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude35Haiku,
+    MaxTokens: 2000,
+    Temperature: 0.5,
+}
+```
+
+**New Features in Latest Models:**
+- **Thinking Tokens**: Set `MaxThinkingTokens` for reasoning-heavy tasks (Claude 3.5+)
+- **Enhanced Caching**: Automatic caching for repeated context (tracked in `TokenUsage`)
+- **Web Search**: Some models support web search capabilities
+- **Cost Tracking**: Enhanced usage metrics with cost estimation
 
 ## 🛠️ Design Philosophy
 
@@ -833,11 +892,14 @@ Error: context deadline exceeded while streaming
    ```
 2. **Use appropriate models**:
    ```go
-   // For simple queries - faster and cheaper
-   config.Model = "claude-3-haiku-20240307"
+   // For simple queries - fastest and most efficient
+   config.Model = types.ModelClaude35Haiku
    
-   // For complex analysis - more capable but slower
-   config.Model = "claude-3-5-sonnet-20241022"
+   // For balanced performance - latest stable model
+   config.Model = types.ModelClaude35Sonnet
+   
+   // For complex analysis - most capable model
+   config.Model = types.ModelClaude3Opus
    ```
 3. **Implement connection pooling** for multiple clients:
    ```go

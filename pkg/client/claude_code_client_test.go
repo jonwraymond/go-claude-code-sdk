@@ -15,7 +15,7 @@ func TestNewClaudeCodeClient(t *testing.T) {
 	config := &types.ClaudeCodeConfig{
 		WorkingDirectory: tempDir,
 		SessionID:        "test-session",
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 		APIKey:           "test-key",
 		TestMode:         true, // Skip Claude Code CLI requirement for testing
 	}
@@ -49,8 +49,8 @@ func TestClaudeCodeClient_ConfigDefaults(t *testing.T) {
 	defer client.Close()
 
 	// Check that defaults were applied
-	if client.config.Model != "claude-3-5-sonnet-20241022" {
-		t.Errorf("Expected default model 'claude-3-5-sonnet-20241022', got %s", client.config.Model)
+	if client.config.Model != types.DefaultModel {
+		t.Errorf("Expected default model '%s', got %s", types.DefaultModel, client.config.Model)
 	}
 
 	// Working directory should be set to current directory
@@ -99,7 +99,7 @@ func TestBuildClaudeArgs(t *testing.T) {
 		TestMode:         true, // Skip Claude Code CLI requirement for testing
 		WorkingDirectory: tempDir,
 		SessionID:        "test-session",
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 	}
 
 	ctx := context.Background()
