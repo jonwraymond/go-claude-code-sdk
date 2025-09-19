@@ -38,7 +38,7 @@ import (
 //	config := &types.ClaudeCodeConfig{
 //		WorkingDirectory: "/path/to/project",
 //		SessionID:        "my-session",
-//		Model:           types.ModelClaude35SonnetV2,
+//		Model:           types.ModelClaude35Sonnet,
 //	}
 //	client, err := NewClaudeCodeClient(ctx, config)
 //	if err != nil {

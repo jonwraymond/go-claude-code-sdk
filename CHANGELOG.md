@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **NEW**: Support for latest Claude models (Claude 4 Opus, Claude 3.7 Sonnet, Claude 3.5 Sonnet v2, Claude 3.5 Haiku)
+- **NEW**: Support for latest actual Claude models (Claude 3.5 Sonnet 20241022, Claude 3.5 Haiku 20241022)
 - **NEW**: MaxThinkingTokens parameter for enhanced reasoning tasks (Claude 3.5+)
 - **NEW**: Enhanced TokenUsage tracking with cache metrics, web search requests, and cost estimation
 - **NEW**: Comprehensive model comparison and selection guide in documentation
@@ -33,8 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Feature parity with official Python and TypeScript SDKs
 
 ### Changed
-- **BREAKING**: Default model updated from Claude 3.5 Sonnet to Claude 3.5 Sonnet v2 (latest stable)
-- **Updated**: All examples and documentation to use new model constants instead of hardcoded strings
+- **CORRECTED**: Removed non-existent models (Claude 4 Opus, Claude 3.7 Sonnet) and updated to actual latest models
+- **BREAKING**: Default model updated to Claude 3.5 Sonnet 20241022 (latest actual stable model)
+- **Updated**: All examples and documentation to use correct model constants instead of hardcoded strings
 - **Enhanced**: TokenUsage struct with additional fields for latest Claude features
 - Consolidated `.examples` directory into `examples` for better visibility and consistency
 

@@ -309,7 +309,7 @@ func customSessionConfigurationExample() {
 	config := types.NewClaudeCodeConfig()
 
 	// Customize session configuration
-	config.Model = types.ModelClaude35SonnetV2
+	config.Model = types.ModelClaude35Sonnet
 	config.SessionID = fmt.Sprintf("custom-session-%d", time.Now().Unix())
 	config.Debug = true
 
@@ -346,7 +346,7 @@ func customSessionConfigurationExample() {
 	// Use the session with specific options
 	options := &client.QueryOptions{
 		SessionID:      session.ID,
-		Model:          types.ModelClaude35SonnetV2,
+		Model:          types.ModelClaude35Sonnet,
 		SystemPrompt:   "You are a helpful programming assistant specializing in Go.",
 		MaxTurns:       3,
 		PermissionMode: client.PermissionModeAcceptEdits,

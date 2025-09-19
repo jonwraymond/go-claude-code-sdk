@@ -81,7 +81,7 @@ type Config struct {
 //	config := &types.ClaudeCodeConfig{
 //		WorkingDirectory: "/path/to/project",
 //		SessionID:        "my-session",
-//		Model:           ModelClaude35SonnetV2,
+//		Model:           ModelClaude35Sonnet,
 //		APIKey:          "your-api-key",
 //	}
 //	client, err := NewClaudeCodeClient(ctx, config)
@@ -528,8 +528,8 @@ const (
 	// DefaultBaseURL is the default Claude Code API base URL
 	DefaultBaseURL = "https://example.com"
 
-	// DefaultModel is the default Claude model to use (updated to latest stable version)
-	DefaultModel = ModelClaude35SonnetV2
+	// DefaultModel is the default Claude model to use (latest stable Claude 3.5 Sonnet)
+	DefaultModel = ModelClaude35Sonnet
 
 	// DefaultMaxTokens is the default maximum tokens for responses
 	DefaultMaxTokens = 4000
@@ -549,33 +549,33 @@ const (
 
 // Model constants for available Claude models
 const (
-	// Latest Claude 4 Models
-	// ModelClaude4Opus is the Claude 4 Opus model (latest and most capable)
-	ModelClaude4Opus = "claude-4-opus-20250514"
+	// Latest Claude 3.5 Models (Current Generation)
+	// ModelClaude35Sonnet20241022 is the latest Claude 3.5 Sonnet model (most capable current model)
+	ModelClaude35Sonnet20241022 = "claude-3-5-sonnet-20241022"
 
-	// Latest Claude 3.7 Models 
-	// ModelClaude37Sonnet is the Claude 3.7 Sonnet model
-	ModelClaude37Sonnet = "claude-3-7-sonnet-20250219"
+	// ModelClaude35Haiku20241022 is the latest Claude 3.5 Haiku model (fast and efficient)
+	ModelClaude35Haiku20241022 = "claude-3-5-haiku-20241022"
 
-	// Latest Claude 3.5 Models
-	// ModelClaude35SonnetV2 is the Claude 3.5 Sonnet v2 model (improved version)
-	ModelClaude35SonnetV2 = "claude-3-5-sonnet-20241022-v2"
+	// Legacy Claude 3.5 Models
+	// ModelClaude35Sonnet20240620 is the earlier Claude 3.5 Sonnet model
+	ModelClaude35Sonnet20240620 = "claude-3-5-sonnet-20240620"
 
-	// ModelClaude35Sonnet is the Claude 3.5 Sonnet model
-	ModelClaude35Sonnet = "claude-3-5-sonnet-20241022"
-
-	// ModelClaude35Haiku is the Claude 3.5 Haiku model (fast and efficient)
-	ModelClaude35Haiku = "claude-3-5-haiku-20241022"
-
-	// Legacy Claude 3 Models (maintained for backwards compatibility)
-	// ModelClaude3Opus is the Claude 3 Opus model
+	// Claude 3 Models (Previous Generation)
+	// ModelClaude3Opus is the Claude 3 Opus model (most capable of Claude 3 family)
 	ModelClaude3Opus = "claude-3-opus-20240229"
 
-	// ModelClaude3Sonnet is the Claude 3 Sonnet model
+	// ModelClaude3Sonnet is the Claude 3 Sonnet model (balanced performance)
 	ModelClaude3Sonnet = "claude-3-sonnet-20240229"
 
-	// ModelClaude3Haiku is the Claude 3 Haiku model
+	// ModelClaude3Haiku is the Claude 3 Haiku model (fastest and most cost-effective)
 	ModelClaude3Haiku = "claude-3-haiku-20240307"
+
+	// Compatibility aliases for common usage
+	// ModelClaude35Sonnet is an alias for the latest Claude 3.5 Sonnet
+	ModelClaude35Sonnet = ModelClaude35Sonnet20241022
+
+	// ModelClaude35Haiku is an alias for the latest Claude 3.5 Haiku
+	ModelClaude35Haiku = ModelClaude35Haiku20241022
 )
 
 // OptionFunc is a function type for configuring clients using the functional options pattern.
