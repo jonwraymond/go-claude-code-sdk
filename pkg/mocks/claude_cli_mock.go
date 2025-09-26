@@ -174,7 +174,7 @@ func (m *ClaudeCLIMock) handleQueryCommand(ctx context.Context, args []string) (
 		session = &SessionState{
 			ID:        sessionID,
 			CreatedAt: time.Now(),
-			Model:     "claude-3-5-sonnet-20241022",
+			Model:     types.ModelClaude35Sonnet,
 			Active:    true,
 		}
 		m.Sessions[sessionID] = session

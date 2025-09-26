@@ -393,6 +393,18 @@ type TokenUsage struct {
 
 	// TotalTokens is the total token count
 	TotalTokens int `json:"total_tokens"`
+
+	// CacheReadInputTokens is the number of input tokens read from cache (Claude 3.5 Sonnet and later)
+	CacheReadInputTokens int `json:"cache_read_input_tokens,omitempty"`
+
+	// CacheCreationInputTokens is the number of input tokens used to create cache (Claude 3.5 Sonnet and later)
+	CacheCreationInputTokens int `json:"cache_creation_input_tokens,omitempty"`
+
+	// WebSearchRequests is the number of web search requests made during processing
+	WebSearchRequests int `json:"web_search_requests,omitempty"`
+
+	// CostUSD is the estimated cost in USD for this usage (if available)
+	CostUSD float64 `json:"cost_usd,omitempty"`
 }
 
 // EventHandler defines the interface for handling streaming events.

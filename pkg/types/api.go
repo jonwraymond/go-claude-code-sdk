@@ -53,6 +53,9 @@ type QueryRequest struct {
 	// MaxTokens sets the maximum number of tokens in the response
 	MaxTokens int `json:"max_tokens"`
 
+	// MaxThinkingTokens sets the maximum number of tokens for thinking/reasoning (Claude 3.5 Sonnet and later)
+	MaxThinkingTokens int `json:"max_thinking_tokens,omitempty"`
+
 	// Temperature controls randomness in the response (0.0 to 1.0)
 	Temperature float64 `json:"temperature,omitempty"`
 

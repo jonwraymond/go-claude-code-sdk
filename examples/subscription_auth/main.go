@@ -17,7 +17,7 @@ func main() {
 	config1 := &types.ClaudeCodeConfig{
 		WorkingDirectory: ".",
 		SessionID:        "subscription-example",
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 		AuthMethod:       types.AuthTypeSubscription,
 	}
 
@@ -46,7 +46,7 @@ func main() {
 	config2 := &types.ClaudeCodeConfig{
 		WorkingDirectory: ".",
 		SessionID:        "auto-detect-example",
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 		// AuthMethod not specified - will be auto-detected
 	}
 
@@ -81,7 +81,7 @@ func main() {
 	config3 := &types.ClaudeCodeConfig{
 		WorkingDirectory: ".",
 		SessionID:        "fallback-example",
-		Model:            "claude-3-5-sonnet-20241022",
+		Model:            types.ModelClaude35Sonnet,
 		APIKey:           "test-api-key-not-real-your-api-key-here", // Replace with your API key
 		AuthMethod:       types.AuthTypeAPIKey,
 	}

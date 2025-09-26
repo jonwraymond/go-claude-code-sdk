@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **NEW**: Support for latest Claude models as of September 2025:
+  - Claude 4.1 Opus (claude-opus-4-1-20250805) - Most capable model available
+  - Claude 4 Opus (claude-4-opus-20250514) - Latest Claude 4 generation
+  - Claude 4 Sonnet (claude-4-sonnet-20250514) - Balanced Claude 4 model
+  - Claude 3.7 Sonnet (claude-3-7-sonnet-20250219) - Advanced Claude 3 series
+  - Claude 3.5 models (maintained for stability)
+- **NEW**: MaxThinkingTokens parameter for enhanced reasoning tasks (Claude 3.5+)
+- **NEW**: Enhanced TokenUsage tracking with cache metrics, web search requests, and cost estimation
+- **NEW**: Comprehensive model comparison and selection guide in documentation
 - Initial release of the Claude Code Go SDK
 - Core client implementation with subprocess-based architecture
 - Session management for conversation persistence
@@ -29,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Feature parity with official Python and TypeScript SDKs
 
 ### Changed
+- **UPDATED**: Added actual latest Claude models (Claude 4, Claude 3.7) that exist as of September 2025
+- **BREAKING**: Default model updated to Claude 4.1 Opus (claude-opus-4-1-20250805) - most capable model available
+- **Updated**: All examples and documentation to showcase latest model capabilities
+- **Enhanced**: TokenUsage struct with additional fields for latest Claude features
 - Consolidated `.examples` directory into `examples` for better visibility and consistency
 
 ### Features

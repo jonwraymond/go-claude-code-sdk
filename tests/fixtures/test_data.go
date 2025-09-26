@@ -106,7 +106,7 @@ var TestResponses = struct {
 				Text: "This is a successful response.",
 			},
 		},
-		Model:      "claude-3-5-sonnet-20241022",
+		Model:      types.ModelClaude35Sonnet,
 		StopReason: "end_turn",
 		Usage: &types.TokenUsage{
 			InputTokens:  50,
@@ -133,7 +133,7 @@ var TestResponses = struct {
 				},
 			},
 		},
-		Model:      "claude-3-5-sonnet-20241022",
+		Model:      types.ModelClaude35Sonnet,
 		StopReason: "tool_use",
 		Usage: &types.TokenUsage{
 			InputTokens:  75,
@@ -149,7 +149,7 @@ var TestResponses = struct {
 				ID:    "msg_stream",
 				Type:  "message",
 				Role:  types.RoleAssistant,
-				Model: "claude-3-5-sonnet-20241022",
+				Model: types.ModelClaude35Sonnet,
 			},
 		},
 		{
@@ -200,7 +200,7 @@ var TestResponses = struct {
 				Text: "Error: Invalid model specified",
 			},
 		},
-		Model: "claude-3-5-sonnet-20241022",
+		Model: types.ModelClaude35Sonnet,
 	},
 	RateLimited: types.QueryResponse{
 		ID:   "msg_rate_limited",
@@ -212,7 +212,7 @@ var TestResponses = struct {
 				Text: "Error: Rate limit exceeded",
 			},
 		},
-		Model: "claude-3-5-sonnet-20241022",
+		Model: types.ModelClaude35Sonnet,
 	},
 	PartialContent: types.QueryResponse{
 		ID:   "msg_partial",
@@ -224,7 +224,7 @@ var TestResponses = struct {
 				Text: "This response was cut off due to...",
 			},
 		},
-		Model:      "claude-3-5-sonnet-20241022",
+		Model:      types.ModelClaude35Sonnet,
 		StopReason: "max_tokens",
 		Usage: &types.TokenUsage{
 			InputTokens:  100,
@@ -253,15 +253,15 @@ var TestConfigs = struct {
 	Invalid     types.ClaudeCodeConfig
 }{
 	Default: types.ClaudeCodeConfig{
-		Model: "claude-3-5-sonnet-20241022",
+		Model: types.ModelClaude35Sonnet,
 	},
 	WithAPIKey: types.ClaudeCodeConfig{
 		APIKey: getTestAPIKey(), // Test fixture, not a real API key
-		Model:  "claude-3-5-sonnet-20241022",
+		Model:  types.ModelClaude35Sonnet,
 	},
 	WithSession: types.ClaudeCodeConfig{
 		SessionID: "550e8400-e29b-41d4-a716-446655440000",
-		Model:     "claude-3-5-sonnet-20241022",
+		Model:     types.ModelClaude35Sonnet,
 	},
 	Custom: types.ClaudeCodeConfig{
 		Model:            "claude-3-opus-20240229",
