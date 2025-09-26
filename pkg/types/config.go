@@ -528,8 +528,8 @@ const (
 	// DefaultBaseURL is the default Claude Code API base URL
 	DefaultBaseURL = "https://example.com"
 
-	// DefaultModel is the default Claude model to use (latest stable Claude 3.5 Sonnet)
-	DefaultModel = ModelClaude35Sonnet
+	// DefaultModel is the default Claude model to use (latest most capable model as of 2025)
+	DefaultModel = ModelClaude4Opus1
 
 	// DefaultMaxTokens is the default maximum tokens for responses
 	DefaultMaxTokens = 4000
@@ -549,18 +549,32 @@ const (
 
 // Model constants for available Claude models
 const (
-	// Latest Claude 3.5 Models (Current Generation)
-	// ModelClaude35Sonnet20241022 is the latest Claude 3.5 Sonnet model (most capable current model)
+	// Claude 4 Models (Latest Generation - 2025)
+	// ModelClaude4Opus1 is the Claude 4.1 Opus model (most capable current model)
+	ModelClaude4Opus1 = "claude-opus-4-1-20250805"
+	
+	// ModelClaude4Opus is the Claude 4 Opus model (highly capable)
+	ModelClaude4Opus = "claude-4-opus-20250514"
+	
+	// ModelClaude4Sonnet is the Claude 4 Sonnet model (balanced performance)
+	ModelClaude4Sonnet = "claude-4-sonnet-20250514"
+
+	// Claude 3.7 Models (Advanced Generation)
+	// ModelClaude37Sonnet is the Claude 3.7 Sonnet model
+	ModelClaude37Sonnet = "claude-3-7-sonnet-20250219"
+
+	// Claude 3.5 Models (Current Stable Generation)
+	// ModelClaude35Sonnet20241022 is the Claude 3.5 Sonnet model
 	ModelClaude35Sonnet20241022 = "claude-3-5-sonnet-20241022"
 
-	// ModelClaude35Haiku20241022 is the latest Claude 3.5 Haiku model (fast and efficient)
+	// ModelClaude35Haiku20241022 is the Claude 3.5 Haiku model (fast and efficient)
 	ModelClaude35Haiku20241022 = "claude-3-5-haiku-20241022"
 
 	// Legacy Claude 3.5 Models
 	// ModelClaude35Sonnet20240620 is the earlier Claude 3.5 Sonnet model
 	ModelClaude35Sonnet20240620 = "claude-3-5-sonnet-20240620"
 
-	// Claude 3 Models (Previous Generation)
+	// Claude 3 Models (Previous Generation - Legacy)
 	// ModelClaude3Opus is the Claude 3 Opus model (most capable of Claude 3 family)
 	ModelClaude3Opus = "claude-3-opus-20240229"
 

@@ -61,7 +61,7 @@ func basicStreamingExample() {
 				Content: "Write a short poem about Go programming language.",
 			},
 		},
-		Model: types.ModelClaude35Sonnet,
+		Model: types.ModelClaude4Opus1, // Use latest most capable model
 	}
 
 	fmt.Printf("Starting streaming query...\n")

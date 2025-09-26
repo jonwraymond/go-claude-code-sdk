@@ -383,27 +383,32 @@ for _, block := range response.Content {
 Switch between different Claude models for different tasks:
 
 ```go
-// Use different models for different purposes
+// Use different models for different purposes (2025 models)
 configs := map[string]*types.ClaudeCodeConfig{
-    "latest": {
-        Model: types.ModelClaude35Sonnet, // Latest and most capable model
+    "maximum": {
+        Model: types.ModelClaude4Opus1, // Latest and most capable model (2025)
         MaxTokens: 8000,
         Temperature: 0.1, // Lower temperature for precise analysis
+    },
+    "advanced": {
+        Model: types.ModelClaude4Sonnet, // Claude 4 balanced performance
+        MaxTokens: 8000,
+        Temperature: 0.2, // Low temperature for reliable results
     },
     "analysis": {
-        Model: types.ModelClaude3Opus, // Most capable for complex analysis
-        MaxTokens: 8000,
+        Model: types.ModelClaude37Sonnet, // Advanced analysis capabilities
+        MaxTokens: 6000,
         Temperature: 0.1, // Lower temperature for precise analysis
     },
-    "balanced": {
-        Model: types.ModelClaude35Sonnet, // Latest stable model (good balance)
+    "production": {
+        Model: types.ModelClaude35Sonnet, // Stable production model
         MaxTokens: 4000,
         Temperature: 0.3, // Balanced temperature
     },
     "fast": {
         Model: types.ModelClaude35Haiku, // Fast and efficient for simple tasks
         MaxTokens: 4000,
-        Temperature: 0.7, // Higher temperature for creativity
+        Temperature: 0.5, // Moderate temperature for efficiency
     },
     "legacy": {
         Model: types.ModelClaude3Opus, // Legacy model for backwards compatibility
@@ -441,37 +446,47 @@ documentation, _ := creativeClient.Query(ctx, &types.QueryRequest{
 
 #### Model Comparison and Selection Guide
 
-The Go Claude SDK supports the latest Claude models from Anthropic. Choose the right model for your use case:
+The Go Claude SDK supports the latest Claude models from Anthropic (as of September 2025). Choose the right model for your use case:
 
 | Model | Constant | Use Cases | Performance | Features |
 |-------|----------|-----------|-------------|----------|
-| **Claude 3.5 Sonnet** | `types.ModelClaude35Sonnet` | General purpose, balanced tasks | Excellent capability, good speed | **Default model**, latest and most capable |
-| **Claude 3.5 Haiku** | `types.ModelClaude35Haiku` | Simple tasks, quick responses | Good capability, fastest | Efficient, cost-effective |
-| **Claude 3 Opus** | `types.ModelClaude3Opus` | Complex reasoning, creative tasks | Highest capability of Claude 3 family | Most capable legacy model |
-| **Claude 3 Sonnet** | `types.ModelClaude3Sonnet` | Balanced performance tasks | Good capability, balanced | Stable legacy option |
-| **Claude 3 Haiku** | `types.ModelClaude3Haiku` | High-volume, simple tasks | Lower capability, fastest | Most cost-effective |
+| **Claude 4.1 Opus** | `types.ModelClaude4Opus1` | Most demanding tasks, research | Highest capability available | **Default model**, most capable (2025) |
+| **Claude 4 Opus** | `types.ModelClaude4Opus` | Complex reasoning, analysis | Very high capability | Latest Claude 4 generation |
+| **Claude 4 Sonnet** | `types.ModelClaude4Sonnet` | Balanced high-performance tasks | High capability, good speed | Claude 4 balanced model |
+| **Claude 3.7 Sonnet** | `types.ModelClaude37Sonnet` | Advanced analysis, coding | High capability, efficient | Advanced Claude 3 series |
+| **Claude 3.5 Sonnet** | `types.ModelClaude35Sonnet` | General purpose, production | Good capability, reliable | Stable for production |
+| **Claude 3.5 Haiku** | `types.ModelClaude35Haiku` | Simple tasks, high volume | Good capability, fastest | Most efficient |
+| **Claude 3 Opus** | `types.ModelClaude3Opus` | Legacy complex tasks | High capability (legacy) | Most capable Claude 3 |
 
 **Model Selection Tips:**
 
 ```go
-// For maximum capability (complex reasoning, creative tasks)
+// For maximum capability (research, most complex tasks) - LATEST
 config := &types.ClaudeCodeConfig{
-    Model: types.ModelClaude3Opus, // Most capable model
+    Model: types.ModelClaude4Opus1, // Latest and most capable model (2025)
     MaxTokens: 8000,
     MaxThinkingTokens: 2000, // Enable reasoning tokens
     Temperature: 0.1,
 }
 
-// For production applications (balanced performance) - RECOMMENDED
+// For high-performance balanced tasks
 config := &types.ClaudeCodeConfig{
-    Model: types.ModelClaude35Sonnet, // Latest and default model
+    Model: types.ModelClaude4Sonnet, // Claude 4 balanced performance
+    MaxTokens: 8000,
+    MaxThinkingTokens: 1000,
+    Temperature: 0.2,
+}
+
+// For production applications (stable, proven performance)
+config := &types.ClaudeCodeConfig{
+    Model: types.ModelClaude35Sonnet, // Stable and reliable for production
     MaxTokens: 4000,
     Temperature: 0.3,
 }
 
 // For high-volume, simple tasks (cost optimization)
 config := &types.ClaudeCodeConfig{
-    Model: types.ModelClaude35Haiku,
+    Model: types.ModelClaude35Haiku, // Most efficient and cost-effective
     MaxTokens: 2000,
     Temperature: 0.5,
 }
@@ -895,11 +910,14 @@ Error: context deadline exceeded while streaming
    // For simple queries - fastest and most efficient
    config.Model = types.ModelClaude35Haiku
    
-   // For balanced performance - latest stable model
+   // For balanced performance - stable production model
    config.Model = types.ModelClaude35Sonnet
    
-   // For complex analysis - most capable model
-   config.Model = types.ModelClaude3Opus
+   // For advanced tasks - latest Claude 4 models
+   config.Model = types.ModelClaude4Sonnet
+   
+   // For maximum capability - most capable model (2025)
+   config.Model = types.ModelClaude4Opus1
    ```
 3. **Implement connection pooling** for multiple clients:
    ```go
